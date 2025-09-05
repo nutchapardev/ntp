@@ -7,6 +7,11 @@ const sidebarItem = [
   },
   { header: "SYSTEM" },
   {
+    title: "ซ่อมรถยนต์",
+    icon: "bill-check-outline",
+    to: "/system/repairs",
+  },
+  {
     title: "ใบเสนอราคา",
     icon: "bill-check-outline",
     to: "/system/invoices",

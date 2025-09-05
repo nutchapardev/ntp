@@ -1,12 +1,12 @@
 <script>
-import { RouterView } from "vue-router";
-import VerticalSidebarVue from "./full/vertical-sidebar/VerticalSidebar.vue";
-import VerticalHeaderVue from "./full/vertical-header/VerticalHeader.vue";
-import HorizontalHeader from "./full/horizontal-header/HorizontalHeader.vue";
-import HorizontalSidebar from "./full/horizontal-sidebar/HorizontalSidebar.vue";
-import Customizer from "./full/customizer/Customizer.vue";
-import { useCustomizerStore } from "@/stores/customizer";
-import { SettingsIcon } from "vue-tabler-icons";
+import { RouterView } from "vue-router"
+import VerticalSidebarVue from "./full/vertical-sidebar/VerticalSidebar.vue"
+import VerticalHeaderVue from "./full/vertical-header/VerticalHeader.vue"
+import HorizontalHeader from "./full/horizontal-header/HorizontalHeader.vue"
+import HorizontalSidebar from "./full/horizontal-sidebar/HorizontalSidebar.vue"
+import Customizer from "./full/customizer/Customizer.vue"
+import { useCustomizerStore } from "@/stores/customizer"
+import { SettingsIcon } from "vue-tabler-icons"
 
 export default {
   name: "DefaultLayout",
@@ -20,12 +20,12 @@ export default {
     SettingsIcon,
   },
   setup() {
-    const customizer = useCustomizerStore();
+    const customizer = useCustomizerStore()
     return {
       customizer,
-    };
+    }
   },
-};
+}
 </script>
 
 <template>

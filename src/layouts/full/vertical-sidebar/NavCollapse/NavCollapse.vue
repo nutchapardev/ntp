@@ -1,5 +1,5 @@
 <script>
-import NavItem from "../NavItem/index.vue";
+import NavItem from "../NavItem/index.vue"
 
 export default {
   name: "NavCollapse", // สำคัญมากสำหรับการเรียกใช้งานตัวเอง (Recursive)
@@ -10,7 +10,7 @@ export default {
   components: {
     NavItem,
   },
-};
+}
 </script>
 
 <template>

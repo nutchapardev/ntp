@@ -1,9 +1,9 @@
 <script>
-import { useCustomizerStore } from "@/stores/customizer";
-import HorizontalItems from "./horizontalItems";
-import NavItem from "./NavItem/Index.vue";
-import NavCollapse from "./NavCollapse/Index.vue";
-import VerticalSidebar from "../vertical-sidebar/VerticalSidebar.vue";
+import { useCustomizerStore } from "@/stores/customizer"
+import HorizontalItems from "./horizontalItems"
+import NavItem from "./NavItem/Index.vue"
+import NavCollapse from "./NavCollapse/Index.vue"
+import VerticalSidebar from "../vertical-sidebar/VerticalSidebar.vue"
 
 export default {
   name: "HorizontalSidebar",
@@ -13,18 +13,18 @@ export default {
     VerticalSidebar,
   },
   data() {
-    const customizer = useCustomizerStore();
+    const customizer = useCustomizerStore()
     return {
       customizer,
       sidebarMenu: HorizontalItems,
-    };
+    }
   },
   computed: {
     mdAndUp() {
-      return this.$vuetify.display.mdAndUp;
+      return this.$vuetify.display.mdAndUp
     },
   },
-};
+}
 </script>
 
 <template>

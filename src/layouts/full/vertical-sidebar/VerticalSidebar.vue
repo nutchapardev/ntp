@@ -1,14 +1,14 @@
 <script>
-import { useCustomizerStore } from "@/stores/customizer";
-import sidebarItems from "./sidebarItem";
+import { useCustomizerStore } from "@/stores/customizer"
+import sidebarItems from "./sidebarItem"
 
-import NavGroup from "./NavGroup/index.vue";
-import NavItem from "./NavItem/index.vue";
-import NavCollapse from "./NavCollapse/NavCollapse.vue";
-import Logo from "../logo/Logo.vue";
-import { useAuthStore } from "@/stores/auth";
-import { PowerIcon } from "vue-tabler-icons";
-import SidebarProfile from "../vertical-header/SidebarProfile.vue";
+import NavGroup from "./NavGroup/index.vue"
+import NavItem from "./NavItem/index.vue"
+import NavCollapse from "./NavCollapse/NavCollapse.vue"
+import Logo from "../logo/Logo.vue"
+import { useAuthStore } from "@/stores/auth"
+import { PowerIcon } from "vue-tabler-icons"
+import SidebarProfile from "../vertical-header/SidebarProfile.vue"
 
 export default {
   name: "VerticalSidebar",
@@ -21,15 +21,15 @@ export default {
     SidebarProfile,
   },
   data() {
-    const customizer = useCustomizerStore();
-    const authStore = useAuthStore();
+    const customizer = useCustomizerStore()
+    const authStore = useAuthStore()
     return {
       customizer,
       authStore,
       sidebarMenu: sidebarItems,
-    };
+    }
   },
-};
+}
 </script>
 
 <template>

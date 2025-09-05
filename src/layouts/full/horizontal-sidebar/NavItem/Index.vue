@@ -1,5 +1,5 @@
 <script>
-import { Icon } from "@iconify/vue";
+import { Icon } from "@iconify/vue"
 
 export default {
   name: "NavItem",
@@ -10,7 +10,7 @@ export default {
   components: {
     Icon,
   },
-};
+}
 </script>
 
 <template>

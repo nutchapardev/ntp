@@ -1,6 +1,6 @@
 <script>
-import NavItem from "../NavItem/Index.vue";
-import { Icon } from "@iconify/vue";
+import NavItem from "../NavItem/Index.vue"
+import { Icon } from "@iconify/vue"
 
 export default {
   name: "NavCollapse", // สำคัญมากสำหรับการเรียกใช้งานตัวเอง (Recursive)
@@ -13,7 +13,7 @@ export default {
     Icon,
     // ไม่ต้องลงทะเบียน NavCollapse ที่นี่ เพราะการตั้งชื่อ (name) ทำให้ Vue รู้จักแล้ว
   },
-};
+}
 </script>
 
 <template>
