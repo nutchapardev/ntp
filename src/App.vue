@@ -5,19 +5,19 @@
 </template>
 
 <script>
-import { useAuthStore } from "@/stores/authStore";
+import { useAuthStore } from "@/stores/authStore"
 export default {
   name: "App",
   data() {
-    const authStore = useAuthStore();
+    const authStore = useAuthStore()
     return {
       authStore,
-    };
+    }
   },
   async created() {
-    await this.authStore.restorelogin();
+    await this.authStore.restorelogin()
   },
-};
+}
 </script>
 
 <style>
@@ -27,5 +27,8 @@ html div {
   font-family: "Itim", cursive;
   font-family: "K2D", sans-serif;
   /* background-color: red; */
+}
+.swal2-container {
+  z-index: 99999 !important;
 }
 </style>

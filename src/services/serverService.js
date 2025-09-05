@@ -1,23 +1,25 @@
-import router from "@/router";
-import httpClient from "./httpClient";
-import { server, message } from "@/services/constants";
-import * as authApis from "@/services/apis/api_auth";
-import * as customerApis from "@/services/apis/api_customer";
+import router from "@/router"
+import httpClient from "./httpClient"
+import { server, message } from "@/services/constants"
+import * as authApis from "@/services/apis/api_auth"
+import * as customerApis from "@/services/apis/api_customer"
+import * as addressApis from "@/services/apis/api_address"
+import * as subDistrictApis from "@/services/apis/api_subdistrict"
 
 const login = async (values) => {
-  const resultLogin = await httpClient.post(server.LOGIN_URL, values);
-  return resultLogin.data;
-};
+  const resultLogin = await httpClient.post(server.LOGIN_URL, values)
+  return resultLogin.data
+}
 
 const isLoggedIn = async () => {
-  const resultRestoreLogin = await httpClient.get(server.RESTORE_LOGIN);
-  return resultRestoreLogin.data;
-};
+  const resultRestoreLogin = await httpClient.get(server.RESTORE_LOGIN)
+  return resultRestoreLogin.data
+}
 
 const logoff = async () => {
-  localStorage.removeItem(server.TOKEN_KEY);
-  return true;
-};
+  localStorage.removeItem(server.TOKEN_KEY)
+  return true
+}
 
 export default {
   login,
@@ -25,4 +27,6 @@ export default {
   isLoggedIn,
   ...authApis,
   ...customerApis,
-};
+  ...addressApis,
+  ...subDistrictApis,
+}

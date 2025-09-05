@@ -1,9 +1,11 @@
 <script>
-import { nextTick } from "vue";
-import BaseBreadcrumb from "@/components/shared/BaseBreadcrumb.vue";
-import UiParentCard from "@/components/shared/UiParentCard.vue";
-import serverService from "@/services/serverService";
-import { server } from "@/services/constants";
+import { nextTick } from "vue"
+import BaseBreadcrumb from "@/components/shared/BaseBreadcrumb.vue"
+import UiParentCard from "@/components/shared/UiParentCard.vue"
+import serverService from "@/services/serverService"
+import Swal from "sweetalert2"
+import { getNumberOfDigits, getRandomColor } from "@/utils/functions"
+// import { sub } from "date-fns"
 
 export default {
   name: "Customers",
@@ -13,6 +15,7 @@ export default {
   },
   data() {
     return {
+      getRandomColor,
       page: { title: "Customers" },
       breadcrumbs: [
         {
@@ -28,6 +31,8 @@ export default {
       ],
       dialog: false,
       dialogDelete: false,
+      dialogAddAddress: false,
+      dialogDeleteAddress: false,
       headers: [
         {
           title: "#ID",
@@ -43,197 +48,307 @@ export default {
         },
         { title: "รหัสประจำตัวประชาชน", key: "IDNumber" },
         { title: "เบอร์โทรศัพท์", key: "CustomerTel" },
+        { title: "รถยนต์", key: "cars" },
         { title: "Actions", key: "actions", sortable: false },
       ],
       customers: [],
       editedIndex: -1,
       editedItem: {
-        // CustomerID: 1,
-        CustomerTitleID: 2,
+        CustomerTitleID: 99,
         CustomerName: "",
         CustomerSurname: "",
         IDNumber: null,
         CustomerTel: null,
-        addresses: [],
-        // subDistrictID: null,
-        // districtID: null,
-        // provinceID: null,
+        addresses: [
+          // {
+          //   AddressTypeID: 1,
+          //   DistrictID: 1001,
+          //   Line1: "11",
+          //   Line2: "22",
+          //   ProvinceID: 10,
+          //   SubDistrictID: 100101,
+          // },
+        ],
       },
       defaultItem: {
-        // titleID: 1,
-        CustomerTitleID: 2,
+        CustomerTitleID: 99,
         CustomerName: "",
         CustomerSurname: "",
         IDNumber: null,
         CustomerTel: null,
         addresses: [],
+      },
+      addressForAdd: {
+        Line1: "",
+        Line2: "",
+        SubDistrictID: null,
+      },
+      defaultAddressForAdd: {
+        Line1: "",
+        Line2: "",
+        SubDistrictID: null,
       },
       title_items: [
         { title: "นาย", value: 1 },
         { title: "นาง", value: 2 },
         { title: "นางสาว", value: 3 },
-        { title: "ไม่ระบุ", value: 4 },
+        { title: "ไม่ระบุ", value: 99 },
       ],
-      districtItems: [
-        { title: "ไม่ระบุ", value: 1 },
-        { title: "เขตบางรัก", value: 2 },
-        { title: "เขตบางคอแหลม", value: 3 },
-        { title: "เขตบางนา", value: 4 },
-        { title: "เขตบางพลัด", value: 5 },
-      ],
-      subDistrictItems: [
-        { title: "ไม่ระบุ", value: 1 },
-        { title: "แขวงบางรัก", value: 2 },
-        { title: "แขวงบางคอแหลม", value: 3 },
-        { title: "แขวงบางนา", value: 4 },
-        { title: "แขวงบางพลัด", value: 5 },
-      ],
-      provinceItems: [
-        { title: "ไม่ระบุ", value: 1 },
-        { title: "กรุงเทพมหานคร", value: 2 },
-        { title: "นนทบุรี", value: 3 },
-        { title: "ปทุมธานี", value: 4 },
-        { title: "สมุทรปราการ", value: 5 },
-      ],
-      allZipcodeItems: [
-        {
-          title: "แขวงจอมพล >> เขตจตุจักร >> กรุงเทพมหานคร >> 10900",
-          value: 1,
-        },
-        {
-          title: "แขวงบางรัก >> เขตบางรัก >> กรุงเทพมหานคร >> 10500",
-          value: 2,
-        },
-        {
-          title: "แขวงบางคอแหลม >> เขตบางคอแหลม >> กรุงเทพมหานคร >> 10120",
-          value: 3,
-        },
-        { title: "แขวงบางนา >> เขตบางนา >> กรุงเทพมหานคร >> 10260", value: 4 },
-        {
-          title: "แขวงบางพลัด >> เขตบางพลัด >> กรุงเทพมหานคร >> 10700",
-          value: 5,
-        },
-      ],
-    };
+      subDistrictItems: [],
+    }
   },
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? "เพิ่มข้อมูล" : "แก้ไขข้อมูล";
+      return this.editedIndex === -1 ? "เพิ่มข้อมูล" : "แก้ไขข้อมูล"
     },
   },
   watch: {
     dialog(val) {
-      val || this.close();
+      val || this.close()
     },
     dialogDelete(val) {
-      val || this.closeDelete();
+      val || this.closeDelete()
     },
   },
   created() {
-    this.initialize();
+    this.initialize()
   },
   methods: {
-    deleteAddress(AddressID) {
-      alert("delete address " + AddressID);
+    async addAddress() {
+      const { SubDistrictID } = this.addressForAdd
+      if (this.editedIndex === -1) {
+        // console.log("เพิ่มข้อมูล")
+        let payload = {
+          DistrictID: getNumberOfDigits(SubDistrictID, 4, true),
+          ProvinceID: getNumberOfDigits(SubDistrictID, 2, true),
+          // AddressTypeID: 1,
+          ...this.addressForAdd,
+        }
+
+        this.editedItem.addresses.push(payload)
+        this.closeDialogAddAddress()
+      } else {
+        // console.log("แก้ไขข้อมูล")
+        if (!this.addressForAdd.Line1) {
+          Swal.fire({
+            icon: "warning",
+            text: "กรุณาเพิ่มที่อยู่บรรทัดที่ 1",
+            showConfirmButton: false,
+            timer: 1500,
+          })
+          return
+        }
+        let payload = {
+          OwnerID: this.editedItem.CustomerID,
+          DistrictID: getNumberOfDigits(SubDistrictID, 4, true),
+          ProvinceID: getNumberOfDigits(SubDistrictID, 2, true),
+          AddressTypeID: 1,
+          ...this.addressForAdd,
+        }
+        const response = await serverService.addAddress(payload)
+
+        if (response.data.result) {
+          payload = {
+            ...payload,
+            AddressID: response.data.dataValues.AddressID,
+          }
+        }
+        this.editedItem.addresses.push(payload)
+        this.closeDialogEditAddress()
+      }
+    },
+    async deleteAddress(AddressID, index) {
+      if (this.editedIndex === -1) {
+        this.editedItem.addresses = this.editedItem.addresses.splice(
+          index - 1,
+          1
+        )
+        // console.log("remove item in local")
+        return
+      } else {
+        Swal.fire({
+          title: "Are you sure?",
+          text: "You won't be able to revert this!",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#3085d6",
+          cancelButtonColor: "#d33",
+          confirmButtonText:
+            "<span style='color:white;'>Yes, delete it!</span>",
+          cancelButtonText: "<span style='color:white;'>Cancel</span>",
+        }).then(async (result) => {
+          if (result.isConfirmed) {
+            const response = (
+              await serverService.deleteAddressByAddressID(AddressID)
+            ).data
+            if (response.result) {
+              this.editedItem.addresses = this.editedItem.addresses.filter(
+                (item) => item.AddressID !== AddressID
+              )
+            } else {
+              Swal.fire({
+                title: "Error!",
+                text: response.message,
+                icon: "error",
+              })
+            }
+            Swal.fire({
+              title: "Deleted!",
+              text: "Your data has been deleted.",
+              icon: "success",
+            })
+          }
+        })
+      }
     },
     async getCustomers() {
       try {
-        const response = await serverService.getAllCustomers();
-        console.log(response.data);
-
-        this.customers = response.data;
+        const response = await serverService.getAllCustomers()
+        this.customers = response.data
       } catch (error) {
-        console.error("Error fetching customers:", error);
+        console.error("Error fetching customers:", error)
+      }
+    },
+    async getSubDistricts() {
+      try {
+        const response = await serverService.getAllSubDistricts()
+        this.subDistrictItems = response.data
+      } catch (error) {
+        console.error("Error fetching sub-districts:", error)
       }
     },
     initialize() {
-      this.getCustomers();
-      // this.customers = [
-      //   {
-      //     id: 1,
-      //     titleID: 2,
-      //     title: "นาย",
-      //     firstName: "สมชาย",
-      //     lastName: "สมบูรณ์",
-      //     idNumber: "1419900237118",
-      //     tel: "0892456337",
-      //   },
-      //   {
-      //     id: 2,
-      //     titleID: 2,
-      //     title: "นาย",
-      //     firstName: "สมศักดิ์",
-      //     lastName: "สมบูรณ์",
-      //     idNumber: "1419900237118",
-      //     tel: "0892456337",
-      //   },
-      //   {
-      //     id: 3,
-      //     titleID: 4,
-      //     title: "นางสาว",
-      //     firstName: "สมหญิง",
-      //     lastName: "สมบูรณ์",
-      //     idNumber: "1419900237118",
-      //     tel: "0892456337",
-      //   },
-      //   {
-      //     id: 4,
-      //     titleID: 4,
-      //     title: "นางสาว",
-      //     firstName: "สมใจ",
-      //     lastName: "สมบูรณ์",
-      //     idNumber: "1419900237118",
-      //     tel: "0892456337",
-      //   },
-      //   {
-      //     id: 5,
-      //     titleID: 2,
-      //     title: "นาย",
-      //     firstName: "สมปอง",
-      //     lastName: "สมบูรณ์",
-      //     idNumber: "1419900237118",
-      //     tel: "0892456337",
-      //   },
-      // ];
+      this.getCustomers()
+      this.getSubDistricts()
     },
     editItem(item) {
-      this.editedIndex = this.customers.indexOf(item);
-      this.editedItem = Object.assign({}, item);
-      this.dialog = true;
+      this.editedIndex = this.customers.indexOf(item)
+      this.editedItem = Object.assign({}, item)
+      this.dialog = true
     },
     deleteItem(item) {
-      this.editedIndex = this.customers.indexOf(item);
-      this.editedItem = Object.assign({}, item);
-      this.dialogDelete = true;
+      Swal.fire({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "<span style='color:white;'>Yes, delete it!</span>",
+        cancelButtonText: "<span style='color:white;'>Cancel</span>",
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          const response = await serverService.deleteCustomerByID(
+            item.CustomerID
+          )
+          if (response.data.result) {
+            this.getCustomers()
+          } else {
+            Swal.fire({
+              title: "Error!",
+              text: response.data.message,
+              icon: "error",
+            })
+            return
+          }
+
+          Swal.fire({
+            title: "Deleted!",
+            text: "Your data has been deleted.",
+            icon: "success",
+          })
+        }
+      })
     },
     deleteItemConfirm() {
-      this.customers.splice(this.editedIndex, 1);
-      this.closeDelete();
+      this.customers.splice(this.editedIndex, 1)
+      this.closeDelete()
     },
     close() {
-      this.dialog = false;
+      this.dialog = false
       nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem);
-        this.editedIndex = -1;
-      });
+        this.editedItem = Object.assign({}, this.defaultItem)
+        this.editedIndex = -1
+      })
+    },
+    closeDialogEditAddress() {
+      this.dialogAddAddress = false
+      nextTick(() => {
+        this.addressForAdd = Object.assign({}, this.defaultAddressForAdd)
+        // this.editedIndex = -1
+      })
+    },
+    closeDialogAddAddress() {
+      this.dialogAddAddress = false
+      nextTick(() => {
+        this.addressForAdd = Object.assign({}, this.defaultAddressForAdd)
+        // this.editedIndex = -1
+      })
     },
     closeDelete() {
-      this.dialogDelete = false;
+      this.dialogDelete = false
       nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem);
-        this.editedIndex = -1;
-      });
+        this.editedItem = Object.assign({}, this.defaultItem)
+        this.editedIndex = -1
+      })
     },
-    save() {
-      if (this.editedIndex > -1) {
-        Object.assign(this.customers[this.editedIndex], this.editedItem);
-      } else {
-        this.customers.push(this.editedItem);
+    async save() {
+      if (this.editedItem.CustomerName.length === 0) {
+        Swal.fire({
+          icon: "warning",
+          text: "กรุณาเพิ่มชื่อจริง",
+          showConfirmButton: false,
+          timer: 1500,
+        })
+        return
       }
-      this.close();
+      if (this.editedIndex > -1) {
+        // console.log("edit data in this section.")
+        const response = await serverService.editCustomerByID(
+          this.editedItem.CustomerID,
+          this.editedItem
+        )
+        if (response.data.result) {
+          this.getCustomers()
+          this.close()
+          Swal.fire({
+            icon: "success",
+            text: "แก้ไขข้อมูลเรียบร้อย",
+            showConfirmButton: false,
+            timer: 1500,
+          })
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "Error!",
+            text: response.data.message,
+          })
+        }
+      } else {
+        const response = await serverService.addCustomersAndAddresses(
+          this.editedItem
+        )
+        if (response.data.result) {
+          this.getCustomers()
+          this.close()
+          Swal.fire({
+            icon: "success",
+            text: "บันทึกข้อมูลเรียบร้อย",
+            showConfirmButton: false,
+            timer: 1500,
+          })
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "Error!",
+            text: response.data.message,
+          })
+        }
+      }
+      // this.close()
     },
   },
-};
+}
 </script>
 
 <template>
@@ -300,57 +415,11 @@ export default {
                             label="เบอร์โทรศัพท์"
                           ></v-text-field>
                         </v-col>
-                        <!-- <v-col cols="12">
-                          <v-text-field label="ที่อยู่"></v-text-field>
-                        </v-col> -->
-
-                        <!-- <v-col cols="12" class="d-flex align-center">
-                          <v-autocomplete
-                            prepend-inner-icon="mdi-magnify"
-                            label="ค้นหา"
-                            v-model="editedItem.subDistrictID"
-                            :items="allZipcodeItems"
-                            color="primary"
-                            variant="outlined"
-                            hide-details
-                          ></v-autocomplete>
-                        </v-col> -->
-
-                        <!-- <v-col cols="12" sm="6" md="4">
-                          <v-autocomplete
-                            label="แขวง/ตำบล"
-                            v-model="editedItem.subDistrictID"
-                            :items="subDistrictItems"
-                            color="primary"
-                            variant="outlined"
-                            hide-details
-                          ></v-autocomplete>
-                        </v-col>
-                        <v-col cols="12" sm="6" md="4">
-                          <v-autocomplete
-                            label="เขต/อำเภอ"
-                            v-model="editedItem.districtID"
-                            :items="districtItems"
-                            color="primary"
-                            variant="outlined"
-                            hide-details
-                          ></v-autocomplete>
-                        </v-col>
-                        <v-col cols="12" sm="6" md="4">
-                          <v-autocomplete
-                            label="จังหวัด"
-                            v-model="editedItem.provinceID"
-                            :items="provinceItems"
-                            color="primary"
-                            variant="outlined"
-                            hide-details
-                          ></v-autocomplete>
-                        </v-col> -->
                       </v-row>
                       <v-row>
                         <v-col cols="12">
                           <v-alert
-                            v-for="item in editedItem.addresses"
+                            v-for="(item, index) in editedItem.addresses"
                             :key="item.AddressID"
                             variant="tonal"
                             class="bg-secondary mb-3"
@@ -362,16 +431,49 @@ export default {
                               {{ item.Line1 }} {{ item.Line2 }}
                             </div>
                             <div style="font-size: 0.875rem">
-                              แขวง{{ item.subDistrict.name_th }} เขต{{
+                              {{
+                                subDistrictItems.find(
+                                  (sub) =>
+                                    sub.SubDistrictID === item.SubDistrictID
+                                )?.name_th || "ไม่พบข้อมูล"
+                              }}
+                              |
+                              {{
+                                subDistrictItems.find(
+                                  (sub) =>
+                                    sub.SubDistrictID === item.SubDistrictID
+                                )?.district.name_th || "ไม่พบข้อมูล"
+                              }}
+                              |
+                              {{
+                                subDistrictItems.find(
+                                  (sub) =>
+                                    sub.SubDistrictID === item.SubDistrictID
+                                )?.district.province.name_th || "ไม่พบข้อมูล"
+                              }},
+                              {{
+                                subDistrictItems.find(
+                                  (sub) =>
+                                    sub.SubDistrictID === item.SubDistrictID
+                                )?.Zipcode || "ไม่พบข้อมูล"
+                              }}
+                              <!-- {{
+                                subDistrictItems.find(
+                                  (sub) =>
+                                    sub.SubDistrictID ===
+                                    item.subDistrict.SubDistrictID
+                                )?.province.name_th || "ไม่พบข้อมูล"
+                              }} -->
+                              <!-- แขวง{{ item.subDistrict.name_th }} เขต{{
                                 item.district.name_th
                               }}
                               {{ item.province.name_th }},
-                              {{ item.subDistrict.Zipcode }}
+                              {{ item.subDistrict.Zipcode }} -->
                             </div>
                             <template v-slot:close>
                               <v-btn
                                 icon
-                                @click="deleteAddress(item.AddressID)"
+                                @click="deleteAddress(item.AddressID, index)"
                               >
                                 <v-icon>mdi-close</v-icon>
                               </v-btn>
@@ -383,15 +485,25 @@ export default {
                   </v-card-text>
 
                   <v-card-actions>
-                    <v-btn color="primary" variant="flat" dark>
-                      <v-icon>mdi-plus</v-icon>Address
+                    <v-btn
+                      color="primary"
+                      dark
+                      @click="dialogAddAddress = true"
+                    >
+                      <v-icon>mdi-plus</v-icon>เพิ่มที่อยู่
                     </v-btn>
                     <v-spacer></v-spacer>
                     <v-btn color="error" variant="flat" dark @click="close">
-                      Cancel
+                      ยกเลิก
                     </v-btn>
-                    <v-btn color="success" variant="flat" dark @click="save">
-                      Save
+                    <v-btn
+                      color="success"
+                      class="ml-3"
+                      variant="flat"
+                      dark
+                      @click="save"
+                    >
+                      บันทึก
                     </v-btn>
                   </v-card-actions>
                 </v-card>
@@ -427,6 +539,28 @@ export default {
             {{ item.customerTitle.CustomerTitle }} {{ item.CustomerName }}
             {{ item.CustomerSurname }}
           </template>
+          <template v-slot:item.cars="{ item }">
+            <!-- {{ item.cars.length }} คัน -->
+            <v-chip
+              v-for="(car, index) in item.cars"
+              :key="index"
+              rounded="pill"
+              class="font-weight-bold"
+              :color="getRandomColor()"
+              size="small"
+              label
+            >
+              {{ car.CarTitle }}
+              {{ car.CarNumber }}
+              <v-tooltip activator="parent" location="top">
+                {{ car.CarTitle }}{{ car.CarNumber }}<br />
+                {{ car.province.name_th }}<br />
+                {{ car.brand.Brand }} ({{ car.model.Model }})<br />
+                หมายเลขตัวถัง : {{ car.VIN }}<br />
+                หมายเลขเครื่องยนต์ : {{ car.EC }}<br />
+              </v-tooltip>
+            </v-chip>
+          </template>
           <template v-slot:item.actions="{ item }">
             <v-icon
               color="info"
@@ -445,6 +579,109 @@ export default {
           </template>
         </v-data-table>
       </UiParentCard>
+      <!-- dialod delete address -->
+      <v-dialog v-model="dialogDeleteAddress" height="200px" width="400px">
+        <v-card>
+          <v-card-text class="d-flex justify-center align-center">
+            ท่านต้องการลบที่อยู่นี้ใช่หรือไม่?
+          </v-card-text>
+          <v-card-actions>
+            <div class="d-flex">
+              <v-btn color="secondary" @click="dialogDeleteAddress = false" flat
+                >ยกเลิก</v-btn
+              >
+              <v-spacer></v-spacer>
+              <v-btn
+                class="ml-3"
+                color="error"
+                variant="flat"
+                @click="dialogDeleteAddress = false"
+                flat
+                >ลบข้อมูล</v-btn
+              >
+            </div>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+      <!-- dialod delete address -->
+      <!-- dialod add address -->
+      <v-dialog v-model="dialogAddAddress" height="auto" width="600px">
+        <v-card>
+          <v-card-text class="d-flex justify-center align-center">
+            <!-- ท่านต้องการลบที่อยู่นี้ใช่หรือไม่? -->
+            <v-row class="mt-3"
+              ><v-col cols="12">
+                <v-text-field
+                  v-model="addressForAdd.Line1"
+                  label="ที่อยู่บรรทัดที่ 1"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12">
+                <v-text-field
+                  v-model="addressForAdd.Line2"
+                  label="ที่อยู่บรรทัดที่ 2"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12">
+                <v-autocomplete
+                  prepend-inner-icon="mdi-magnify"
+                  label="ค้นหา"
+                  v-model="addressForAdd.SubDistrictID"
+                  :items="subDistrictItems"
+                  item-title="name_th"
+                  item-value="SubDistrictID"
+                  color="primary"
+                  variant="outlined"
+                  hide-details
+                >
+                  <template v-slot:item="{ props, item }">
+                    <v-list-item
+                      v-bind="props"
+                      :title="`${item.raw.name_th} >> ${item.raw.district.name_th} >> ${item.raw.district.province.name_th}, ${item.raw.Zipcode}`"
+                    >
+                    </v-list-item>
+                  </template>
+                  <template v-slot:selection="{ item }">
+                    <span>
+                      {{ item.raw.name_th }} >>
+                      {{ item.raw.district.name_th }} >>
+                      {{ item.raw.district.province.name_th }},
+                      {{ item.raw.Zipcode }}
+                    </span>
+                  </template>
+                </v-autocomplete>
+              </v-col></v-row
+            >
+          </v-card-text>
+          <v-card-actions>
+            <div class="d-flex">
+              <v-btn color="secondary" @click="dialogAddAddress = false" flat
+                >ยกเลิก</v-btn
+              >
+              <v-spacer></v-spacer>
+              <v-btn
+                class="ml-3"
+                color="error"
+                variant="flat"
+                @click="addAddress"
+                flat
+                >บันทึกที่อยู่</v-btn
+              >
+            </div>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+      <!-- dialod delete address -->
     </v-col>
   </v-row>
 </template>
+
+<style scoped>
+.chip-activator {
+  position: relative;
+  min-height: 28px; /* ความสูงของ v-chip size="small" + padding เล็กน้อย */
+  min-width: 150px; /* ความกว้างขั้นต่ำเพื่อไม่ให้ UI กระโดด */
+  cursor: pointer;
+  display: inline-block;
+}
+</style>

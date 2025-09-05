@@ -1,6 +1,6 @@
 <script>
-import { useAuthStore } from "@/stores/authStore";
-import { Form } from "vee-validate";
+import { useAuthStore } from "@/stores/authStore"
+import { Form } from "vee-validate"
 
 /*Social icons*/
 // import google from "@/assets/images/svgs/google-icon.svg";
@@ -22,31 +22,29 @@ export default {
       password: "password",
       passwordRules: [
         (v) => !!v || "Password is required",
-        (v) =>
-          (v && v.length <= 10) || "Password must be less than 10 characters",
+        // (v) => (v && v.length < 8) || "Password must be less than 8 characters",
       ],
-      emailRules: [
-        (v) => !!v || "E-mail is required",
-        (v) => /.+@.+\..+/.test(v) || "E-mail must be valid",
+      usernameRules: [
+        (v) => !!v || "Username is required",
+        // (v) => /.+@.+\..+/.test(v) || "E-mail must be valid",
       ],
 
       // ทำให้ icon ใช้งานใน template ได้
       // google: google,
       // facebook: facebook,
-    };
+    }
   },
 
   // 3. ย้ายฟังก์ชันทั้งหมดมาไว้ใน methods
   methods: {
     validate(values, { setErrors }) {
-      const authStore = useAuthStore();
-      // อ้างอิงถึง data ด้วย `this`
+      const authStore = useAuthStore()
       return authStore
         .doLogin({ Username: this.username, Password: this.password })
-        .catch((error) => setErrors({ apiError: error }));
+        .catch((error) => setErrors({ apiError: error }))
     },
   },
-};
+}
 </script>
 
 <template>
@@ -95,7 +93,7 @@ export default {
     >
     <VTextField
       v-model="username"
-      :rules="emailRules"
+      :rules="usernameRules"
       class="mb-8"
       required
       hide-details="auto"

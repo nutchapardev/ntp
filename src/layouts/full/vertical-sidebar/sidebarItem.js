@@ -26,12 +26,12 @@ const sidebarItem = [
   {
     title: "ข้อมูลสินค้าคงคงคลัง",
     icon: "bedside-table-3-linear",
-    // to: "/system/employees",
+    to: "/system/part",
   },
   {
     title: "ข้อมูลชุดอุปกรณ์",
     icon: "command-linear",
-    // to: "/system/employees",
+    to: "/system/part2",
   },
   { header: "EMPLOYEES" },
   {
@@ -629,6 +629,6 @@ const sidebarItem = [
   //   icon: "sticker-smile-circle-2-line-duotone",
   //   to: "/icons/tabler",
   // },
-];
+]
 
-export default sidebarItem;
+export default sidebarItem
