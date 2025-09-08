@@ -5,6 +5,10 @@ import * as authApis from "@/services/apis/api_auth"
 import * as customerApis from "@/services/apis/api_customer"
 import * as addressApis from "@/services/apis/api_address"
 import * as subDistrictApis from "@/services/apis/api_subdistrict"
+import * as repairApis from "@/services/apis/api_repair"
+import * as brandApis from "@/services/apis/api_brand"
+import * as carModelApis from "@/services/apis/api_carModel"
+import * as carApis from "@/services/apis/api_car"
 
 const login = async (values) => {
   const resultLogin = await httpClient.post(server.LOGIN_URL, values)
@@ -29,4 +33,8 @@ export default {
   ...customerApis,
   ...addressApis,
   ...subDistrictApis,
+  ...repairApis,
+  ...brandApis,
+  ...carModelApis,
+  ...carApis,
 }

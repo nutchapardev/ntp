@@ -5,6 +5,7 @@ import UiParentCard from "@/components/shared/UiParentCard.vue"
 import serverService from "@/services/serverService"
 import Swal from "sweetalert2"
 import { getNumberOfDigits, getRandomColor } from "@/utils/functions"
+import { getCars } from "@/services/apis/api_car"
 // import { sub } from "date-fns"
 
 export default {

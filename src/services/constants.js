@@ -20,6 +20,10 @@ export const server = {
   CUSTOMER_URL: `customers`,
   ADDRESS_URL: `addresses`,
   SUB_DISTRICT_URL: `subdistrict`,
+  REPAIR_URL: `repair`,
+  BRAND_URL: `brands`,
+  CAR_MODEL_URL: `carmodel`,
+  CAR_URL: `cars`,
 }
 
 export const message = {

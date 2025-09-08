@@ -8,7 +8,7 @@ const sidebarItem = [
   { header: "SYSTEM" },
   {
     title: "ซ่อมรถยนต์",
-    icon: "bill-check-outline",
+    icon: "add-circle-broken",
     to: "/system/repairs",
   },
   {
