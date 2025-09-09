@@ -1,41 +1,85 @@
 <script>
+import { useAuthStore } from "@/stores/authStore"
+import serverService from "@/services/serverService"
+import Swal from "sweetalert2"
 export default {
   data() {
+    const authStore = useAuthStore()
     return {
+      authStore,
       /*Location Select*/
-      select: "United States",
-      location: ["United States", "United Kingdom", "India", "Russia"],
+      // select: "United States",
+      // location: ["United States", "United Kingdom", "India", "Russia"],
 
       /*Currency Select*/
-      Currencyselect: "US Dollar ($)",
-      Currency: [
-        "US Dollar ($)",
-        "United Kingdom (Pound)",
-        "India (INR)",
-        "Russia (Ruble)",
-      ],
+      // Currencyselect: "US Dollar ($)",
+      // Currency: [
+      //   "US Dollar ($)",
+      //   "United Kingdom (Pound)",
+      //   "India (INR)",
+      //   "Russia (Ruble)",
+      // ],
 
       /*change password*/
-      currenypwd: "123456789142",
-      newpwd: "123456789142",
-      confirmpwd: "123456789142",
+      account: {
+        oldPassword: "",
+        newPassword: "",
+        confirmNewPassword: "",
+      },
+      passwordRules: [
+        (v) => !!v || "Password is required",
+        (v) =>
+          (v && v.length >= 8) || "Password must be less than 8 characters",
+      ],
 
       /*personal detail*/
-      namemodel: "Mike Nielsen",
-      storemodel: "Maxima Studio",
-      storemail: "info@modernize.com",
-      storephone: "+91 12345 65478",
-      storeaddress: "814 Howard Street, 120065, India",
-    };
+      // namemodel: "Mike Nielsen",
+      // storemodel: "Maxima Studio",
+      // storemail: "info@modernize.com",
+      // storephone: "+91 12345 65478",
+      // storeaddress: "814 Howard Street, 120065, India",
+    }
   },
-};
+  methods: {
+    async changePassword() {
+      Swal.fire({
+        title: "Are you sure?",
+        text: " ท่านต้่องการเปลี่ยนรหัสผ่าน ใช่หรือไม่?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "<span style='color:white;'>Yes, continue!</span>",
+        cancelButtonText: "<span style='color:white;'>Cancel</span>",
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          const response = await serverService.changePassword(this.account)
+          if (response.data.result) {
+            this.authStore.doLogout()
+            Swal.fire({
+              title: "Success!",
+              text: "เปลี่ยนรหัสผ่านสำเร็จ กรุณาเข้าสู่ระบบใหม่",
+              icon: "success",
+            })
+          } else {
+            Swal.fire({
+              title: "Error!",
+              text: response.data.message,
+              icon: "error",
+            })
+          }
+        }
+      })
+    },
+  },
+}
 </script>
 
 <template>
   <v-card elevation="10">
     <v-row class="ma-sm-n2 ma-n1">
       <v-col cols="12" sm="6">
-        <v-card elevation="10">
+        <v-card elevation="10" height="100%">
           <v-card-item>
             <h5 class="text-h5">Change Profile</h5>
             <div class="text-subtitle-1 text-textPrimary opacity-80 mt-2">
@@ -63,7 +107,7 @@ export default {
         </v-card>
       </v-col>
       <v-col cols="12" sm="6">
-        <v-card elevation="10">
+        <v-card elevation="10" height="100%">
           <v-card-item>
             <h5 class="text-h5">Change Password</h5>
             <div class="text-subtitle-1 text-textPrimary opacity-80 mt-2">
@@ -77,14 +121,16 @@ export default {
                 color="primary"
                 variant="outlined"
                 type="password"
-                v-model="currenypwd"
+                v-model="account.oldPassword"
+                :rules="passwordRules"
               />
               <v-label class="mb-2 font-weight-medium">New Password</v-label>
               <v-text-field
                 color="primary"
                 variant="outlined"
                 type="password"
-                v-model="newpwd"
+                v-model="account.newPassword"
+                :rules="passwordRules"
               />
               <v-label class="mb-2 font-weight-medium"
                 >Confirm Password</v-label
@@ -93,14 +139,14 @@ export default {
                 color="primary"
                 variant="outlined"
                 type="password"
-                v-model="confirmpwd"
-                hide-details
+                v-model="account.confirmNewPassword"
+                :rules="passwordRules"
               />
             </div>
           </v-card-item>
         </v-card>
       </v-col>
-      <v-col cols="12">
+      <!-- <v-col cols="12">
         <v-card elevation="10">
           <v-card-item>
             <h5 class="text-h5">Personal Details</h5>
@@ -191,10 +237,12 @@ export default {
             </div>
           </v-card-item>
         </v-card>
-      </v-col>
+      </v-col> -->
     </v-row>
     <div class="d-flex justify-end mt-5 pb-3">
-      <v-btn size="large" color="primary" class="mr-4">Save</v-btn>
+      <v-btn size="large" color="primary" class="mr-4" @click="changePassword"
+        >Save</v-btn
+      >
       <v-btn size="large" class="bg-lighterror text-error">Cancel</v-btn>
     </div>
   </v-card>

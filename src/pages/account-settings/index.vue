@@ -5,12 +5,12 @@ import {
   BellIcon,
   ArticleIcon,
   LockIcon,
-} from "vue-tabler-icons";
-import AccountTab from "@/components/account-settings/AccountTab.vue";
-import NotificationTab from "@/components/account-settings/NotificationTab.vue";
-import BillsTab from "@/components/account-settings/BillsTab.vue";
-import SecurityTab from "@/components/account-settings/SecurityTab.vue";
-import BaseBreadcrumb from "@/components/shared/BaseBreadcrumb.vue";
+} from "vue-tabler-icons"
+import AccountTab from "@/components/account-settings/AccountTab.vue"
+import NotificationTab from "@/components/account-settings/NotificationTab.vue"
+import BillsTab from "@/components/account-settings/BillsTab.vue"
+import SecurityTab from "@/components/account-settings/SecurityTab.vue"
+import BaseBreadcrumb from "@/components/shared/BaseBreadcrumb.vue"
 
 export default {
   // ลงทะเบียน components ที่จะใช้ใน template นี้
@@ -42,9 +42,9 @@ export default {
           href: "#",
         },
       ],
-    };
+    }
   },
-};
+}
 </script>
 
 <template>
@@ -55,7 +55,7 @@ export default {
   <v-row class="justify-center">
     <v-col cols="12" md="12">
       <v-card elevation="10" class=" ">
-        <v-tabs
+        <!-- <v-tabs
           v-model="tab"
           bg-color="transparent"
           min-height="70"
@@ -74,14 +74,14 @@ export default {
           <v-tab value="Security" class=""
             ><LockIcon class="mr-2" size="20" />Security</v-tab
           >
-        </v-tabs>
+        </v-tabs> -->
         <v-divider></v-divider>
         <v-card-text class="pa-sm-6 pa-3 pb-sm-6 pb-6">
           <v-window v-model="tab">
             <v-window-item value="Account">
               <AccountTab />
             </v-window-item>
-            <v-window-item value="Notification">
+            <!-- <v-window-item value="Notification">
               <NotificationTab />
             </v-window-item>
             <v-window-item value="Bills">
@@ -89,7 +89,7 @@ export default {
             </v-window-item>
             <v-window-item value="Security">
               <SecurityTab />
-            </v-window-item>
+            </v-window-item> -->
           </v-window>
         </v-card-text>
       </v-card>

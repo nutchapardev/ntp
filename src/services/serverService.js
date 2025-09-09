@@ -9,6 +9,8 @@ import * as repairApis from "@/services/apis/api_repair"
 import * as brandApis from "@/services/apis/api_brand"
 import * as carModelApis from "@/services/apis/api_carModel"
 import * as carApis from "@/services/apis/api_car"
+import * as provinceApis from "@/services/apis/api_province"
+import * as customerTitleApis from "@/services/apis/api_customerTitle"
 
 const login = async (values) => {
   const resultLogin = await httpClient.post(server.LOGIN_URL, values)
@@ -37,4 +39,6 @@ export default {
   ...brandApis,
   ...carModelApis,
   ...carApis,
+  ...provinceApis,
+  ...customerTitleApis,
 }

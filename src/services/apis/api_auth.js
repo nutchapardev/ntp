@@ -1,10 +1,14 @@
 // import { imageUrl } from "./constants";
-import httpClient from "@/services/httpClient";
-import { server } from "@/services/constants";
+import httpClient from "@/services/httpClient"
+import { server } from "@/services/constants"
 
 export const register = (data) => {
-  return httpClient.post(server.REGISTER_URL, data);
-};
+  return httpClient.post(server.REGISTER_URL, data)
+}
+
+export const changePassword = (data) => {
+  return httpClient.post(server.CHANGE_PASSWORD_URL, data)
+}
 
 // export const login = (data) => {
 //   return httpClient.post(server.LOGIN_URL, data);

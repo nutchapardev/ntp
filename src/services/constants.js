@@ -15,6 +15,7 @@ export const apiUrl = basePath + "/" + apiPath
 export const server = {
   REGISTER_URL: `auth/register`,
   LOGIN_URL: `auth/login`,
+  CHANGE_PASSWORD_URL: `auth/change-password`,
   TOKEN_KEY: `token`,
   RESTORE_LOGIN: `auth/restorelogin`,
   CUSTOMER_URL: `customers`,
@@ -24,6 +25,8 @@ export const server = {
   BRAND_URL: `brands`,
   CAR_MODEL_URL: `carmodel`,
   CAR_URL: `cars`,
+  PROVINCE_URL: `province`,
+  CUSTOMER_TITLE_URL: `customertitle`,
 }
 
 export const message = {
