@@ -1,10 +1,10 @@
 <script>
-import { useCustomizerStore } from "@/stores/customizer";
+import { useCustomizerStore } from "@/stores/customizer"
 
 export default {
   name: "ThemeToggler",
   data() {
-    const customizer = useCustomizerStore();
+    const customizer = useCustomizerStore()
     return {
       customizer,
       // template skin color options
@@ -18,9 +18,9 @@ export default {
           bg: "togglethemeDarkBlue",
         },
       ],
-    };
+    }
   },
-};
+}
 </script>
 
 <template>

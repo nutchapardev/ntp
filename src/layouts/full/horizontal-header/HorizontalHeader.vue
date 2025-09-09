@@ -1,6 +1,6 @@
 <script>
-import { useCustomizerStore } from "@/stores/customizer";
-import { useEcomStore } from "@/stores/apps/eCommerce";
+import { useCustomizerStore } from "@/stores/customizer"
+import { useEcomStore } from "@/stores/apps/eCommerce"
 // Icon Imports
 import {
   GridDotsIcon,
@@ -9,19 +9,19 @@ import {
   Menu2Icon,
   BellRingingIcon,
   ShoppingCartIcon,
-} from "vue-tabler-icons";
-import Logo from "../logo/Logo.vue";
-import LogoIcon from "../logo/LogoIcon.vue";
-import RtlLogo from "../logo/RtlLogo.vue";
+} from "vue-tabler-icons"
+import Logo from "../logo/Logo.vue"
+import LogoIcon from "../logo/LogoIcon.vue"
+import RtlLogo from "../logo/RtlLogo.vue"
 // dropdown imports
-import LanguageDD from "../vertical-header/LanguageDD.vue";
-import NotificationDD from "../vertical-header/NotificationDD.vue";
-import ProfileDD from "../vertical-header/ProfileDD.vue";
-import Searchbar from "../vertical-header/Searchbar.vue";
-import ThemeToggler from "../vertical-header/ThemeToggler.vue";
-import Navigations from "../vertical-header/Navigations.vue";
-import Messages from "../vertical-header/Messages.vue";
-import RightMobileSidebar from "../vertical-header/RightMobileSidebar.vue";
+import LanguageDD from "../vertical-header/LanguageDD.vue"
+import NotificationDD from "../vertical-header/NotificationDD.vue"
+import ProfileDD from "../vertical-header/ProfileDD.vue"
+import Searchbar from "../vertical-header/Searchbar.vue"
+import ThemeToggler from "../vertical-header/ThemeToggler.vue"
+import Navigations from "../vertical-header/Navigations.vue"
+import Messages from "../vertical-header/Messages.vue"
+import RightMobileSidebar from "../vertical-header/RightMobileSidebar.vue"
 
 export default {
   name: "HorizontalHeader",
@@ -45,8 +45,8 @@ export default {
     RightMobileSidebar,
   },
   data() {
-    const customizer = useCustomizerStore();
-    const store = useEcomStore();
+    const customizer = useCustomizerStore()
+    const store = useEcomStore()
     return {
       customizer,
       store,
@@ -54,24 +54,24 @@ export default {
       drawer: false,
       appsdrawer: false,
       priority: customizer.setHorizontalLayout ? 0 : 0,
-    };
+    }
   },
   computed: {
     getCart() {
-      return this.store.cart;
+      return this.store.cart
     },
   },
   methods: {
     searchbox() {
-      this.showSearch = !this.showSearch;
+      this.showSearch = !this.showSearch
     },
   },
   watch: {
     priority(newPriority) {
-      this.priority = newPriority;
+      this.priority = newPriority
     },
   },
-};
+}
 </script>
 
 <template>

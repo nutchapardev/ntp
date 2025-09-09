@@ -1,23 +1,24 @@
 <script>
-import { useCustomizerStore } from "@/stores/customizer";
-import { useEcomStore } from "@/stores/apps/eCommerce";
-import { Menu2Icon } from "vue-tabler-icons";
-import LanguageDD from "./LanguageDD.vue";
-import NotificationDD from "./NotificationDD.vue";
-import ProfileDD from "./ProfileDD.vue";
-import Searchbar from "./Searchbar.vue";
-import Logo from "../logo/Logo.vue";
-import RtlLogo from "../logo/RtlLogo.vue";
-import LogoIcon from "../logo/LogoIcon.vue";
-import ThemeToggler from "./ThemeToggler.vue";
-import Navigations from "./Navigations.vue";
-import Messages from "./Messages.vue";
-import RightMobileSidebar from "./RightMobileSidebar.vue";
+import { useCustomizerStore } from "../../../stores/customizer"
+import { useEcomStore } from "@/stores/apps/eCommerce"
+import { Menu2Icon } from "vue-tabler-icons"
+import LanguageDD from "./LanguageDD.vue"
+import NotificationDD from "./NotificationDD.vue"
+import ProfileDD from "./ProfileDD.vue"
+import Searchbar from "./Searchbar.vue"
+import Logo from "../logo/Logo.vue"
+import RtlLogo from "../logo/RtlLogo.vue"
+import LogoIcon from "../logo/LogoIcon.vue"
+import ThemeToggler from "./ThemeToggler.vue"
+import Navigations from "./Navigations.vue"
+import Messages from "./Messages.vue"
+import RightMobileSidebar from "./RightMobileSidebar.vue"
 
 export default {
-  name: "VerticalHeader",
+  name: "MainHeader",
+
+  // 1. ลงทะเบียน components ทั้งหมดที่ import เข้ามา
   components: {
-    Menu2Icon,
     LanguageDD,
     NotificationDD,
     ProfileDD,
@@ -29,33 +30,48 @@ export default {
     Navigations,
     Messages,
     RightMobileSidebar,
+    Menu2Icon,
   },
+
+  // 2. ย้าย state ที่เคยใช้ ref() มาไว้ใน data()
   data() {
-    const customizer = useCustomizerStore();
-    const store = useEcomStore();
+    const customizer = useCustomizerStore()
     return {
-      customizer,
-      store,
       showSearch: false,
+      // กำหนดค่าเริ่มต้นให้ priority โดยอ้างอิงจาก store
       priority: customizer.setHorizontalLayout ? 0 : 0,
-    };
+    }
   },
+
   computed: {
+    // 3. สร้าง computed property เพื่อเข้าถึง store ทำให้เรียกใช้ง่ายใน template
+    customizer() {
+      return useCustomizerStore()
+    },
+    ecomStore() {
+      return useEcomStore()
+    },
+    // 4. ย้าย computed เดิมมาไว้ที่นี่
     getCart() {
-      return this.store.cart;
+      // เข้าถึง store ผ่าน this.ecomStore ที่เราสร้างไว้
+      return this.ecomStore.cart
     },
   },
+
   methods: {
+    // 5. ย้ายฟังก์ชันมาไว้ใน methods
     searchbox() {
-      this.showSearch = !this.showSearch;
+      this.showSearch = !this.showSearch
     },
   },
+
   watch: {
+    // 6. ย้าย watch มาไว้ใน watch option
     priority(newPriority) {
-      this.priority = newPriority;
+      this.priority = newPriority
     },
   },
-};
+}
 </script>
 
 <template>
@@ -109,11 +125,12 @@ export default {
 
     <Searchbar />
 
-    <div class="hidden-sm-and-down">
+    <!-- <div class="hidden-sm-and-down">
       <Navigations />
-    </div>
+    </div> -->
 
     <v-spacer class="hidden-sm-and-down" />
+
     <!-- <div class="hidden-sm-and-down">
       <LanguageDD />
     </div> -->
@@ -164,7 +181,7 @@ export default {
       </template>
       <v-sheet rounded="lg" elevation="10" class="mt-4 dropdown-box px-4 py-3">
         <div class="d-flex justify-space-between align-center">
-          <RightMobileSidebar />
+          <!-- <RightMobileSidebar />
           <LanguageDD />
           <v-btn
             icon
@@ -183,10 +200,14 @@ export default {
             </v-badge>
           </v-btn>
           <NotificationDD />
-          <Messages />
+          <Messages /> -->
           <ProfileDD />
         </div>
       </v-sheet>
     </v-menu>
   </v-app-bar>
 </template>
+
+<style>
+/*  */
+</style>
