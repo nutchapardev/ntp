@@ -27,6 +27,7 @@ export const server = {
   CAR_URL: `cars`,
   PROVINCE_URL: `province`,
   CUSTOMER_TITLE_URL: `customertitle`,
+  REF_MODEL_CATEGORY_PART_URL: `refModelCategoryParts`,
 }
 
 export const message = {

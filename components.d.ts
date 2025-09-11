@@ -23,6 +23,7 @@ declare module 'vue' {
     ChartBox: typeof import('./src/components/dashboards/analytical/ChartBox.vue')['default']
     ContactCard: typeof import('./src/components/dashboards/modern/ContactCard.vue')['default']
     Contacts: typeof import('./src/components/dashboards/campaign/Contacts.vue')['default']
+    CreateRepairDetail: typeof import('./src/components/repair/CreateRepairDetail.vue')['default']
     CurrentVisitors: typeof import('./src/components/dashboards/analytical/CurrentVisitors.vue')['default']
     CurrentVisits: typeof import('./src/components/dashboards/classic/CurrentVisits.vue')['default']
     Designmeet: typeof import('./src/components/dashboards/analytical/Designmeet.vue')['default']

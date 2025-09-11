@@ -38,10 +38,65 @@ function getRandomColor() {
 }
 
 // --- ตัวอย่างการเรียกใช้งาน ---
-const myColor = getRandomColor()
-console.log(`สีที่สุ่มได้คือ: ${myColor}`) // ผลลัพธ์อาจจะเป็น "สีที่สุ่มได้คือ: blue"
+// const myColor = getRandomColor()
+// console.log(`สีที่สุ่มได้คือ: ${myColor}`) // ผลลัพธ์อาจจะเป็น "สีที่สุ่มได้คือ: blue"
 
-export { getNumberOfDigits, getRandomColor }
+function toThaiDateString(dateString) {
+  // 1. สร้าง Object Date จาก String ที่รับเข้ามา
+  const date = new Date(dateString)
+
+  // 2. กำหนดค่า options สำหรับการจัดรูปแบบ
+  const options = {
+    year: "numeric", // แสดงปีเป็นตัวเลข
+    month: "long", // แสดงชื่อเดือนแบบเต็ม
+    day: "numeric", // แสดงวันที่เป็นตัวเลข
+    locale: "th-TH", // ใช้ locale ของไทย
+    calendar: "buddhist", // ใช้ปฏิทินแบบพุทธ (จะแปลงเป็นปี พ.ศ. ให้)
+  }
+
+  // 3. จัดรูปแบบวันที่และคืนค่า
+  // ใช้ .replace เพื่อลบคำว่า "พ.ศ." ที่อาจจะติดมากับบาง Browser
+  return new Intl.DateTimeFormat("th-TH", options)
+    .format(date)
+    .replace("พ.ศ. ", "")
+}
+
+function toThaiDateTimeString(isoString) {
+  // 1. สร้าง Object Date จาก String ที่รับเข้ามา
+  // JavaScript จะแปลงเวลาจาก UTC (Z) เป็นเวลาท้องถิ่นของเครื่องโดยอัตโนมัติ
+  const date = new Date(isoString)
+
+  // 2. กำหนดค่า options สำหรับการจัดรูปแบบ
+  const options = {
+    // ส่วนของวันที่
+    day: "numeric", // แสดงวันที่เป็นตัวเลข
+    month: "long", // แสดงชื่อเดือนแบบเต็ม
+    year: "numeric", // แสดงปีเป็นตัวเลข
+    calendar: "buddhist", // ใช้ปฏิทินพุทธศักราช (แปลงเป็น พ.ศ. อัตโนมัติ)
+
+    // ส่วนของเวลา
+    hour: "2-digit", // แสดงชั่วโมงเป็นเลข 2 หลัก (00-23)
+    minute: "2-digit", // แสดงนาทีเป็นเลข 2 หลัก (00-59)
+    hour12: false, // บังคับให้เป็นรูปแบบ 24 ชั่วโมง
+
+    // กำหนด Timezone ให้เป็นของประเทศไทย
+    timeZone: "Asia/Bangkok",
+  }
+
+  // 3. จัดรูปแบบและแทนที่ "," ที่อาจคั่นกลางระหว่างวันที่กับเวลา
+  const formatter = new Intl.DateTimeFormat("th-TH", options)
+  const formattedString = formatter.format(date).replace(",", "")
+
+  // 4. จัดรูปแบบสุดท้ายตามที่ต้องการ "วัน เดือน ปี เวลา HH:mm น."
+  return formattedString + " น."
+}
+
+export {
+  getNumberOfDigits,
+  getRandomColor,
+  toThaiDateString,
+  toThaiDateTimeString,
+}
 
 // --- ตัวอย่างการใช้งาน ---
 

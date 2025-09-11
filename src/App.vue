@@ -31,4 +31,8 @@ html div {
 .swal2-container {
   z-index: 99999 !important;
 }
+
+.centered-input input {
+  text-align: center;
+}
 </style>

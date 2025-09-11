@@ -1,11 +1,11 @@
 <script setup>
-import BreadcrumbChart from "./BreadcrumbChart.vue";
+import BreadcrumbChart from "./BreadcrumbChart.vue"
 const props = defineProps({
   title: String,
   breadcrumbs: Array,
   icon: String,
   text: String,
-});
+})
 </script>
 
 <template>

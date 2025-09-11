@@ -1,13 +1,13 @@
 <script>
 import BaseBreadcrumb from "@/components/shared/BaseBreadcrumb.vue"
-import serverService from "@/services/serverService"
-import Swal from "sweetalert2"
+import CreateRepairDetail from "@/components/repair/CreateRepairDetail.vue"
 
 export default {
-  name: "Repairs",
+  name: "RepairDetails",
   // 2. ลงทะเบียน Components ที่จะใช้ใน Template
   components: {
     BaseBreadcrumb,
+    CreateRepairDetail,
   },
   // 3. ข้อมูลทั้งหมดจะถูกย้ายมาไว้ใน data()
   data() {
@@ -32,15 +32,6 @@ export default {
       ],
     }
   },
-  // 4. ฟังก์ชันต่างๆ จะถูกย้ายมาไว้ใน methods
-  computed: {
-    repairID() {
-      return this.$route.params.repairID
-    },
-  },
-  mounted() {
-    // this.initialize()
-  },
 }
 </script>
 
@@ -49,5 +40,5 @@ export default {
     :title="page.title"
     :breadcrumbs="breadcrumbs"
   ></BaseBreadcrumb>
-  {{ repairID }}
+  <CreateRepairDetail />
 </template>

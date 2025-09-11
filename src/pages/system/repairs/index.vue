@@ -243,7 +243,8 @@ export default {
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
         cancelButtonColor: "#d33",
-        confirmButtonText: "Yes, delete it!",
+        confirmButtonText: "<span style='color:white;'>Yes, continue!</span>",
+        cancelButtonText: "<span style='color:white;'>Cancel</span>",
       }).then(async (result) => {
         if (result.isConfirmed) {
           const response = await serverService.createCarWithCustomer(
@@ -369,7 +370,7 @@ export default {
                 <v-btn
                   height="48"
                   block
-                  color="primary"
+                  color="secondary"
                   variant="flat"
                   dark
                   v-bind="props"
@@ -509,14 +510,14 @@ export default {
             </v-col>
             <v-col cols="12" sm="6" md="4">
               <v-text-field
-                v-model="addItem.car.CarTitle"
-                label="คำนำหน้ารถยนต์"
+                v-model.trim="addItem.car.CarTitle"
+                label="หมวดอักษรรถยนต์"
                 hide-details
               ></v-text-field>
             </v-col>
             <v-col cols="12" sm="6" md="4">
               <v-text-field
-                v-model="addItem.car.CarNumber"
+                v-model.trim="addItem.car.CarNumber"
                 label="หมายเลขทะเบียน"
                 hide-details
               ></v-text-field>
@@ -537,14 +538,14 @@ export default {
             </v-col>
             <v-col cols="12" sm="6" md="4">
               <v-text-field
-                v-model="addItem.car.VIN"
+                v-model.trim="addItem.car.VIN"
                 label="หมายเลขตัวถัง"
                 hide-details
               ></v-text-field>
             </v-col>
             <v-col cols="12" sm="6" md="4">
               <v-text-field
-                v-model="addItem.car.EC"
+                v-model.trim="addItem.car.EC"
                 label="หมายเลขเครื่องยนต์"
                 hide-details
               ></v-text-field>
@@ -564,28 +565,28 @@ export default {
             </v-col>
             <v-col cols="12" sm="6" md="4">
               <v-text-field
-                v-model="addItem.customer.CustomerName"
+                v-model.trim="addItem.customer.CustomerName"
                 label="ชื่อจริง"
                 hide-details
               ></v-text-field>
             </v-col>
             <v-col cols="12" sm="6" md="4">
               <v-text-field
-                v-model="addItem.customer.CustomerSurname"
+                v-model.trim="addItem.customer.CustomerSurname"
                 label="นามสกุล"
                 hide-details
               ></v-text-field>
             </v-col>
             <v-col cols="12" sm="6" md="4">
               <v-text-field
-                v-model="addItem.customer.IDNumber"
+                v-model.trim="addItem.customer.IDNumber"
                 label="รหัสประจำตัวประชาชน"
                 hide-details
               ></v-text-field>
             </v-col>
             <v-col cols="12" sm="6" md="4">
               <v-text-field
-                v-model="addItem.customer.CustomerTel"
+                v-model.trim="addItem.customer.CustomerTel"
                 label="เบอร์โทรศัพท์"
                 hide-details
               ></v-text-field>
