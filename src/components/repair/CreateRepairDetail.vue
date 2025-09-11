@@ -1,10 +1,10 @@
 <script>
-import { useInvoicestore } from "@/stores/apps/invoice"
-import { format } from "date-fns"
-import { CirclePlusIcon, TrashIcon } from "vue-tabler-icons"
-import serverService from "@/services/serverService"
-import Swal from "sweetalert2"
-import { toThaiDateString, toThaiDateTimeString } from "@/utils/functions"
+import { useInvoicestore } from "@/stores/apps/invoice";
+import { format } from "date-fns";
+import { CirclePlusIcon, TrashIcon } from "vue-tabler-icons";
+import serverService from "@/services/serverService";
+import Swal from "sweetalert2";
+import { toThaiDateString, toThaiDateTimeString } from "@/utils/functions";
 
 export default {
   name: "CreateRepair",
@@ -35,17 +35,16 @@ export default {
         orders: [{ itemName: "", unitPrice: 0, units: 0, unitTotalPrice: 0 }],
       },
       // NutCha Data
+      selectedItems: [],
       RepairItems: {},
       newRepairItems: {},
       refItems: [],
       showPresetDetail: null,
       headers: [
-        { title: "PartNumber", align: "start", key: "part.PartNumber" },
-        { title: "PartName", align: "start", key: "part.PartName_th" },
-        // { title: "Project Name", align: "start", key: "project" },
-        // { title: "Post", align: "start", key: "post" },
-        // { title: "Status", align: "start", key: "status" },
-        // { title: "Budget", align: "end", key: "budget" },
+        { title: "รหัสอุปกรณ์", align: "start", key: "part.PartNumber" },
+        { title: "ชื่ออุปกรณ์", align: "start", key: "part.PartName_th" },
+        { title: "จำนวนที่ต้องใช้", align: "end", key: "NumOfUse" },
+        { title: "จำนวนในคลัง", align: "end", key: "part.PartAmount" },
       ],
       // dialog
       dialogAddPart: false,
@@ -64,30 +63,41 @@ export default {
           text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex, sit amet blandit leo lobortis eget.",
         },
       ],
-    }
+    };
   },
 
   // 3. computed ใช้สำหรับข้อมูลที่ต้องคำนวณจาก state
   computed: {
     nextInvoiceId() {
       if (this.store && this.store.invoice.length > 0) {
-        return Math.max(...this.store.invoice.map((i) => i.id)) + 1
+        return Math.max(...this.store.invoice.map((i) => i.id)) + 1;
       }
-      return 1
+      return 1;
     },
     subtotal() {
       return (this.invoice.orders ?? []).reduce((sum, order) => {
-        return sum + (order.unitPrice ?? 0) * (order.units ?? 0)
-      }, 0)
+        return sum + (order.unitPrice ?? 0) * (order.units ?? 0);
+      }, 0);
     },
     vat() {
-      return this.subtotal * this.vatRate
+      return this.subtotal * this.vatRate;
     },
     grandTotal() {
-      return this.subtotal + this.vat
+      return this.subtotal + this.vat;
     },
     repairID() {
-      return this.$route.params.repairID
+      return this.$route.params.repairID;
+    },
+    selectableItems() {
+      return this.showPresetDetail.presetDetails.filter(
+        (item) => item.NumOfUse <= item.part.PartAmount
+      );
+    },
+    isAllSelectableSelected() {
+      return this.selectableItems.length > 0 && this.selectedItems.length === this.selectableItems.length;
+    },
+    isSomeSelectableSelected() {
+      return this.selectedItems.length > 0 && !this.isAllSelectableSelected;
     },
   },
 
@@ -95,85 +105,92 @@ export default {
   methods: {
     // สร้าง method ห่อหุ้ม `format` เพื่อให้ template เรียกใช้ได้
     formatDate(date) {
-      return date ? toThaiDateString(new Date(date), "E, MMM dd, yyyy") : "N/A"
+      return date ? toThaiDateString(new Date(date), "E, MMM dd, yyyy") : "N/A";
     },
     formatDateTime(date) {
-      return date ? toThaiDateTimeString(new Date(date)) : "N/A"
+      return date ? toThaiDateTimeString(new Date(date)) : "N/A";
     },
 
     submitInvoice() {
       // สามารถใช้ this.valid เพื่อเข้าถึงค่าใน data
       if (this.valid) {
-        this.invoice.id = this.nextInvoiceId // ใช้ค่าจาก computed
-        this.invoice.orderDate = new Date()
-        this.invoice.totalCost = this.grandTotal // ใช้ค่าจาก computed
+        this.invoice.id = this.nextInvoiceId; // ใช้ค่าจาก computed
+        this.invoice.orderDate = new Date();
+        this.invoice.totalCost = this.grandTotal; // ใช้ค่าจาก computed
 
-        this.store.addInvoice(this.invoice)
+        this.store.addInvoice(this.invoice);
 
         // ใช้ this.$router ใน Options API เพื่อเข้าถึง router
-        this.$router.push("/apps/invoice")
+        this.$router.push("/apps/invoice");
       } else {
-        console.log("Form is invalid")
+        console.log("Form is invalid");
       }
     },
 
     addOrderRow() {
-      this.invoice.orders = this.invoice.orders ?? []
+      this.invoice.orders = this.invoice.orders ?? [];
       this.invoice.orders.push({
         itemName: "",
         unitPrice: 0,
         units: 0,
         unitTotalPrice: 0,
-      })
+      });
     },
 
     deleteOrderRow(index) {
-      this.invoice.orders = this.invoice.orders ?? []
-      this.invoice.orders.splice(index, 1)
+      this.invoice.orders = this.invoice.orders ?? [];
+      this.invoice.orders.splice(index, 1);
     },
     // NutCha methods
     async getRepairByID() {
-      const response = await serverService.getRepairByID(this.repairID)
+      const response = await serverService.getRepairByID(this.repairID);
       // console.log(response.data)
-      this.RepairItems = response.data
+      this.RepairItems = response.data;
     },
     async getRefModelCategoryPartByBrandID() {
-      console.log(this.RepairItems.ModelID)
+      console.log(this.RepairItems.ModelID);
       const response = await serverService.getRefModelCategoryPartByModelID(
         this.RepairItems.ModelID
-      )
-      console.log(response.data)
-      this.refItems = response.data
+      );
+      console.log(response.data);
+      this.refItems = response.data;
+    },
+    setRowClass({ item }) {
+      if (item.NumOfUse > item.part.PartAmount) {
+        return { class: "high-fat-row" };
+      }
+      return { class: "" };
     },
     async submitAddRepairItem() {
-      alert("submit add repair item")
-      this.closeDialogAddPart()
+      alert("submit add repair item");
+      this.showPresetDetail = null;
+      // this.closeDialogAddPart();
     },
     choosePreset(preset) {
-      console.log(preset)
-      this.showPresetDetail = preset
+      console.log(preset);
+      this.showPresetDetail = preset;
     },
     closeDialogAddPart() {
-      this.dialogAddPart = false
-      this.showPresetDetail = null
+      this.dialogAddPart = false;
+      this.showPresetDetail = null;
     },
     initialize() {
-      this.getRepairByID().then(() => this.getRefModelCategoryPartByBrandID())
+      this.getRepairByID().then(() => this.getRefModelCategoryPartByBrandID());
     },
   },
   mounted() {
-    // this.initialize()
+    //
   },
 
   // 5. created() เป็น lifecycle hook ที่จะทำงานเมื่อคอมโพเนนต์ถูกสร้างขึ้น
   created() {
-    this.initialize()
+    this.initialize();
     // กำหนดค่าให้กับ store ที่ประกาศไว้ใน data
-    this.store = useInvoicestore()
+    this.store = useInvoicestore();
     // คำนวณและกำหนด ID เริ่มต้นให้กับ invoice
-    this.invoice.id = this.nextInvoiceId
+    this.invoice.id = this.nextInvoiceId;
   },
-}
+};
 </script>
 
 <template>
@@ -182,9 +199,6 @@ export default {
     <v-card-item>
       <v-row>
         <v-col>
-          <!-- <h5 class="text-20 mb-7 font-weight-semibold">
-            เพิ่มรายละเอียดการซ่อม
-          </h5> -->
           <p class="textSecondary text-14">#ID : {{ repairID }}</p>
           <p class="textSecondary text-14">
             วันที่ :
@@ -221,24 +235,6 @@ export default {
         </v-col>
       </v-row>
 
-      <!-- <p class="textSecondary text-14">ID: {{ repairID }}</p>
-      <p class="textSecondary text-14">
-        วันที่ :
-        {{ formatDate(RepairItems?.RepairDate) }}
-      </p>
-      <p class="textSecondary text-14">
-        ทะเบียน :
-        {{ RepairItems.car.CarTitle }}
-        {{ RepairItems.car.CarNumber }}
-        {{ RepairItems.car.province.name_th }}
-      </p>
-      <p class="textSecondary text-14">
-        ลูกค้า :
-        {{ RepairItems.customer.customerTitle.CustomerTitle }}
-        {{ RepairItems.customer.CustomerName }}
-        {{ RepairItems.customer.CustomerSurname }}
-      </p> -->
-
       <v-form ref="formRef" v-model="valid" lazy-validation>
         <div class="bg-hoverColor mt-6 pa-6 rounded-md">
           <v-row>
@@ -269,25 +265,6 @@ export default {
                 :disabled="true"
               />
             </v-col>
-
-            <!-- <v-col cols="12" md="6">
-              <v-label class="pb-2">From Address</v-label>
-              <v-text-field
-                v-model="invoice.billFromAddress"
-                :rules="rules"
-                required
-                hide-details
-              />
-            </v-col>
-            <v-col cols="12" md="6">
-              <v-label class="pb-2">Bill To Address</v-label>
-              <v-text-field
-                v-model="invoice.billToAddress"
-                :rules="rules"
-                required
-                hide-details
-              />
-            </v-col> -->
           </v-row>
         </div>
         <v-row class="mt-3">
@@ -306,12 +283,13 @@ export default {
                 v-model="dialogAddPart"
                 class="dialog-mw"
                 style="max-width: 1000px"
+                persistent
               >
                 <v-card>
                   <v-card-text>
                     <v-row>
                       <v-col>
-                        <div class="overflow-y-auto" style="max-height: 500px">
+                        <div class="overflow-y-auto" style="max-height: 250px">
                           <!-- Popout -->
                           <v-expansion-panels variant="popout">
                             <v-expansion-panel
@@ -319,16 +297,21 @@ export default {
                               :key="category.PartCategoryID"
                               elevation="10"
                             >
-                              <v-expansion-panel-title class="text-h6">
+                              <v-expansion-panel-title
+                                class="text-h6"
+                                color="info"
+                                @click="showPresetDetail = null"
+                              >
                                 {{ index + 1 }}. {{ category.PartCategoryName }}
                               </v-expansion-panel-title>
                               <v-expansion-panel-text>
                                 <v-btn
                                   v-for="preset in category.presets"
                                   :key="preset.PresetID"
+                                  rounded="0"
                                   block
                                   variant="outlined"
-                                  color="primary"
+                                  color=""
                                   class="mb-2"
                                   @click="choosePreset(preset)"
                                 >
@@ -341,16 +324,22 @@ export default {
                           <!-- Popout -->
                         </div>
                       </v-col>
-                      <v-col v-if="showPresetDetail" cols="12" md="6">
+                      {{ selectedItems }}
+                      <v-col v-if="showPresetDetail" cols="12">
+                        <hr />
+                        <hr />
                         <div class="text-center mt-4 mb-3">
                           {{ showPresetDetail.Preset }}
                         </div>
                         <v-data-table
-                          items-per-page="5"
+                          items-per-page="10"
+                          :row-props="setRowClass"
                           :headers="headers"
                           :items="showPresetDetail.presetDetails"
+                          v-model="selectedItems"
                           item-value="PartID"
                           show-select
+                          return-object
                           class="border rounded-md"
                           density="compact"
                         >
@@ -358,23 +347,19 @@ export default {
                       </v-col>
                     </v-row>
                   </v-card-text>
-                  <hr class="mt-3" />
                   <v-card-actions>
                     <v-btn
                       color="primary"
                       block
                       @click="submitAddRepairItem"
                       flat
+                      variant="tonal"
                       >เพิ่มอุปกรณ์</v-btn
                     >
                   </v-card-actions>
                   <v-card-actions>
-                    <v-btn
-                      color="secondary"
-                      block
-                      @click="closeDialogAddPart"
-                      flat
-                      >Close Dialog</v-btn
+                    <v-btn color="error" block @click="closeDialogAddPart" flat
+                      >ยกเลิก</v-btn
                     >
                   </v-card-actions>
                 </v-card>
@@ -502,3 +487,18 @@ export default {
     </v-card-item>
   </v-card>
 </template>
+
+<style>
+/* ... style เหมือนกับตัวอย่างแรก ... */
+/* .high-fat-row {
+  background-color: #ffebee !important;
+} */
+
+.high-fat-row {
+  background-color: #ffcdd2 !important;
+}
+
+.high-fat-row:hover {
+  background-color: #ffcdd2 !important;
+}
+</style>
