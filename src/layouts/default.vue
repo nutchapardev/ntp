@@ -1,12 +1,12 @@
 <script>
-import { RouterView } from "vue-router"
-import VerticalSidebarVue from "./full/vertical-sidebar/VerticalSidebar.vue"
-import VerticalHeaderVue from "./full/vertical-header/VerticalHeader.vue"
-import HorizontalHeader from "./full/horizontal-header/HorizontalHeader.vue"
-import HorizontalSidebar from "./full/horizontal-sidebar/HorizontalSidebar.vue"
-import Customizer from "./full/customizer/Customizer.vue"
-import { useCustomizerStore } from "@/stores/customizer"
-import { SettingsIcon } from "vue-tabler-icons"
+import { RouterView } from "vue-router";
+import VerticalSidebarVue from "./full/vertical-sidebar/VerticalSidebar.vue";
+import VerticalHeaderVue from "./full/vertical-header/VerticalHeader.vue";
+import HorizontalHeader from "./full/horizontal-header/HorizontalHeader.vue";
+import HorizontalSidebar from "./full/horizontal-sidebar/HorizontalSidebar.vue";
+import Customizer from "./full/customizer/Customizer.vue";
+import { useCustomizerStore } from "@/stores/customizer";
+import { SettingsIcon } from "vue-tabler-icons";
 
 export default {
   name: "DefaultLayout",
@@ -20,12 +20,12 @@ export default {
     SettingsIcon,
   },
   setup() {
-    const customizer = useCustomizerStore()
+    const customizer = useCustomizerStore();
     return {
       customizer,
-    }
+    };
   },
-}
+};
 </script>
 
 <template>
@@ -40,7 +40,7 @@ export default {
     ]"
   >
     <v-locale-provider :rtl="customizer.setRTLLayout">
-      <!-- <v-navigation-drawer
+      <v-navigation-drawer
         app
         temporary
         elevation="10"
@@ -50,7 +50,7 @@ export default {
         :class="customizer.setRTLLayout ? 'left-customizer' : ''"
       >
         <Customizer />
-      </v-navigation-drawer> -->
+      </v-navigation-drawer>
 
       <VerticalHeaderVue v-if="!customizer.setHorizontalLayout" />
       <VerticalSidebarVue v-if="!customizer.setHorizontalLayout" />
@@ -60,9 +60,15 @@ export default {
       <v-main>
         <v-container fluid class="page-wrapper pb-sm-15 pb-10">
           <div :class="customizer.boxed ? 'maxWidth' : ''">
-            <RouterView />
+            <RouterView v-slot="{ Component, route }">
+              <transition name="fade" mode="out-in">
+                <div :key="route.name">
+                  <component :is="Component" />
+                </div>
+              </transition>
+            </RouterView>
 
-            <!-- <v-btn
+            <v-btn
               class="customizer-btn"
               size="large"
               icon
@@ -73,10 +79,22 @@ export default {
               "
             >
               <SettingsIcon />
-            </v-btn> -->
+            </v-btn>
           </div>
         </v-container>
       </v-main>
     </v-locale-provider>
   </v-app>
 </template>
+
+<style>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.1s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

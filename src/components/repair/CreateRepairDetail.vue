@@ -1,6 +1,5 @@
 <script>
 import { useInvoicestore } from "@/stores/apps/invoice";
-import { format } from "date-fns";
 import { CirclePlusIcon, TrashIcon } from "vue-tabler-icons";
 import serverService from "@/services/serverService";
 import Swal from "sweetalert2";
@@ -39,6 +38,7 @@ export default {
       RepairItems: {},
       newRepairItems: {},
       refItems: [],
+      repairDetails: [],
       showPresetDetail: null,
       headers: [
         { title: "รหัสอุปกรณ์", align: "start", key: "part.PartNumber" },
@@ -48,21 +48,6 @@ export default {
       ],
       // dialog
       dialogAddPart: false,
-      // test Data
-      accordions: [
-        {
-          name: "Accordion 1",
-          text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex, sit amet blandit leo lobortis eget.",
-        },
-        {
-          name: "Accordion 2",
-          text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex, sit amet blandit leo lobortis eget.",
-        },
-        {
-          name: "Accordion 3",
-          text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex, sit amet blandit leo lobortis eget.",
-        },
-      ],
     };
   },
 
@@ -89,15 +74,40 @@ export default {
       return this.$route.params.repairID;
     },
     selectableItems() {
+      // เพิ่มเงื่อนไข: ถ้า showPresetDetail เป็น null หรือไม่มี presetDetails ให้ return เป็น array ว่าง
+      if (!this.showPresetDetail || !this.showPresetDetail.presetDetails) {
+        return [];
+      }
+      // ถ้ามีค่า ถึงจะทำการ filter
       return this.showPresetDetail.presetDetails.filter(
         (item) => item.NumOfUse <= item.part.PartAmount
       );
     },
     isAllSelectableSelected() {
-      return this.selectableItems.length > 0 && this.selectedItems.length === this.selectableItems.length;
+      return (
+        this.selectableItems.length > 0 &&
+        this.selectedItems.length === this.selectableItems.length
+      );
     },
     isSomeSelectableSelected() {
       return this.selectedItems.length > 0 && !this.isAllSelectableSelected;
+    },
+    checkNotEnoughItems() {
+      return (
+        this.showPresetDetail.presetDetails.filter(
+          (item) => item.NumOfUse > item.part.PartAmount
+        ).length > 0
+      );
+    },
+    notEnoughItems() {
+      return this.showPresetDetail.presetDetails.filter(
+        (item) => item.NumOfUse > item.part.PartAmount
+      );
+    },
+    aviableItems() {
+      return this.showPresetDetail.presetDetails.filter(
+        (item) => item.NumOfUse <= item.part.PartAmount
+      );
     },
   },
 
@@ -109,6 +119,13 @@ export default {
     },
     formatDateTime(date) {
       return date ? toThaiDateTimeString(new Date(date)) : "N/A";
+    },
+    toggleSelectAll() {
+      if (this.isAllSelectableSelected) {
+        this.selectedItems = [];
+      } else {
+        this.selectedItems = [...this.selectableItems];
+      }
     },
 
     submitInvoice() {
@@ -148,12 +165,20 @@ export default {
       this.RepairItems = response.data;
     },
     async getRefModelCategoryPartByBrandID() {
-      console.log(this.RepairItems.ModelID);
+      // console.log(this.RepairItems.ModelID);
       const response = await serverService.getRefModelCategoryPartByModelID(
         this.RepairItems.ModelID
       );
-      console.log(response.data);
+      // console.log(response.data);
       this.refItems = response.data;
+    },
+    async getRepairDetail() {
+      const response = await serverService.getRepairDetailByRepairID(
+        this.repairID
+      );
+      console.log(response.data);
+
+      this.repairDetails = response.data;
     },
     setRowClass({ item }) {
       if (item.NumOfUse > item.part.PartAmount) {
@@ -162,20 +187,78 @@ export default {
       return { class: "" };
     },
     async submitAddRepairItem() {
-      alert("submit add repair item");
-      this.showPresetDetail = null;
-      // this.closeDialogAddPart();
+      if (this.selectedItems.length < 1) {
+        Swal.fire({
+          title: "Alert!",
+          text: "กรุณาเลือกอย่างน้อย 1 รายการ",
+          icon: "warning",
+          confirmButtonText: "<span style='color:white;'>ตกลง</span>",
+        });
+        return;
+      }
+
+      Swal.fire({
+        title: "Are you sure?",
+        text: "ท่านต้องการเพิ่มรายละเอียดการซ่อม ใช่หรือไม่?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "<span style='color:white;'>Yes, continue!</span>",
+        cancelButtonText: "<span style='color:white;'>Cancel</span>",
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          // console.log(this.selectedItems);
+          let payload = {
+            RepairID: this.repairID,
+            RepairCategoryID:
+              this.showPresetDetail.repairCategory.RepairCategoryID,
+            repairParts: [],
+          };
+
+          this.selectedItems.forEach((e) => {
+            payload.repairParts.push({
+              PartID: e.part.PartID,
+              NumOfUse: e.NumOfUse,
+              PricePerUnit: e.part.PricePerUnit,
+            });
+          });
+
+          // console.log(payload);
+
+          const response = await serverService.addRepairDetailWithPart(payload);
+          console.log(response.data);
+          if (response.data.result) {
+            // console.log(this.selectedItems);
+            this.getRefModelCategoryPartByBrandID();
+            this.removeObjectPresetAndSelectedItems();
+            Swal.fire("Success!", "เพิ่มข้อมูลแล้ว", "success");
+          }
+        }
+      });
     },
     choosePreset(preset) {
-      console.log(preset);
+      // console.log(preset);
       this.showPresetDetail = preset;
+      this.selectedItems = []; // เพิ่มบรรทัดนี้เพื่อล้างค่าที่เลือกไว้
+    },
+    openDialogAddPart() {
+      this.dialogAddPart = true;
+      this.getRefModelCategoryPartByBrandID();
+    },
+    removeObjectPresetAndSelectedItems() {
+      this.showPresetDetail = null;
+      this.selectedItems = []; // เพิ่มบรรทัดนี้เพื่อล้างค่าที่เลือกไว้
     },
     closeDialogAddPart() {
       this.dialogAddPart = false;
-      this.showPresetDetail = null;
+      this.removeObjectPresetAndSelectedItems();
     },
     initialize() {
-      this.getRepairByID().then(() => this.getRefModelCategoryPartByBrandID());
+      this.getRepairByID();
+      this.getRepairDetail();
+
+      // .then(() => this.getRefModelCategoryPartByBrandID());
     },
   },
   mounted() {
@@ -273,7 +356,7 @@ export default {
               <v-btn
                 color="secondary"
                 class="w-100"
-                @click="dialogAddPart = true"
+                @click="openDialogAddPart"
                 flat
               >
                 <v-icon size="20">mdi-plus-circle-outline</v-icon>
@@ -300,7 +383,10 @@ export default {
                               <v-expansion-panel-title
                                 class="text-h6"
                                 color="info"
-                                @click="showPresetDetail = null"
+                                @click="
+                                  showPresetDetail = null;
+                                  selectedItems = [];
+                                "
                               >
                                 {{ index + 1 }}. {{ category.PartCategoryName }}
                               </v-expansion-panel-title>
@@ -313,8 +399,13 @@ export default {
                                   variant="outlined"
                                   color=""
                                   class="mb-2"
-                                  @click="choosePreset(preset)"
+                                  @click="
+                                    choosePreset(preset);
+                                    showPresetDetail.repairCategory =
+                                      category.repairCategory;
+                                  "
                                 >
+                                  รหัส Preset #{{ preset.PresetID }} -
                                   {{ preset.Preset }}
                                 </v-btn>
                               </v-expansion-panel-text>
@@ -324,20 +415,63 @@ export default {
                           <!-- Popout -->
                         </div>
                       </v-col>
-                      {{ selectedItems }}
+                      <!-- {{ selectedItems }} -->
+                      <!-- {{ showPresetDetail }} -->
                       <v-col v-if="showPresetDetail" cols="12">
                         <hr />
                         <hr />
-                        <div class="text-center mt-4 mb-3">
+                        <div class="text-center mt-4 mb-3 font-weight-bold">
                           {{ showPresetDetail.Preset }}
+                        </div>
+                        <div v-if="checkNotEnoughItems">
+                          <v-alert
+                            density="compact"
+                            type="error"
+                            class="mb-4"
+                            variant="tonal"
+                          >
+                            <span>อุปกรณ์ไม่เพียงพอ</span> <br />
+                            <v-table
+                              class="border rounded-md mt-2 mb-2"
+                              density="compact"
+                            >
+                              <thead>
+                                <tr>
+                                  <th class="text-start">รหัสอุปกรณ์</th>
+                                  <th class="text-start">ชื่ออุปกรณ์</th>
+                                  <th class="text-start">จำนวนที่ต้องใช้</th>
+                                  <th class="text-start">จำนวนที่มี</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr v-for="notItem in notEnoughItems">
+                                  <td class="text-start">
+                                    {{ notItem.part.PartNumber }}
+                                  </td>
+                                  <td class="text-start">
+                                    {{ notItem.part.PartName_th }}
+                                  </td>
+                                  <td class="text-end">
+                                    {{ notItem.NumOfUse }}
+                                    {{ notItem.part.unit.Unit }}
+                                  </td>
+                                  <td class="text-end">
+                                    {{ notItem.part.PartAmount }}
+                                    {{ notItem.part.unit.Unit }}
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </v-table>
+                            <!-- </div> -->
+                          </v-alert>
                         </div>
                         <v-data-table
                           items-per-page="10"
                           :row-props="setRowClass"
                           :headers="headers"
-                          :items="showPresetDetail.presetDetails"
+                          :items="aviableItems"
                           v-model="selectedItems"
-                          item-value="PartID"
+                          item-value="PresetDetailID"
                           show-select
                           return-object
                           class="border rounded-md"
@@ -347,7 +481,8 @@ export default {
                       </v-col>
                     </v-row>
                   </v-card-text>
-                  <v-card-actions>
+                  <hr />
+                  <v-card-actions v-if="selectedItems.length > 0">
                     <v-btn
                       color="primary"
                       block
@@ -359,7 +494,7 @@ export default {
                   </v-card-actions>
                   <v-card-actions>
                     <v-btn color="error" block @click="closeDialogAddPart" flat
-                      >ยกเลิก</v-btn
+                      >ปิดหน้าต่าง</v-btn
                     >
                   </v-card-actions>
                 </v-card>
@@ -367,8 +502,102 @@ export default {
             </div>
           </v-col>
         </v-row>
+        <!--  -->
+        <div
+          v-for="(detail, index) in repairDetails"
+          :key="detail.RepairDetailID"
+          :title="detail.repairCategory.RepairCategory"
+          class="mt-3"
+          color="info"
+          variant="outlined"
+        >
+        <hr class="mt-3 mb-3" />
+        <span>{{ detail.repairCategory.RepairCategory }}</span>
+          <v-table class="invoice-table mt-6" density="compact">
+            <template v-slot:default>
+              <thead>
+                <tr>
+                  <th class="text-14 text-no-wrap"></th>
+                  <th class="text-14 text-no-wrap">Item Name</th>
+                  <th class="text-14 text-no-wrap">Unit Price</th>
+                  <th class="text-14 text-no-wrap">Units</th>
+                  <th class="text-14 text-no-wrap">Total Cost</th>
+                  <th class="text-14 text-no-wrap text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(inv, index) in invoice.orders" :key="index">
+                  <td class="text-no-wrap">
+                    <v-btn
+                      flat
+                      icon
+                      color="lightprimary"
+                      size="x-small"
+                      @click="addOrderRow"
+                      class="ms-3"
+                    >
+                      <CirclePlusIcon class="text-primary" size="18" />
+                      <v-tooltip activator="parent" location="bottom"
+                        >Add Item</v-tooltip
+                      >
+                    </v-btn>
+                  </td>
+                  <td width="300" class="text-no-wrap">
+                    <v-text-field
+                      label="Item Name"
+                      hide-details
+                      v-model="inv.itemName"
+                      :rules="rules"
+                      required
+                      class="py-4"
+                      width="300"
+                    />
+                  </td>
+                  <td width="150" class="text-no-wrap">
+                    <v-text-field
+                      v-model="inv.unitPrice"
+                      label="Unit Price"
+                      :rules="rules"
+                      required
+                      hide-details
+                      width="150"
+                      type="number"
+                    />
+                  </td>
+                  <td width="150" class="text-no-wrap">
+                    <v-text-field
+                      v-model="inv.units"
+                      label="Units"
+                      :rules="rules"
+                      required
+                      hide-details
+                      width="150"
+                      type="number"
+                    />
+                  </td>
+                  <td width="150" class="text-14 text-no-wrap">
+                    {{ store.grandTotal(invoice) }}
+                  </td>
+                  <td class="text-end text-no-wrap">
+                    <v-avatar
+                      color="lighterror"
+                      size="32"
+                      @click="deleteOrderRow(index)"
+                    >
+                      <TrashIcon class="text-error" size="18" />
+                    </v-avatar>
+                    <v-tooltip activator="parent" location="bottom"
+                      >Delete Invoice</v-tooltip
+                    >
+                  </td>
+                </tr>
+              </tbody>
+            </template>
+          </v-table>
+        </div>
+        <!--  -->
 
-        <v-table class="invoice-table mt-6">
+        <!-- <v-table class="invoice-table mt-6" density="compact">
           <template v-slot:default>
             <thead>
               <tr>
@@ -434,7 +663,6 @@ export default {
                   {{ store.grandTotal(invoice) }}
                 </td>
                 <td class="text-end text-no-wrap">
-                  <!-- <NuxtLink class="cursor-pointer me-lg-3"> -->
                   <v-avatar
                     color="lighterror"
                     size="32"
@@ -445,12 +673,11 @@ export default {
                   <v-tooltip activator="parent" location="bottom"
                     >Delete Invoice</v-tooltip
                   >
-                  <!-- </NuxtLink> -->
                 </td>
               </tr>
             </tbody>
           </template>
-        </v-table>
+        </v-table> -->
 
         <v-row class="d-flex justify-end border-t mt-1">
           <v-col cols="12" md="3" class="mt-3 ps-lg-16">

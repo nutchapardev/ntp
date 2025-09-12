@@ -22,6 +22,7 @@ export const server = {
   ADDRESS_URL: `addresses`,
   SUB_DISTRICT_URL: `subdistrict`,
   REPAIR_URL: `repair`,
+  REPAIR_DETAIL_URL: `repairDetail`,
   BRAND_URL: `brands`,
   CAR_MODEL_URL: `carmodel`,
   CAR_URL: `cars`,

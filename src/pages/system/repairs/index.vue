@@ -1,12 +1,12 @@
 <script>
 // 1. Imports จะย้ายมาอยู่ด้านบนสุดของ script
-import BaseBreadcrumb from "@/components/shared/BaseBreadcrumb.vue"
-import UiParentCard from "@/components/shared/UiParentCard.vue"
+import BaseBreadcrumb from "@/components/shared/BaseBreadcrumb.vue";
+import UiParentCard from "@/components/shared/UiParentCard.vue";
 // import { BasicDatatables } from "@/_mockApis/components/datatable/dataTable"
-import serverService from "@/services/serverService"
-import Swal from "sweetalert2"
-import { useAuthStore } from "@/stores/authStore"
-import { getCustomerTitle } from "@/services/apis/api_customerTitle"
+import serverService from "@/services/serverService";
+import Swal from "sweetalert2";
+import { useAuthStore } from "@/stores/authStore";
+import { getCustomerTitle } from "@/services/apis/api_customerTitle";
 
 export default {
   name: "Repairs",
@@ -17,7 +17,7 @@ export default {
   },
   // 3. ข้อมูลทั้งหมดจะถูกย้ายมาไว้ใน data()
   data() {
-    const authStore = useAuthStore()
+    const authStore = useAuthStore();
     return {
       page: { title: "รายการซ่อมรถยนต์" },
       breadcrumbs: [
@@ -105,7 +105,7 @@ export default {
       dialogAddRepair: false,
       dialogChoose: false,
       dialogCustomer: false,
-    }
+    };
   },
   // 4. ฟังก์ชันต่างๆ จะถูกย้ายมาไว้ใน methods
   methods: {
@@ -115,62 +115,62 @@ export default {
         query != null &&
         typeof value === "string" &&
         value.toString().toLocaleUpperCase().indexOf(query) !== -1
-      )
+      );
     },
     async getRepairs() {
       try {
-        const response = await serverService.getAllRepairs()
+        const response = await serverService.getAllRepairs();
         // console.log("Repairs data:", response.data)
-        this.RepairsData = response.data
+        this.RepairsData = response.data;
       } catch (error) {
-        console.error("Error fetching repairs:", error)
+        console.error("Error fetching repairs:", error);
       }
     },
     async getBrands() {
       try {
-        const response = await serverService.getBrands()
+        const response = await serverService.getBrands();
         // console.log("Brands data:", response.data)
-        this.brandItems = response.data
+        this.brandItems = response.data;
       } catch (error) {
-        console.error("Error fetching brands:", error)
+        console.error("Error fetching brands:", error);
       }
     },
     async getCarModel(BrandID) {
       // console.log("Selected BrandID:", BrandID)
       try {
-        const response = await serverService.getCarModelByBrandID(BrandID)
-        this.modelItems = response.data
+        const response = await serverService.getCarModelByBrandID(BrandID);
+        this.modelItems = response.data;
         // console.log("Model data:", response.data)
       } catch (error) {
-        console.error("Error fetching brands:", error)
+        console.error("Error fetching brands:", error);
       }
     },
     async getCars() {
       try {
-        const response = await serverService.getCars()
+        const response = await serverService.getCars();
         // console.log("Cars data naja:", response.data)
-        this.carsItems = response.data
+        this.carsItems = response.data;
         // console.log("carsItems :", this.carsItems)
       } catch (error) {
-        console.error("Error fetching cars:", error)
+        console.error("Error fetching cars:", error);
       }
     },
     async getProvinces() {
       try {
-        const response = await serverService.getProvinces()
+        const response = await serverService.getProvinces();
         // console.log("Provinces data:", response.data)
-        this.provinceItems = response.data
+        this.provinceItems = response.data;
       } catch (error) {
-        console.error("Error fetching provinces:", error)
+        console.error("Error fetching provinces:", error);
       }
     },
     async getCustomerTitle() {
       try {
-        const response = await serverService.getCustomerTitle()
+        const response = await serverService.getCustomerTitle();
         // console.log("CustomerTitle data:", response.data)
-        this.customerTitleItems = response.data
+        this.customerTitleItems = response.data;
       } catch (error) {
-        console.error("Error fetching customer titles:", error)
+        console.error("Error fetching customer titles:", error);
       }
     },
     async deleteItem(id) {
@@ -185,45 +185,50 @@ export default {
         cancelButtonText: "<span style='color:white;'>Cancel</span>",
       }).then((result) => {
         if (result.isConfirmed) {
-          Swal.fire("Deleted!", "Your file has been deleted.", "success")
+          Swal.fire({
+            title: "Deleted!",
+            text: "Your file has been deleted.",
+            icon: "success",
+            confirmButtonText: "<span style='color:white;'>ตกลง</span>",
+          });
         }
-      })
+      });
     },
     chooseNewCustomer() {
-      this.dialogChoose = false
-      this.dialogAddRepair = true
+      this.dialogChoose = false;
+      this.dialogAddRepair = true;
     },
     chooseExistingCustomer() {
       // console.log("chooseExistingCustomer")
       // this.getCars()
-      this.dialogChoose = false
-      this.dialogCustomer = true
+      this.dialogChoose = false;
+      this.dialogCustomer = true;
     },
     closeChooseCustomerDialog() {
-      this.dialogCustomer = false
-      this.carIdForSearch = null
+      this.dialogCustomer = false;
+      this.carIdForSearch = null;
       nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem)
-        this.addItem = Object.assign({}, this.defaultAddItem)
-      })
+        this.editedItem = Object.assign({}, this.defaultItem);
+        this.addItem = Object.assign({}, this.defaultAddItem);
+      });
     },
     close() {
-      this.dialogAddRepair = false
+      this.dialogAddRepair = false;
       nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem)
-        this.addItem = Object.assign({}, this.defaultAddItem)
-      })
+        this.editedItem = Object.assign({}, this.defaultItem);
+        this.addItem = Object.assign({}, this.defaultAddItem);
+      });
     },
     async save() {
       // console.log("save : ", this.addItem)
-      let { customer, car } = this.addItem
+      let { customer, car } = this.addItem;
       if (
         customer.CustomerTitleID == null ||
         customer.CustomerName == null ||
         customer.CustomerSurname == null
       ) {
-        Swal.fire("Alert!", "กรุณากรอกข้อมูลลูกค้าให้ครบถ้วน", "warning")
-        return
+        Swal.fire("Alert!", "กรุณากรอกข้อมูลลูกค้าให้ครบถ้วน", "warning");
+        return;
       }
       if (
         car.BrandID == null ||
@@ -232,8 +237,8 @@ export default {
         car.CarNumber == null ||
         car.ProvinceID == null
       ) {
-        Swal.fire("Alert!", "กรุณากรอกข้อมูลรถยนต์ให้ครบถ้วน", "warning")
-        return
+        Swal.fire("Alert!", "กรุณากรอกข้อมูลรถยนต์ให้ครบถ้วน", "warning");
+        return;
       }
 
       Swal.fire({
@@ -249,39 +254,39 @@ export default {
         if (result.isConfirmed) {
           const response = await serverService.createCarWithCustomer(
             this.addItem
-          )
+          );
           // console.log("response createCarWithCustomer :", response.data)
           if (response.data.result) {
-            const { BrandID, ModelID, CarID, CustomerID } = response.data.data
+            const { BrandID, ModelID, CarID, CustomerID } = response.data.data;
             const newRepair = {
               BrandID,
               ModelID,
               CarID,
               CustomerID,
               EmployeeID: this.editedItem.EmployeeID,
-            }
+            };
             // console.log(newRepair)
-            const responseAddRepair = await serverService.addRepair(newRepair)
+            const responseAddRepair = await serverService.addRepair(newRepair);
             // console.log("responseAddRepair :", responseAddRepair.data)
             if (responseAddRepair.data.result) {
-              Swal.fire("Success!", "บันทึกข้อมูลเรียบร้อย", "success")
+              Swal.fire("Success!", "บันทึกข้อมูลเรียบร้อย", "success");
             } else {
-              Swal.fire("Error!", response.data.message, "error")
-              return
+              Swal.fire("Error!", response.data.message, "error");
+              return;
             }
           } else {
-            Swal.fire("Error!", response.data.message, "error")
-            return
+            Swal.fire("Error!", response.data.message, "error");
+            return;
           }
-          this.getRepairs()
-          this.close()
+          this.getRepairs();
+          this.close();
         }
-      })
+      });
     },
     async submitChooseCustomer() {
       if (!this.carIdForSearch) {
-        Swal.fire("Alert!", "กรุณาเลือกข้อมูลรถยนต์", "warning")
-        return
+        Swal.fire("Alert!", "กรุณาเลือกข้อมูลรถยนต์", "warning");
+        return;
       }
       // console.log("submitChooseCustomer :", this.carIdForSearch)
       Swal.fire({
@@ -297,46 +302,46 @@ export default {
         if (result.isConfirmed) {
           const response = await serverService.getCarByCarID(
             this.carIdForSearch
-          )
+          );
           // console.log("response car by CarID :", response.data)
           if (!response.data.CarID) {
-            Swal.fire("Error!", "เกิดข้อผิดพลาด", "error")
-            return
+            Swal.fire("Error!", "เกิดข้อผิดพลาด", "error");
+            return;
           }
 
-          const { BrandID, ModelID, CarID, CustomerID } = response.data
+          const { BrandID, ModelID, CarID, CustomerID } = response.data;
           const newRepair = {
             BrandID,
             ModelID,
             CarID,
             CustomerID,
             EmployeeID: this.editedItem.EmployeeID,
-          }
-          const responseAddRepair = await serverService.addRepair(newRepair)
+          };
+          const responseAddRepair = await serverService.addRepair(newRepair);
           // console.log("responseAddRepair :", responseAddRepair.data)
           if (responseAddRepair.data.result) {
-            Swal.fire("Success!", "บันทึกข้อมูลเรียบร้อย", "success")
+            Swal.fire("Success!", "บันทึกข้อมูลเรียบร้อย", "success");
           } else {
-            Swal.fire("Error!", response.data.message, "error")
-            return
+            Swal.fire("Error!", response.data.message, "error");
+            return;
           }
-          this.getRepairs()
-          this.closeChooseCustomerDialog()
+          this.getRepairs();
+          this.closeChooseCustomerDialog();
         }
-      })
+      });
     },
     initialize() {
-      this.getRepairs()
-      this.getBrands()
-      this.getCars()
-      this.getProvinces()
-      this.getCustomerTitle()
+      this.getRepairs();
+      this.getBrands();
+      this.getCars();
+      this.getProvinces();
+      this.getCustomerTitle();
     },
   },
   mounted() {
-    this.initialize()
+    this.initialize();
   },
-}
+};
 </script>
 
 <template>
@@ -438,7 +443,7 @@ export default {
 
           <template v-slot:item.actions="{ item }">
             <div class="d-flex ga-3 align-center justify-center">
-              <RouterLink :to="`/apps/invoice/edit/_id`">
+              <RouterLink :to="`/system/repairs/${item.RepairID}`">
                 <v-avatar color="lightsuccess" size="32">
                   <EditIcon class="text-success" size="18" />
                 </v-avatar>
@@ -447,7 +452,7 @@ export default {
                 >
               </RouterLink>
 
-              <RouterLink :to="`/system/repairs/${item.RepairID}`">
+              <RouterLink :to="`/system/repairs/view/view_id`">
                 <v-avatar color="lightprimary" size="32">
                   <EyeIcon class="text-primary" size="18" />
                 </v-avatar>

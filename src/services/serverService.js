@@ -12,6 +12,7 @@ import * as carApis from "@/services/apis/api_car"
 import * as provinceApis from "@/services/apis/api_province"
 import * as customerTitleApis from "@/services/apis/api_customerTitle"
 import * as refModelCategoryPartsApis from "@/services/apis/api_refModelCategoryParts"
+import * as repairDetailApis from "@/services/apis/api_repairDetail"
 
 const login = async (values) => {
   const resultLogin = await httpClient.post(server.LOGIN_URL, values)
@@ -43,4 +44,5 @@ export default {
   ...provinceApis,
   ...customerTitleApis,
   ...refModelCategoryPartsApis,
+  ...repairDetailApis,
 }
