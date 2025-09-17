@@ -10,12 +10,19 @@ export const useInvoicestore = defineStore("invoices", {
 
   getters: {
     grandTotal: (state) => (invoice) => {
+      console.log(invoice);
+      
       const subtotal = (invoice.orders ?? []).reduce((sum, order) => {
         return sum + (order.unitPrice ?? 0) * (order.units ?? 0)
       }, 0)
       const vatRate = 0.1
       const vat = subtotal * vatRate
       return subtotal + vat
+    },
+    totalCost: (state) => (part) => {
+      // console.log(part);
+      const totalCost = part.PricePerUnit * part.NumOfUse
+      return totalCost
     },
   },
 
