@@ -11,7 +11,6 @@ import {
 
 export default {
   name: "CreateRepair",
-
   // 1. ลงทะเบียนคอมโพเนนต์ที่ import เข้ามา
   components: {
     CirclePlusIcon,
@@ -23,24 +22,11 @@ export default {
     const invoiceStore = useInvoicestore();
     return {
       invoiceStore,
-      store: null, // จะกำหนดค่าใน created() hook
       valid: false,
       isVat: false,
-      statuses: ["Pending", "Shipped", "Delivered"],
+      // statuses: ["Pending", "Shipped", "Delivered"],
       rules: [(v) => !!v || "This field is required"],
       vatRate: 0.07,
-      invoice: {
-        id: null, // กำหนดค่าเริ่มต้นเป็น null แล้วจะคำนวณใน created() hook
-        billFrom: "",
-        billTo: "",
-        billFromAddress: "",
-        billToAddress: "",
-        totalCost: 0,
-        status: "Pending",
-        orderDate: new Date(),
-        orders: [{ itemName: "", unitPrice: 0, units: 0, unitTotalPrice: 0 }],
-      },
-      // NutCha Data
       selectedItems: [],
       RepairItems: {},
       newRepairItems: {},
@@ -60,17 +46,6 @@ export default {
 
   // 3. computed ใช้สำหรับข้อมูลที่ต้องคำนวณจาก state
   computed: {
-    nextInvoiceId() {
-      if (this.store && this.store.invoice.length > 0) {
-        return Math.max(...this.store.invoice.map((i) => i.id)) + 1;
-      }
-      return 1;
-    },
-    subtotal() {
-      return (this.invoice.orders ?? []).reduce((sum, order) => {
-        return sum + (order.unitPrice ?? 0) * (order.units ?? 0);
-      }, 0);
-    },
     subtotalNutcha() {
       return (this.repairDetails ?? []).reduce((sum, obj) => {
         return (
@@ -81,23 +56,13 @@ export default {
         );
       }, 0);
     },
-    vat() {
-      return this.subtotal * this.vatRate;
-    },
     vatNutCha() {
       return this.subtotalNutcha * (this.isVat ? this.vatRate : 0);
-    },
-    grandTotal() {
-      return this.subtotal + this.vat;
     },
     grandTotalNutCha() {
       const total =
         parseFloat(this.subtotalNutcha) + parseFloat(this.vatNutCha);
       return total;
-      // .toLocaleString("th-TH", {
-      //   minimumFractionDigits: 2,
-      //   maximumFractionDigits: 2,
-      // });
     },
     repairID() {
       return this.$route.params.repairID;
@@ -142,10 +107,10 @@ export default {
 
   // 4. methods ใช้สำหรับฟังก์ชันต่างๆ ที่จะเรียกใช้ในคอมโพเนนต์
   methods: {
+    // สร้าง method ห่อหุ้ม `format` เพื่อให้ template เรียกใช้ได้
     formatSeperateCurrency(total) {
       return formatCurrency(total);
     },
-    // สร้าง method ห่อหุ้ม `format` เพื่อให้ template เรียกใช้ได้
     formatDate(date) {
       return date ? toThaiDateString(new Date(date), "E, MMM dd, yyyy") : "N/A";
     },
@@ -160,20 +125,8 @@ export default {
       }
     },
 
-    submitInvoice() {
-      // สามารถใช้ this.valid เพื่อเข้าถึงค่าใน data
-      if (this.valid) {
-        this.invoice.id = this.nextInvoiceId; // ใช้ค่าจาก computed
-        this.invoice.orderDate = new Date();
-        this.invoice.totalCost = this.grandTotal; // ใช้ค่าจาก computed
-
-        this.store.addInvoice(this.invoice);
-
-        // ใช้ this.$router ใน Options API เพื่อเข้าถึง router
-        this.$router.push("/apps/invoice");
-      } else {
-        console.log("Form is invalid");
-      }
+    submitSave() {
+      alert("submit save");
     },
 
     addOrderRow() {
@@ -186,30 +139,24 @@ export default {
       });
     },
 
-    deleteOrderRow(index) {
-      this.invoice.orders = this.invoice.orders ?? [];
-      this.invoice.orders.splice(index, 1);
+    deletePart(index) {
+      alert("delete : ", index);
     },
     // NutCha methods
     async getRepairByID() {
       const response = await serverService.getRepairByID(this.repairID);
-      // console.log(response.data)
       this.RepairItems = response.data;
     },
     async getRefModelCategoryPartByBrandID() {
-      // console.log(this.RepairItems.ModelID);
       const response = await serverService.getRefModelCategoryPartByModelID(
         this.RepairItems.ModelID
       );
-      // console.log(response.data);
       this.refItems = response.data;
     },
     async getRepairDetail() {
       const response = await serverService.getRepairDetailByRepairID(
         this.repairID
       );
-      // console.log(response.data);
-
       this.repairDetails = response.data;
     },
     setRowClass({ item }) {
@@ -256,10 +203,7 @@ export default {
             });
           });
 
-          // console.log(this.showPresetDetail);
-
           const response = await serverService.addRepairDetailWithPart(payload);
-          // console.log(response.data);
           if (response.data.result) {
             this.getRefModelCategoryPartByBrandID();
             this.getRepairDetail();
@@ -270,7 +214,6 @@ export default {
       });
     },
     choosePreset(preset) {
-      // console.log(preset);
       this.showPresetDetail = preset;
       this.selectedItems = []; // เพิ่มบรรทัดนี้เพื่อล้างค่าที่เลือกไว้
     },
@@ -289,8 +232,6 @@ export default {
     initialize() {
       this.getRepairByID();
       this.getRepairDetail();
-
-      // .then(() => this.getRefModelCategoryPartByBrandID());
     },
   },
   mounted() {
@@ -300,17 +241,12 @@ export default {
   // 5. created() เป็น lifecycle hook ที่จะทำงานเมื่อคอมโพเนนต์ถูกสร้างขึ้น
   created() {
     this.initialize();
-    // กำหนดค่าให้กับ store ที่ประกาศไว้ใน data
-    this.store = useInvoicestore();
-    // คำนวณและกำหนด ID เริ่มต้นให้กับ invoice
-    this.invoice.id = this.nextInvoiceId;
   },
 };
 </script>
 
 <template>
   <v-card v-if="RepairItems.RepairID" elevation="10">
-    <!-- {{ RepairItems }} -->
     <v-card-item>
       <v-row>
         <v-col>
@@ -419,8 +355,6 @@ export default {
                     <!-- Popout -->
                   </div>
                 </v-col>
-                <!-- {{ selectedItems }} -->
-                <!-- {{ showPresetDetail }} -->
                 <v-col v-if="showPresetDetail" cols="12">
                   <hr />
                   <hr />
@@ -519,14 +453,15 @@ export default {
           color="info"
           variant="outlined"
         >
-          <!-- <hr class="mt-3 mb-3" /> -->
           <!-- <span class="mt-10 font-weight-bold">{{ index + 1 }}. {{ detail.repairCategory.RepairCategory }}</span> -->
-          <span class="mt-10 font-weight-bold">#{{ index + 1 }}.&nbsp;&nbsp;&nbsp;&nbsp;{{ detail.preset.Preset }}</span>
+          <span class="mt-10 font-weight-bold"
+            >#{{ index + 1 }}.&nbsp;&nbsp;&nbsp;&nbsp;
+            {{ detail.preset.Preset }}
+          </span>
           <v-table class="invoice-table mt-6" density="compact">
             <template v-slot:default>
               <thead>
                 <tr>
-                  <!-- <th class="text-14 text-no-wrap"></th> -->
                   <th class="text-14 text-no-wrap"></th>
                   <th class="text-14 text-no-wrap">ชื่ออุปกรณ์</th>
                   <th class="text-14 text-no-wrap text-center">ราคาต่อหน่วย</th>
@@ -537,45 +472,11 @@ export default {
               </thead>
               <tbody>
                 <tr v-for="(part, index) in detail.repairParts" :key="index">
-                  <!-- <td></td> -->
                   <td class="text-center">{{ index + 1 }}.</td>
-                  <!-- <td class="text-no-wrap">
-                    <v-btn
-                      flat
-                      icon
-                      color="lightprimary"
-                      size="x-small"
-                      @click="addOrderRow"
-                      class="ms-3"
-                    >
-                      <CirclePlusIcon class="text-primary" size="18" />
-                      <v-tooltip activator="parent" location="bottom"
-                        >Add Item</v-tooltip
-                      >
-                    </v-btn>
-                  </td> -->
                   <td width="300" class="text-no-wrap">
-                    <!-- <v-text-field
-                      label="Item Name"
-                      hide-details
-                      v-model="part.part.PartName_th"
-                      :rules="rules"
-                      required
-                      class="py-4"
-                      width="300"
-                    /> -->
                     <span class="py-4">{{ part.part.PartName_th }}</span>
                   </td>
                   <td width="150" class="text-no-wrap text-end">
-                    <!-- <v-text-field
-                      v-model="part.PricePerUnit"
-                      label="ราคาต่อหน่วย"
-                      :rules="rules"
-                      required
-                      hide-details
-                      width="150"
-                      type="number"
-                    /> -->
                     {{ formatSeperateCurrency(part.PricePerUnit) }}
                   </td>
                   <td width="150" class="text-no-wrap">
@@ -590,14 +491,13 @@ export default {
                     />
                   </td>
                   <td width="150" class="text-14 text-no-wrap text-end">
-                    <!-- {{ store.grandTotal(invoice) }} -->
                     {{ formatSeperateCurrency(invoiceStore.totalCost(part)) }}
                   </td>
                   <td class="text-end text-no-wrap">
                     <v-avatar
                       color="lighterror"
                       size="32"
-                      @click="deleteOrderRow(index)"
+                      @click="deletePart(index)"
                     >
                       <TrashIcon class="text-error" size="18" />
                     </v-avatar>
@@ -610,89 +510,6 @@ export default {
             </template>
           </v-table>
         </div>
-        <!--  -->
-
-        <!-- <v-table class="invoice-table mt-6" density="compact">
-          <template v-slot:default>
-            <thead>
-              <tr>
-                <th class="text-14 text-no-wrap"></th>
-                <th class="text-14 text-no-wrap">Item Name</th>
-                <th class="text-14 text-no-wrap">Unit Price</th>
-                <th class="text-14 text-no-wrap">Units</th>
-                <th class="text-14 text-no-wrap">Total Cost</th>
-                <th class="text-14 text-no-wrap text-end">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(inv, index) in invoice.orders" :key="index">
-                <td class="text-no-wrap">
-                  <v-btn
-                    flat
-                    icon
-                    color="lightprimary"
-                    size="x-small"
-                    @click="addOrderRow"
-                    class="ms-3"
-                  >
-                    <CirclePlusIcon class="text-primary" size="18" />
-                    <v-tooltip activator="parent" location="bottom"
-                      >Add Item</v-tooltip
-                    >
-                  </v-btn>
-                </td>
-                <td width="300" class="text-no-wrap">
-                  <v-text-field
-                    label="Item Name"
-                    hide-details
-                    v-model="inv.itemName"
-                    :rules="rules"
-                    required
-                    class="py-4"
-                    width="300"
-                  />
-                </td>
-                <td width="150" class="text-no-wrap">
-                  <v-text-field
-                    v-model="inv.unitPrice"
-                    label="Unit Price"
-                    :rules="rules"
-                    required
-                    hide-details
-                    width="150"
-                    type="number"
-                  />
-                </td>
-                <td width="150" class="text-no-wrap">
-                  <v-text-field
-                    v-model="inv.units"
-                    label="Units"
-                    :rules="rules"
-                    required
-                    hide-details
-                    width="150"
-                    type="number"
-                  />
-                </td>
-                <td width="150" class="text-14 text-no-wrap">
-                  {{ store.grandTotal(invoice) }}
-                </td>
-                <td class="text-end text-no-wrap">
-                  <v-avatar
-                    color="lighterror"
-                    size="32"
-                    @click="deleteOrderRow(index)"
-                  >
-                    <TrashIcon class="text-error" size="18" />
-                  </v-avatar>
-                  <v-tooltip activator="parent" location="bottom"
-                    >Delete Invoice</v-tooltip
-                  >
-                </td>
-              </tr>
-            </tbody>
-          </template>
-        </v-table> -->
 
         <v-row class="d-flex justify-end border-t mt-1">
           <v-col cols="12" md="3" class="mt-3 ps-lg-16">
@@ -725,7 +542,6 @@ export default {
               class="d-flex align-center justify-space-between text-14 font-weight-semibold"
             >
               <p class="text-muted">Grand Total :</p>
-              <!-- <p class="text-16">{{ grandTotal }}</p> -->
               <p class="text-16">
                 {{ formatSeperateCurrency(grandTotalNutCha) }}
               </p>
@@ -734,10 +550,10 @@ export default {
         </v-row>
 
         <div class="d-flex align-center justify-end ga-3">
-          <v-btn flat color="primary" @click="submitInvoice" class="mt-6"
+          <v-btn flat color="primary" @click="submitSave" class="mt-6"
             >Create Invoice</v-btn
           >
-          <v-btn flat color="error" to="/apps/invoice" class="mt-6"
+          <v-btn flat color="error" to="/system/repairs" class="mt-6"
             >Cancel</v-btn
           >
         </div>
@@ -747,13 +563,9 @@ export default {
 </template>
 
 <style>
-/* ... style เหมือนกับตัวอย่างแรก ... */
-/* .high-fat-row {
-  background-color: #ffebee !important;
-} */
-
 .high-fat-row {
-  background-color: #ffcdd2 !important;
+  background-color: #ffebee !important;
+  /* background-color: #ffcdd2 !important; */
 }
 
 .high-fat-row:hover {
