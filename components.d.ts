@@ -58,6 +58,7 @@ declare module 'vue' {
     SalesProductsCard: typeof import('./src/components/dashboards/ecommerce/SalesProductsCard.vue')['default']
     SecurityTab: typeof import('./src/components/account-settings/SecurityTab.vue')['default']
     Snackbar: typeof import('./src/components/dashboards/snackbar.vue')['default']
+    StockTable: typeof import('./src/components/stock/StockTable.vue')['default']
     TheActivityTimeline: typeof import('./src/components/dashboards/general/TheActivityTimeline.vue')['default']
     TheBandwidthUsage: typeof import('./src/components/dashboards/general/TheBandwidthUsage.vue')['default']
     TheBrowserStats: typeof import('./src/components/dashboards/campaign/TheBrowserStats.vue')['default']

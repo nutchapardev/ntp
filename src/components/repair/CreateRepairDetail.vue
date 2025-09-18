@@ -249,7 +249,7 @@ export default {
   <v-card v-if="RepairItems.RepairID" elevation="10">
     <v-card-item>
       <v-row>
-        <v-col>
+        <v-col cols="12" sm="6">
           <p class="textSecondary text-14">#ID : {{ repairID }}</p>
           <p class="textSecondary text-14">
             วันที่ :
@@ -273,7 +273,7 @@ export default {
             {{ RepairItems.customer.CustomerSurname }}
           </p>
         </v-col>
-        <v-col class="text-end">
+        <v-col cols="12" sm="6" class="text-end">
           <p class="textSecondary text-14">
             สร้างเมื่อ :
             {{ formatDateTime(RepairItems.createdAt) }}
@@ -550,11 +550,16 @@ export default {
         </v-row>
 
         <div class="d-flex align-center justify-end ga-3">
-          <v-btn flat color="primary" @click="submitSave" class="mt-6"
-            >Create Invoice</v-btn
+          <v-btn
+            flat
+            color="primary"
+            @click="submitSave"
+            class="mt-6"
+            :disabled="repairDetails.length == 0"
+            >บันทึกข้อมูลการซ่อม</v-btn
           >
           <v-btn flat color="error" to="/system/repairs" class="mt-6"
-            >Cancel</v-btn
+            >ย้อนกลับ</v-btn
           >
         </div>
       </v-form>

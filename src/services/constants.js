@@ -28,6 +28,9 @@ export const server = {
   CAR_URL: `cars`,
   PROVINCE_URL: `province`,
   CUSTOMER_TITLE_URL: `customertitle`,
+  PART_URL: `parts`,
+  PART_CATEGORY_URL:`partcategory`,
+  REPAIR_CATEGORY_URL:`repaircategory`,
   REF_MODEL_CATEGORY_PART_URL: `refModelCategoryParts`,
 }
 

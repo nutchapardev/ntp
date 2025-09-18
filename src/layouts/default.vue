@@ -40,7 +40,7 @@ export default {
     ]"
   >
     <v-locale-provider :rtl="customizer.setRTLLayout">
-      <v-navigation-drawer
+      <!-- <v-navigation-drawer
         app
         temporary
         elevation="10"
@@ -50,7 +50,7 @@ export default {
         :class="customizer.setRTLLayout ? 'left-customizer' : ''"
       >
         <Customizer />
-      </v-navigation-drawer>
+      </v-navigation-drawer> -->
 
       <VerticalHeaderVue v-if="!customizer.setHorizontalLayout" />
       <VerticalSidebarVue v-if="!customizer.setHorizontalLayout" />
@@ -68,7 +68,7 @@ export default {
               </transition>
             </RouterView>
 
-            <v-btn
+            <!-- <v-btn
               class="customizer-btn"
               size="large"
               icon
@@ -79,7 +79,7 @@ export default {
               "
             >
               <SettingsIcon />
-            </v-btn>
+            </v-btn> -->
           </div>
         </v-container>
       </v-main>

@@ -29,14 +29,32 @@ const sidebarItem = [
   },
   { header: "STOCKS" },
   {
-    title: "ข้อมูลสินค้าคงคงคลัง",
+    title: "ข้อมูลสินค้าคงคลัง",
     icon: "bedside-table-3-linear",
-    to: "/system/part",
+    to: "/system/stock",
   },
   {
-    title: "ข้อมูลชุดอุปกรณ์",
+    title: "ข้อมูลอะไหล่",
     icon: "command-linear",
-    to: "/system/part2",
+    to: "/system/ref",
+    children: [
+      {
+        title: "จัดกลุ่มข้อมูลกับรถยนต์",
+        to: "/system/ref",
+      },
+      {
+        title: "Details",
+        to: "/apps/invoice/details/102",
+      },
+      {
+        title: "Create",
+        to: "/apps/invoice/create",
+      },
+      {
+        title: "Edit",
+        to: "/apps/invoice/edit/102",
+      },
+    ],
   },
   { header: "EMPLOYEES" },
   {
@@ -634,6 +652,6 @@ const sidebarItem = [
   //   icon: "sticker-smile-circle-2-line-duotone",
   //   to: "/icons/tabler",
   // },
-]
+];
 
-export default sidebarItem
+export default sidebarItem;
