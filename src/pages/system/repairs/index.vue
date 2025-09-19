@@ -6,7 +6,7 @@ import UiParentCard from "@/components/shared/UiParentCard.vue";
 import serverService from "@/services/serverService";
 import Swal from "sweetalert2";
 import { useAuthStore } from "@/stores/authStore";
-import { getCustomerTitle } from "@/services/apis/api_customerTitle";
+import { toShortThaiDateString } from "@/utils/functions";
 
 export default {
   name: "Repairs",
@@ -36,6 +36,7 @@ export default {
       carIdForSearch: null,
       headers: [
         { title: "RepairID", align: "start", key: "RepairID" },
+        { title: "วันที่", align: "start", key: "RepairDate" },
         { title: "หมายเลขทะเบียน", align: "start", key: "car.CarNumber" },
         { title: "ยี่ห้อ/รุ่น", align: "start", key: "car.brand.Brand" },
         { title: "สถานะซ่อม", align: "start", key: "workStatus.WorkStatus_th" },
@@ -109,6 +110,9 @@ export default {
   },
   // 4. ฟังก์ชันต่างๆ จะถูกย้ายมาไว้ใน methods
   methods: {
+    formatDateString(date) {
+      return toShortThaiDateString(date);
+    },
     filterOnlyCapsText(value, query, item) {
       return (
         value != null &&
@@ -120,7 +124,7 @@ export default {
     async getRepairs() {
       try {
         const response = await serverService.getAllRepairs();
-        // console.log("Repairs data:", response.data)
+        console.log("Repairs data:", response.data);
         this.RepairsData = response.data;
       } catch (error) {
         console.error("Error fetching repairs:", error);
@@ -417,6 +421,10 @@ export default {
         >
           <template v-slot:item.RepairID="{ item }">
             #{{ item.RepairID }}
+          </template>
+
+          <template v-slot:item.RepairDate="{ item }">
+            {{ formatDateString(item.RepairDate) }}
           </template>
 
           <template v-slot:item.car.CarNumber="{ item }">

@@ -29,7 +29,7 @@ const sidebarItem = [
   },
   { header: "STOCKS" },
   {
-    title: "ข้อมูลสินค้าคงคลัง",
+    title: "สินค้าคงคลัง",
     icon: "bedside-table-3-linear",
     to: "/system/stock",
   },
@@ -42,18 +42,18 @@ const sidebarItem = [
         title: "จัดกลุ่มข้อมูลกับรถยนต์",
         to: "/system/ref",
       },
-      {
-        title: "Details",
-        to: "/apps/invoice/details/102",
-      },
-      {
-        title: "Create",
-        to: "/apps/invoice/create",
-      },
-      {
-        title: "Edit",
-        to: "/apps/invoice/edit/102",
-      },
+      // {
+      //   title: "Details",
+      //   to: "/apps/invoice/details/102",
+      // },
+      // {
+      //   title: "Create",
+      //   to: "/apps/invoice/create",
+      // },
+      // {
+      //   title: "Edit",
+      //   to: "/apps/invoice/edit/102",
+      // },
     ],
   },
   { header: "EMPLOYEES" },

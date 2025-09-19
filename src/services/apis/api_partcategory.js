@@ -5,3 +5,7 @@ import { server } from "@/services/constants";
 export const getPartCategory = () => {
   return httpClient.get(server.PART_CATEGORY_URL);
 };
+
+export const addPartCategory = (data) => {
+  return httpClient.post(server.PART_CATEGORY_URL, data);
+};

@@ -61,6 +61,26 @@ function toThaiDateString(dateString) {
     .replace("พ.ศ. ", "");
 }
 
+function toShortThaiDateString(dateString) {
+  // 1. สร้าง Object Date จาก String ที่รับเข้ามา
+  const date = new Date(dateString);
+
+  // 2. กำหนดค่า options สำหรับการจัดรูปแบบ
+  const options = {
+    year: "numeric", // แสดงปีเป็นตัวเลข
+    month: "short", // แสดงชื่อเดือนแบบย่อ
+    day: "numeric", // แสดงวันที่เป็นตัวเลข
+    locale: "th-TH", // ใช้ locale ของไทย
+    calendar: "buddhist", // ใช้ปฏิทินแบบพุทธ (จะแปลงเป็นปี พ.ศ. ให้)
+  };
+
+  // 3. จัดรูปแบบวันที่และคืนค่า
+  // ใช้ .replace เพื่อลบคำว่า "พ.ศ." ที่อาจจะติดมากับบาง Browser
+  return new Intl.DateTimeFormat("th-TH", options)
+    .format(date)
+    .replace("พ.ศ. ", "");
+}
+
 function toThaiDateTimeString(isoString) {
   // 1. สร้าง Object Date จาก String ที่รับเข้ามา
   // JavaScript จะแปลงเวลาจาก UTC (Z) เป็นเวลาท้องถิ่นของเครื่องโดยอัตโนมัติ
@@ -98,12 +118,91 @@ function formatCurrency(total) {
   });
 }
 
+// ตรวจสอบจำนวนอะไหล่ตาม Preset เพียงพอ ไม่เพียงพอ
+
+function checkPresetAvailability(data) {
+  // สร้าง object สำหรับเก็บผลลัพธ์
+  const results = {
+    sufficientPresets: [],
+    insufficientPresets: [],
+    summary: {
+      sufficientCount: 0,
+      insufficientCount: 0,
+    },
+  };
+
+  // ตรวจสอบว่ามี ref_model_category_parts และเป็น array หรือไม่
+  if (!data || !Array.isArray(data.ref_model_category_parts)) {
+    console.error(
+      "Invalid data structure: ref_model_category_parts is missing or not an array."
+    );
+    return results;
+  }
+
+  // วนลูปผ่านแต่ละ preset ใน ref_model_category_parts
+  data.ref_model_category_parts.forEach((refPart) => {
+    if (refPart.preset && Array.isArray(refPart.preset.presetDetails)) {
+      const presetInfo = {
+        PresetID: refPart.preset.PresetID,
+        PresetName: refPart.preset.Preset,
+      };
+
+      // ใช้ .some() เพื่อหาว่ามีอะไหล่ "อย่างน้อยหนึ่งชิ้น" ที่ไม่พอหรือไม่
+      // .some() จะหยุดทำงานและคืนค่า true ทันทีที่เจอเงื่อนไขที่ตรง
+      const isInsufficient = refPart.preset.presetDetails.some((detail) => {
+        const numOfUse = detail.NumOfUse;
+        const partAmount = detail.part ? detail.part.PartAmount : 0;
+        return partAmount < numOfUse; // คืนค่า true ถ้าของไม่พอ
+      });
+
+      if (isInsufficient) {
+        // --- ถ้า Preset นี้ "ไม่เพียงพอ" ---
+        // หาว่าชิ้นไหนบ้างที่ไม่พอ เพื่อแสดงรายละเอียด
+        const failingParts = refPart.preset.presetDetails
+          .filter((detail) => {
+            const numOfUse = detail.NumOfUse;
+            const partAmount = detail.part ? detail.part.PartAmount : 0;
+            return partAmount < numOfUse;
+          })
+          .map((detail) => ({
+            // จัดรูปแบบข้อมูลให้ดูง่าย
+            PartID: detail.PartID,
+            PartName_th: detail.part ? detail.part.PartName_th : "N/A",
+            NumOfUse: detail.NumOfUse,
+            PartAmount: detail.part ? detail.part.PartAmount : 0,
+          }));
+
+        // เพิ่มข้อมูล preset ที่ไม่พอและรายละเอียดอะไหล่ที่ขาด
+        results.insufficientPresets.push({
+          ...presetInfo,
+          details: failingParts,
+        });
+        results.summary.insufficientCount++;
+      } else {
+        // --- ถ้า Preset นี้ "เพียงพอ" (ไม่มีชิ้นไหนขาดเลย) ---
+        results.sufficientPresets.push(presetInfo);
+        results.summary.sufficientCount++;
+      }
+    }
+  });
+
+  return results;
+}
+const checkStockAvailability = (partsArray) => {
+  // ใช้ method every() เพื่อตรวจสอบทุก element ใน array
+  // เงื่อนไขคือ part.PartAmount ต้องมากกว่าหรือเท่ากับ NumOfUse
+  return partsArray.every(item => item.part.PartAmount >= item.NumOfUse);
+};
+
 export {
   getNumberOfDigits,
   getRandomColor,
+  toShortThaiDateString,
   toThaiDateString,
   toThaiDateTimeString,
-  formatCurrency
+  formatCurrency,
+  checkPresetAvailability,
+  checkStockAvailability
 };
 
 // --- ตัวอย่างการใช้งาน ---

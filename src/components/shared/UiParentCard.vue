@@ -7,13 +7,12 @@ export default {
 };
 </script>
 
-// ===============================|| Ui Parent
-Card||=============================== //
+<!-- // ===============================|| Ui Parent Card||=============================== // -->
 <template>
   <v-card elevation="10">
     <v-card-item class="py-4 px-6">
       <div class="d-sm-flex align-center justify-space-between">
-        <v-card-title class="text-h5">{{ title }}</v-card-title>
+        <v-card-title style="max-width: 80%;" class="text-h5">{{ title }}</v-card-title>
         <slot name="action"></slot>
       </div>
     </v-card-item>

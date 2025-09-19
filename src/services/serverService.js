@@ -16,6 +16,7 @@ import * as repairDetailApis from "@/services/apis/api_repairDetail";
 import * as partApis from "@/services/apis/api_part";
 import * as partCategoryApis from "@/services/apis/api_partcategory";
 import * as repairCategoryApis from "@/services/apis/api_repaircategory";
+import * as presetApis from "@/services/apis/api_preset";
 
 const login = async (values) => {
   const resultLogin = await httpClient.post(server.LOGIN_URL, values);
@@ -51,4 +52,5 @@ export default {
   ...partApis,
   ...partCategoryApis,
   ...repairCategoryApis,
+  ...presetApis,
 };

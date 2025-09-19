@@ -10,3 +10,7 @@ export const getRepairCategoryByModelAndPartCategory = (
     `${server.REPAIR_CATEGORY_URL}/by-model-part-category/${ModelID}/${PartCategoryID}`
   );
 };
+
+export const addRepairCategoryWithRefs = (data) => {
+  return httpClient.post(`${server.REPAIR_CATEGORY_URL}/create-with-ref`, data);
+};
