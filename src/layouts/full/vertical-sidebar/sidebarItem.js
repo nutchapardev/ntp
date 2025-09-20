@@ -42,6 +42,10 @@ const sidebarItem = [
         title: "จัดกลุ่มข้อมูลกับรถยนต์",
         to: "/system/ref",
       },
+      {
+        title: "พรีเซ็ตข้อมูล",
+        to: "/system/preset",
+      },
       // {
       //   title: "Details",
       //   to: "/apps/invoice/details/102",
@@ -64,37 +68,37 @@ const sidebarItem = [
   },
 
   // --------------------------------
-  // { header: "Personal" },
-  // {
-  //   title: "General",
-  //   icon: "screencast-2-linear",
-  //   to: "/dashboards/general",
-  // },
-  // {
-  //   title: "Classic",
-  //   icon: "atom-linear",
-  //   to: "/dashboards/classic",
-  // },
-  // {
-  //   title: "Analytical",
-  //   icon: "box-minimalistic-linear",
-  //   to: "/dashboards/analytical",
-  // },
-  // {
-  //   title: "Campaign",
-  //   icon: "buildings-2-linear",
-  //   to: "/dashboards/campaign",
-  // },
-  // {
-  //   title: "Modern",
-  //   icon: "basketball-linear",
-  //   to: "/dashboards/modern",
-  // },
-  // {
-  //   title: "eCommerce",
-  //   icon: "cart-large-2-linear",
-  //   to: "/dashboards/ecommerce",
-  // },
+  { header: "Personal" },
+  {
+    title: "General",
+    icon: "screencast-2-linear",
+    to: "/dashboards/general",
+  },
+  {
+    title: "Classic",
+    icon: "atom-linear",
+    to: "/dashboards/classic",
+  },
+  {
+    title: "Analytical",
+    icon: "box-minimalistic-linear",
+    to: "/dashboards/analytical",
+  },
+  {
+    title: "Campaign",
+    icon: "buildings-2-linear",
+    to: "/dashboards/campaign",
+  },
+  {
+    title: "Modern",
+    icon: "basketball-linear",
+    to: "/dashboards/modern",
+  },
+  {
+    title: "eCommerce",
+    icon: "cart-large-2-linear",
+    to: "/dashboards/ecommerce",
+  },
 
   // {
   //   title: "Front Pages",
@@ -652,6 +656,6 @@ const sidebarItem = [
   //   icon: "sticker-smile-circle-2-line-duotone",
   //   to: "/icons/tabler",
   // },
-];
+]
 
-export default sidebarItem;
+export default sidebarItem

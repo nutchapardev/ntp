@@ -3,11 +3,12 @@ import { nextTick } from "vue"
 import BaseBreadcrumb from "@/components/shared/BaseBreadcrumb.vue"
 import UiParentCard from "@/components/shared/UiParentCard.vue"
 import serverService from "@/services/serverService"
-import { CirclePlusIcon, TrashIcon } from "vue-tabler-icons"
+import { CirclePlusIcon, TrashIcon, CircleMinusIcon } from "vue-tabler-icons"
 import Swal from "sweetalert2"
 import {
   checkPresetAvailability,
   checkStockAvailability,
+  formatCurrency,
 } from "@/utils/functions"
 
 export default {
@@ -16,6 +17,7 @@ export default {
     BaseBreadcrumb,
     UiParentCard,
     CirclePlusIcon,
+    CircleMinusIcon,
     TrashIcon,
   },
   data() {
@@ -45,11 +47,32 @@ export default {
       presets: [],
       showRepairCategoryColumn: false,
       showPresetRepairCategory: null,
+      showSinglePreset: null,
       // dialog
       dialogAddModel: false,
       dialogAddPartCategory: false,
       dialogAddRepairCategory: false,
+      dialogAddPreset: false,
       dialogShowPreset: false,
+      // data table
+      showSinglePreSetHeaders: [
+        {
+          title: "#ID",
+          key: "CustomerID",
+          align: "start",
+          sortable: true,
+        },
+        {
+          title: "ชื่อ - นามสกุล",
+          align: "start",
+          sortable: false,
+          key: "CustomerName",
+        },
+        { title: "รหัสประจำตัวประชาชน", key: "IDNumber" },
+        { title: "เบอร์โทรศัพท์", key: "CustomerTel" },
+        { title: "รถยนต์", key: "cars" },
+        { title: "Actions", key: "actions", sortable: false },
+      ],
       // data for add
       addModel: {
         Model: "",
@@ -61,9 +84,15 @@ export default {
         RepairCategory: "",
         PresetID: [],
       },
+      addPreset: {
+        PresetID: [],
+      },
     }
   },
   methods: {
+    formatSeperateCurrency(total) {
+      return formatCurrency(total)
+    },
     async getBrandByBrandID(BrandID) {
       const response = await serverService.getBrandByBrandID(BrandID)
       this.brandData = response.data
@@ -77,6 +106,21 @@ export default {
       // console.log(response.data);
 
       this.presets = response.data
+    },
+    removePresetFromRepairCategory(PresetID) {
+      if (this.showPresetRepairCategory.ref_model_category_parts.length == 1) {
+        alert("ไม่สามารถลบได้ เนื่องจากต้องมีอย่างน้อย 1 รายการในกลุ่มงาน")
+        return
+      }
+
+      this.showPresetRepairCategory.ref_model_category_parts =
+        this.showPresetRepairCategory.ref_model_category_parts.filter(
+          (e) => e.preset.PresetID != PresetID
+        )
+
+      nextTick(() => {
+        this.showSinglePreset = null
+      })
     },
     chooseModel(model) {
       this.ModelID = model.ModelID
@@ -98,8 +142,12 @@ export default {
       this.repairCategories = response.data
       this.showRepairCategoryColumn = true
     },
+    chooseSinglePreset(preset) {
+      this.showSinglePreset = preset
+      // console.log(preset)
+    },
     chooseRepairCategory(repairCategory) {
-      console.log("repairCategory", repairCategory)
+      // console.log("repairCategory", repairCategory)
       this.showPresetRepairCategory = repairCategory
       this.dialogShowPreset = true
     },
@@ -216,6 +264,51 @@ export default {
         }
       })
     },
+    async submitAddPreset() {
+      if (this.addPreset.PresetID.length == 0) {
+        Swal.fire("Alert!", "กรุณากรอกข้อมูลให้ครบถ้วน", "warning")
+        return
+      }
+
+      Swal.fire({
+        title: "Are you sure?",
+        text: "ต้องการเพิ่มพรีเซ็ตข้อมูล ใช่หรือไม่?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "<span style='color:white;'>Yes, continue!</span>",
+        cancelButtonText: "<span style='color:white;'>Cancel</span>",
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          // console.log(this.partCategories);
+          const payload = {
+            // BrandID: this.BrandID,
+            // ModelID: this.ModelID,
+            // PartCategoryID: this.PartCategoryID,
+            // RepairCategory,
+            PresetID: this.addPreset.PresetID,
+          }
+          console.log("payload", payload)
+
+          // const response = await serverService.addRepairCategoryWithRefs(
+          //   payload
+          // )
+          // console.log("addRepairCategoryWithRefs", response.data);
+
+          // if (response.data.result) {
+          // this.chooseCategory({
+          //   PartCategoryName: this.PartCategoryName,
+          //   PartCategoryID: this.PartCategoryID,
+          // })
+          this.closeDialogAddPreset()
+          // } else {
+          //   Swal.fire("Error!", response.message, "error")
+          //   return
+          // }
+        }
+      })
+    },
     checkPreset(data) {
       return checkPresetAvailability(data).summary
     },
@@ -244,7 +337,12 @@ export default {
       this.dialogShowPreset = false
       nextTick(() => {
         this.showPresetRepairCategory = null
+        this.showSinglePreset = null
       })
+    },
+    closeDialogAddPreset() {
+      this.dialogAddPreset = false
+      this.addPreset.PresetID = []
     },
 
     initialize() {
@@ -277,7 +375,7 @@ export default {
   <div v-if="brandData != null">
     <v-row>
       <!-- Models Section -->
-      <v-col cols="4">
+      <v-col cols="12" md="4">
         <UiParentCard v-if="brandData != null" Tableard title="รุ่นรถยนต์">
           <template v-slot:action>
             <div>
@@ -317,7 +415,7 @@ export default {
       </v-col>
       <!-- Models Section -->
       <!-- PartCategory Section -->
-      <v-col cols="4">
+      <v-col cols="12" md="4">
         <UiParentCard v-if="ModelID != null" Tableard :title="`ประเภทการซ่อม`">
           <template v-slot:action>
             <div>
@@ -361,7 +459,7 @@ export default {
       </v-col>
       <!-- PartCategory Section -->
       <!-- RepairCategory Section -->
-      <v-col cols="4">
+      <v-col cols="12" md="4">
         <UiParentCard
           v-if="showRepairCategoryColumn"
           Tableard
@@ -404,7 +502,7 @@ export default {
                         v-if="checkPreset(repairCate).sufficientCount > 0"
                         class="mb-1"
                       >
-                        <v-btn size="sm" rounded="" block color="info">
+                        <v-btn size="sm" block color="success">
                           <span style="font-size: 13px">
                             {{ checkPreset(repairCate).sufficientCount }}
                           </span>
@@ -562,44 +660,171 @@ export default {
       </v-card>
     </v-dialog>
     <!-- Dialog Add Repair Category Section -->
+    <!-- Dialog Add Preset Section Category Section -->
+    <v-dialog
+      v-model="dialogAddPreset"
+      class="dialog-mw"
+      style="max-width: 500px"
+      persistent
+    >
+      <v-card>
+        <v-card-text>
+          <v-select
+            class="mt-2"
+            v-model="addPreset.PresetID"
+            :items="presets"
+            item-value="PresetID"
+            item-title="Preset"
+            label="พรีเซ็ตข้อมูล"
+            chips
+            multiple
+          >
+            <template v-slot:item="{ props, item }">
+              <v-list-item
+                v-bind="props"
+                :title="`#${item.raw.PresetID} - ${item.raw.Preset}`"
+              >
+              </v-list-item>
+            </template>
+            <template v-slot:selection="{ item }">
+              <span> #{{ item.raw.PresetID }} - {{ item.raw.Preset }} </span>
+            </template>
+          </v-select>
+        </v-card-text>
+        <hr />
+        <v-card-actions>
+          <v-btn
+            color="primary"
+            @click="submitAddPreset"
+            block
+            flat
+            variant="tonal"
+            >บันทึกข้อมูล</v-btn
+          >
+        </v-card-actions>
+        <v-card-actions>
+          <v-btn color="error" @click="closeDialogAddPreset()" block flat
+            >ปิดหน้าต่าง</v-btn
+          >
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <!-- Dialog Add Preset Section Category Section -->
     <!-- Dialog Show Preset Section -->
     <v-dialog
       v-model="dialogShowPreset"
       class="dialog-mw"
-      style="max-width: 1000px"
+      style="max-width: 1200px"
       persistent
     >
       <v-card class="pa-3" v-if="showPresetRepairCategory != null">
         <v-card-title>
-          #{{ showPresetRepairCategory.RepairCategoryID }}.
-          {{ showPresetRepairCategory.RepairCategory }}
+          <v-row>
+            <v-col cols="12" md="6">
+              #{{ showPresetRepairCategory.RepairCategoryID }}.
+              {{ showPresetRepairCategory.RepairCategory }}
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-row>
+                <v-col cols="6" class="text-center">
+                  <v-btn color="error" variant="outlined" block>
+                    <CircleMinusIcon size="18" />
+                    &nbsp; ลบกลุ่มงาน
+                  </v-btn>
+                </v-col>
+                <v-col cols="6" class="text-center">
+                  <v-btn color="info" block @click="dialogAddPreset = true">
+                    <CirclePlusIcon size="18" />
+                    &nbsp; เพิ่มพรีเซ็ต
+                  </v-btn>
+                </v-col>
+              </v-row>
+            </v-col>
+          </v-row>
         </v-card-title>
         <v-card-text>
           <v-row>
-            <v-col cols="4">
-              <v-btn
+            <v-col cols="12" md="3">
+              <v-card
                 v-for="(
                   ref, index
                 ) in showPresetRepairCategory.ref_model_category_parts"
                 :key="index"
+                class="mb-3 pa-0"
+                link
                 :color="
                   checkStockInPreset(ref.preset.presetDetails)
-                    ? `secondary`
+                    ? `success`
                     : `error`
                 "
-                variant="outlined"
-                class="mb-2"
-                block
-                >#{{ ref.preset.PresetID }}. {{ ref.preset.Preset }}</v-btn
               >
+                <v-card-text
+                  class="text-center"
+                  link
+                  @click="chooseSinglePreset(ref.preset)"
+                >
+                  #{{ ref.preset.PresetID }}. {{ ref.preset.Preset }}
+                </v-card-text>
+              </v-card>
             </v-col>
-            <v-col class="text-center">Coming soon...</v-col>
+            <v-col cols="12" md="9" class="text-center">
+              <div v-if="showSinglePreset != null">
+                <h3 class="mt-0 mb-2">
+                  #{{ showSinglePreset.PresetID }}.
+                  {{ showSinglePreset.Preset }}
+                </h3>
+                <v-table class="border rounded-md">
+                  <template v-slot:default>
+                    <thead>
+                      <tr>
+                        <th class="text-center">ลำดับ</th>
+                        <th class="text-center">รหัสอุปกรณ์</th>
+                        <th class="text-center">ชื่ออุปกรณ์</th>
+                        <th class="text-end">ราคาต่อหน่วย (บาท)</th>
+                        <th class="text-end">จำนวนที่ใช้</th>
+                        <th class="text-end">จำนวนในคลัง</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        v-for="(item, index) in showSinglePreset.presetDetails"
+                        :key="index"
+                        :style="`${
+                          item.NumOfUse <= item.part.PartAmount
+                            ? ''
+                            : 'background-color: #ffcdd2; color: #000'
+                        }`"
+                      >
+                        <td class="text-center">{{ index + 1 }}.</td>
+                        <td>{{ item.part.PartNumber }}</td>
+                        <td>{{ item.part.PartName_th }}</td>
+                        <td class="text-end">
+                          {{ formatSeperateCurrency(item.part.PricePerUnit) }}
+                        </td>
+                        <td class="text-end">{{ item.NumOfUse }}</td>
+                        <td class="text-end">{{ item.part.PartAmount }}</td>
+                      </tr>
+                    </tbody>
+                  </template>
+                </v-table>
+                <div class="mt-3">
+                  <v-btn
+                    color="error"
+                    variant="outlined"
+                    @click="
+                      removePresetFromRepairCategory(showSinglePreset.PresetID)
+                    "
+                    >นำพรีเซ็ตนี้ออกจากกลุ่มงาน</v-btn
+                  >
+                </div>
+              </div>
+            </v-col>
           </v-row>
         </v-card-text>
         <hr />
-        <v-card-actions>
+        <!-- <v-card-actions>
           <v-btn color="primary" block flat variant="tonal">บันทึกข้อมูล</v-btn>
-        </v-card-actions>
+        </v-card-actions> -->
         <v-card-actions>
           <v-btn color="error" @click="closeDialogShowPreset" block flat
             >ปิดหน้าต่าง</v-btn

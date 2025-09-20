@@ -1,22 +1,22 @@
 <script>
-import { SideProfile } from "@/_mockApis/headerData";
-import { useAuthStore } from "@/stores/authStore";
+import { SideProfile } from "@/_mockApis/headerData"
+import { useAuthStore } from "@/stores/authStore"
 
 export default {
   name: "SidebarProfile",
 
   data() {
-    const authStore = useAuthStore();
+    const authStore = useAuthStore()
     const fullName = authStore.getEmpData
       ? `${authStore.getEmpData.FirstName} ${authStore.getEmpData.LastName}`
-      : "Error User Data";
+      : "Error User Data"
     return {
       SideProfile: SideProfile,
       fullName,
       authStore,
-    };
+    }
   },
-};
+}
 </script>
 
 <template>

@@ -51,7 +51,6 @@ declare module 'vue' {
     ProfileCard: typeof import('./src/components/dashboards/classic/ProfileCard.vue')['default']
     ProgressCards: typeof import('./src/components/dashboards/modern/ProgressCards.vue')['default']
     RecentChats: typeof import('./src/components/dashboards/campaign/RecentChats.vue')['default']
-    RefCard: typeof import('./src/components/ref/refCard.vue')['default']
     ReviewsCard: typeof import('./src/components/dashboards/modern/ReviewsCard.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

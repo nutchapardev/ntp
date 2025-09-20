@@ -4,15 +4,18 @@ export default {
   props: {
     title: String,
   },
-};
+}
 </script>
 
 <!-- // ===============================|| Ui Parent Card||=============================== // -->
 <template>
   <v-card elevation="10">
     <v-card-item class="py-4 px-6">
-      <div class="d-sm-flex align-center justify-space-between">
-        <v-card-title style="max-width: 80%;" class="text-h5">{{ title }}</v-card-title>
+      <!-- <div class="d-sm-flex align-center justify-space-between"> -->
+      <div class="d-flex align-center justify-space-between">
+        <v-card-title style="max-width: 80%" class="text-h5">{{
+          title
+        }}</v-card-title>
         <slot name="action"></slot>
       </div>
     </v-card-item>

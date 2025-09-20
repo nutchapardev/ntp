@@ -1,13 +1,13 @@
 <script>
-import { useInvoicestore } from "@/stores/apps/invoice";
-import { CirclePlusIcon, TrashIcon } from "vue-tabler-icons";
-import serverService from "@/services/serverService";
-import Swal from "sweetalert2";
+import { useInvoicestore } from "@/stores/apps/invoice"
+import { CirclePlusIcon, TrashIcon } from "vue-tabler-icons"
+import serverService from "@/services/serverService"
+import Swal from "sweetalert2"
 import {
   toThaiDateString,
   toThaiDateTimeString,
   formatCurrency,
-} from "@/utils/functions";
+} from "@/utils/functions"
 
 export default {
   name: "CreateRepair",
@@ -19,7 +19,7 @@ export default {
 
   // 2. data() จะ return state ทั้งหมดของคอมโพเนนต์
   data() {
-    const invoiceStore = useInvoicestore();
+    const invoiceStore = useInvoicestore()
     return {
       invoiceStore,
       valid: false,
@@ -41,7 +41,7 @@ export default {
       ],
       // dialog
       dialogAddPart: false,
-    };
+    }
   },
 
   // 3. computed ใช้สำหรับข้อมูลที่ต้องคำนวณจาก state
@@ -51,57 +51,56 @@ export default {
         return (
           sum +
           (obj.repairParts ?? []).reduce((sum2, part) => {
-            return sum2 + (part.PricePerUnit ?? 0) * (part.NumOfUse ?? 0);
+            return sum2 + (part.PricePerUnit ?? 0) * (part.NumOfUse ?? 0)
           }, 0)
-        );
-      }, 0);
+        )
+      }, 0)
     },
     vatNutCha() {
-      return this.subtotalNutcha * (this.isVat ? this.vatRate : 0);
+      return this.subtotalNutcha * (this.isVat ? this.vatRate : 0)
     },
     grandTotalNutCha() {
-      const total =
-        parseFloat(this.subtotalNutcha) + parseFloat(this.vatNutCha);
-      return total;
+      const total = parseFloat(this.subtotalNutcha) + parseFloat(this.vatNutCha)
+      return total
     },
     repairID() {
-      return this.$route.params.repairID;
+      return this.$route.params.repairID
     },
     selectableItems() {
       // เพิ่มเงื่อนไข: ถ้า showPresetDetail เป็น null หรือไม่มี presetDetails ให้ return เป็น array ว่าง
       if (!this.showPresetDetail || !this.showPresetDetail.presetDetails) {
-        return [];
+        return []
       }
       // ถ้ามีค่า ถึงจะทำการ filter
       return this.showPresetDetail.presetDetails.filter(
         (item) => item.NumOfUse <= item.part.PartAmount
-      );
+      )
     },
     isAllSelectableSelected() {
       return (
         this.selectableItems.length > 0 &&
         this.selectedItems.length === this.selectableItems.length
-      );
+      )
     },
     isSomeSelectableSelected() {
-      return this.selectedItems.length > 0 && !this.isAllSelectableSelected;
+      return this.selectedItems.length > 0 && !this.isAllSelectableSelected
     },
     checkNotEnoughItems() {
       return (
         this.showPresetDetail.presetDetails.filter(
           (item) => item.NumOfUse > item.part.PartAmount
         ).length > 0
-      );
+      )
     },
     notEnoughItems() {
       return this.showPresetDetail.presetDetails.filter(
         (item) => item.NumOfUse > item.part.PartAmount
-      );
+      )
     },
     aviableItems() {
       return this.showPresetDetail.presetDetails.filter(
         (item) => item.NumOfUse <= item.part.PartAmount
-      );
+      )
     },
   },
 
@@ -109,61 +108,61 @@ export default {
   methods: {
     // สร้าง method ห่อหุ้ม `format` เพื่อให้ template เรียกใช้ได้
     formatSeperateCurrency(total) {
-      return formatCurrency(total);
+      return formatCurrency(total)
     },
     formatDate(date) {
-      return date ? toThaiDateString(new Date(date), "E, MMM dd, yyyy") : "N/A";
+      return date ? toThaiDateString(new Date(date), "E, MMM dd, yyyy") : "N/A"
     },
     formatDateTime(date) {
-      return date ? toThaiDateTimeString(new Date(date)) : "N/A";
+      return date ? toThaiDateTimeString(new Date(date)) : "N/A"
     },
     toggleSelectAll() {
       if (this.isAllSelectableSelected) {
-        this.selectedItems = [];
+        this.selectedItems = []
       } else {
-        this.selectedItems = [...this.selectableItems];
+        this.selectedItems = [...this.selectableItems]
       }
     },
 
     submitSave() {
-      alert("submit save");
+      alert("submit save")
     },
 
     addOrderRow() {
-      this.invoice.orders = this.invoice.orders ?? [];
+      this.invoice.orders = this.invoice.orders ?? []
       this.invoice.orders.push({
         itemName: "",
         unitPrice: 0,
         units: 0,
         unitTotalPrice: 0,
-      });
+      })
     },
 
     deletePart(index) {
-      alert("delete : ", index);
+      alert("delete : ", index)
     },
     // NutCha methods
     async getRepairByID() {
-      const response = await serverService.getRepairByID(this.repairID);
-      this.RepairItems = response.data;
+      const response = await serverService.getRepairByID(this.repairID)
+      this.RepairItems = response.data
     },
     async getRefModelCategoryPartByBrandID() {
       const response = await serverService.getRefModelCategoryPartByModelID(
         this.RepairItems.ModelID
-      );
-      this.refItems = response.data;
+      )
+      this.refItems = response.data
     },
     async getRepairDetail() {
       const response = await serverService.getRepairDetailByRepairID(
         this.repairID
-      );
-      this.repairDetails = response.data;
+      )
+      this.repairDetails = response.data
     },
     setRowClass({ item }) {
       if (item.NumOfUse > item.part.PartAmount) {
-        return { class: "high-fat-row" };
+        return { class: "high-fat-row" }
       }
-      return { class: "" };
+      return { class: "" }
     },
     async submitAddRepairItem() {
       if (this.selectedItems.length < 1) {
@@ -172,8 +171,8 @@ export default {
           text: "กรุณาเลือกอย่างน้อย 1 รายการ",
           icon: "warning",
           confirmButtonText: "<span style='color:white;'>ตกลง</span>",
-        });
-        return;
+        })
+        return
       }
 
       Swal.fire({
@@ -193,45 +192,45 @@ export default {
               this.showPresetDetail.repairCategory.RepairCategoryID,
             PresetID: this.showPresetDetail.PresetID,
             repairParts: [],
-          };
+          }
 
           this.selectedItems.forEach((e) => {
             payload.repairParts.push({
               PartID: e.part.PartID,
               NumOfUse: e.NumOfUse,
               PricePerUnit: e.part.PricePerUnit,
-            });
-          });
+            })
+          })
 
-          const response = await serverService.addRepairDetailWithPart(payload);
+          const response = await serverService.addRepairDetailWithPart(payload)
           if (response.data.result) {
-            this.getRefModelCategoryPartByBrandID();
-            this.getRepairDetail();
-            this.removeObjectPresetAndSelectedItems();
-            Swal.fire("Success!", "เพิ่มข้อมูลแล้ว", "success");
+            this.getRefModelCategoryPartByBrandID()
+            this.getRepairDetail()
+            this.removeObjectPresetAndSelectedItems()
+            Swal.fire("Success!", "เพิ่มข้อมูลแล้ว", "success")
           }
         }
-      });
+      })
     },
     choosePreset(preset) {
-      this.showPresetDetail = preset;
-      this.selectedItems = []; // เพิ่มบรรทัดนี้เพื่อล้างค่าที่เลือกไว้
+      this.showPresetDetail = preset
+      this.selectedItems = [] // เพิ่มบรรทัดนี้เพื่อล้างค่าที่เลือกไว้
     },
     openDialogAddPart() {
-      this.dialogAddPart = true;
-      this.getRefModelCategoryPartByBrandID();
+      this.dialogAddPart = true
+      this.getRefModelCategoryPartByBrandID()
     },
     removeObjectPresetAndSelectedItems() {
-      this.showPresetDetail = null;
-      this.selectedItems = []; // เพิ่มบรรทัดนี้เพื่อล้างค่าที่เลือกไว้
+      this.showPresetDetail = null
+      this.selectedItems = [] // เพิ่มบรรทัดนี้เพื่อล้างค่าที่เลือกไว้
     },
     closeDialogAddPart() {
-      this.dialogAddPart = false;
-      this.removeObjectPresetAndSelectedItems();
+      this.dialogAddPart = false
+      this.removeObjectPresetAndSelectedItems()
     },
     initialize() {
-      this.getRepairByID();
-      this.getRepairDetail();
+      this.getRepairByID()
+      this.getRepairDetail()
     },
   },
   mounted() {
@@ -240,9 +239,9 @@ export default {
 
   // 5. created() เป็น lifecycle hook ที่จะทำงานเมื่อคอมโพเนนต์ถูกสร้างขึ้น
   created() {
-    this.initialize();
+    this.initialize()
   },
-};
+}
 </script>
 
 <template>
@@ -324,8 +323,8 @@ export default {
                           class="text-h6"
                           color="info"
                           @click="
-                            showPresetDetail = null;
-                            selectedItems = [];
+                            showPresetDetail = null
+                            selectedItems = []
                           "
                         >
                           {{ index + 1 }}. {{ category.PartCategoryName }}
@@ -340,9 +339,9 @@ export default {
                             color=""
                             class="mb-2"
                             @click="
-                              choosePreset(preset);
+                              choosePreset(preset)
                               showPresetDetail.repairCategory =
-                                category.repairCategory;
+                                category.repairCategory
                             "
                           >
                             รหัส Preset #{{ preset.PresetID }} -
@@ -382,7 +381,10 @@ export default {
                           </tr>
                         </thead>
                         <tbody>
-                          <tr v-for="notItem in notEnoughItems">
+                          <tr
+                            v-for="(notItem, index) in notEnoughItems"
+                            :key="index"
+                          >
                             <td class="text-start">
                               {{ notItem.part.PartNumber }}
                             </td>

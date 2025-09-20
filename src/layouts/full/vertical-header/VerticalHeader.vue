@@ -104,7 +104,7 @@ export default {
     </div>
 
     <v-btn
-      class="hidden-md-and-down custom-hover-primary menu-toggle"
+      class="hidden-lg-and-down custom-hover-primary menu-toggle"
       size="small"
       icon
       color="primary"
