@@ -1,13 +1,14 @@
 <script>
-import BaseBreadcrumb from "@/components/shared/BaseBreadcrumb.vue";
-import UiParentCard from "@/components/shared/UiParentCard.vue";
-import serverService from "@/services/serverService";
-import { CirclePlusIcon, TrashIcon } from "vue-tabler-icons";
-import Swal from "sweetalert2";
+import { nextTick } from "vue"
+import BaseBreadcrumb from "@/components/shared/BaseBreadcrumb.vue"
+import UiParentCard from "@/components/shared/UiParentCard.vue"
+import serverService from "@/services/serverService"
+import { CirclePlusIcon, TrashIcon } from "vue-tabler-icons"
+import Swal from "sweetalert2"
 import {
   checkPresetAvailability,
   checkStockAvailability,
-} from "@/utils/functions";
+} from "@/utils/functions"
 
 export default {
   name: "Ref",
@@ -60,52 +61,52 @@ export default {
         RepairCategory: "",
         PresetID: [],
       },
-    };
+    }
   },
   methods: {
     async getBrandByBrandID(BrandID) {
-      const response = await serverService.getBrandByBrandID(BrandID);
-      this.brandData = response.data;
+      const response = await serverService.getBrandByBrandID(BrandID)
+      this.brandData = response.data
     },
     async getPartCategory() {
-      const response = await serverService.getPartCategory();
-      this.partCategories = response.data;
+      const response = await serverService.getPartCategory()
+      this.partCategories = response.data
     },
     async getPresets() {
-      const response = await serverService.getAllPresets();
+      const response = await serverService.getAllPresets()
       // console.log(response.data);
 
-      this.presets = response.data;
+      this.presets = response.data
     },
     chooseModel(model) {
-      this.ModelID = model.ModelID;
-      this.ModelName = model.Model;
-      this.repairCategories = [];
-      this.showRepairCategoryColumn = false;
-      this.closeDialogAddPartCategory();
+      this.ModelID = model.ModelID
+      this.ModelName = model.Model
+      this.repairCategories = []
+      this.showRepairCategoryColumn = false
+      this.closeDialogAddPartCategory()
     },
     async chooseCategory(category) {
       // console.log(category.PartCategoryID);
-      this.PartCategoryName = category.PartCategoryName;
-      this.PartCategoryID = category.PartCategoryID;
+      this.PartCategoryName = category.PartCategoryName
+      this.PartCategoryID = category.PartCategoryID
       const response =
         await serverService.getRepairCategoryByModelAndPartCategory(
           this.ModelID,
           category.PartCategoryID
-        );
+        )
       // console.log(response.data);
-      this.repairCategories = response.data;
-      this.showRepairCategoryColumn = true;
+      this.repairCategories = response.data
+      this.showRepairCategoryColumn = true
     },
     chooseRepairCategory(repairCategory) {
-      console.log("repairCategory", repairCategory);
-      this.showPresetRepairCategory = repairCategory;
-      this.dialogShowPreset = true;
+      console.log("repairCategory", repairCategory)
+      this.showPresetRepairCategory = repairCategory
+      this.dialogShowPreset = true
     },
     async submitAddModel() {
       if (this.addModel.Model == "") {
-        Swal.fire("Alert!", "กรุณากรอกข้อมูลให้ครบถ้วน", "warning");
-        return;
+        Swal.fire("Alert!", "กรุณากรอกข้อมูลให้ครบถ้วน", "warning")
+        return
       }
 
       Swal.fire({
@@ -122,22 +123,22 @@ export default {
           const payload = {
             BrandID: this.brandData.BrandID,
             Model: this.addModel.Model,
-          };
-          const response = await serverService.addCarModel(payload);
+          }
+          const response = await serverService.addCarModel(payload)
           if (response.data.result) {
-            this.closeDialogAddModel();
-            this.initialize();
+            this.closeDialogAddModel()
+            this.initialize()
           } else {
-            Swal.fire("Error!", response.message, "error");
-            return;
+            Swal.fire("Error!", response.message, "error")
+            return
           }
         }
-      });
+      })
     },
     async submitAddPartCategory() {
       if (this.addPartCategory.PartCategoryName == "") {
-        Swal.fire("Alert!", "กรุณากรอกข้อมูลให้ครบถ้วน", "warning");
-        return;
+        Swal.fire("Alert!", "กรุณากรอกข้อมูลให้ครบถ้วน", "warning")
+        return
       }
 
       Swal.fire({
@@ -153,25 +154,25 @@ export default {
         if (result.isConfirmed) {
           const payload = {
             PartCategoryName: this.addPartCategory.PartCategoryName,
-          };
-          const response = await serverService.addPartCategory(payload);
+          }
+          const response = await serverService.addPartCategory(payload)
           if (response.data.result) {
-            this.closeDialogAddPartCategory();
-            this.getPartCategory();
+            this.closeDialogAddPartCategory()
+            this.getPartCategory()
           } else {
-            Swal.fire("Error!", response.message, "error");
-            return;
+            Swal.fire("Error!", response.message, "error")
+            return
           }
         }
-      });
+      })
     },
     async submitAddRepairCategory() {
       if (
         this.addRepairCategory.RepairCategory == "" ||
         this.addRepairCategory.PresetID.length == 0
       ) {
-        Swal.fire("Alert!", "กรุณากรอกข้อมูลให้ครบถ้วน", "warning");
-        return;
+        Swal.fire("Alert!", "กรุณากรอกข้อมูลให้ครบถ้วน", "warning")
+        return
       }
 
       Swal.fire({
@@ -186,81 +187,83 @@ export default {
       }).then(async (result) => {
         if (result.isConfirmed) {
           // console.log(this.partCategories);
-          const { PresetID, RepairCategory } = this.addRepairCategory;
+          const { PresetID, RepairCategory } = this.addRepairCategory
           const payload = {
             BrandID: this.BrandID,
             ModelID: this.ModelID,
             PartCategoryID: this.PartCategoryID,
             RepairCategory,
             PresetID,
-          };
+          }
           // console.log("payload", payload);
 
           const response = await serverService.addRepairCategoryWithRefs(
             payload
-          );
+          )
           // console.log("addRepairCategoryWithRefs", response.data);
 
           if (response.data.result) {
             this.chooseCategory({
               PartCategoryName: this.PartCategoryName,
               PartCategoryID: this.PartCategoryID,
-            });
-            this.closeDialogAddRepairCategory();
-            this.getPartCategory();
+            })
+            this.closeDialogAddRepairCategory()
+            this.getPartCategory()
           } else {
-            Swal.fire("Error!", response.message, "error");
-            return;
+            Swal.fire("Error!", response.message, "error")
+            return
           }
         }
-      });
+      })
     },
     checkPreset(data) {
-      return checkPresetAvailability(data).summary;
+      return checkPresetAvailability(data).summary
     },
     checkStockInPreset(data) {
-      return checkStockAvailability(data);
+      return checkStockAvailability(data)
     },
     closeDialogAddModel() {
-      this.dialogAddModel = false;
-      this.addModel.Model = "";
+      this.dialogAddModel = false
+      this.addModel.Model = ""
     },
     closeDialogAddPartCategory() {
-      this.dialogAddPartCategory = false;
-      this.PartCategoryID = null;
-      this.PartCategoryName = null;
-      this.showRepairCategoryColumn = false;
-      this.addPartCategory.PartCategoryName = "";
+      this.dialogAddPartCategory = false
+      this.PartCategoryID = null
+      this.PartCategoryName = null
+      this.showRepairCategoryColumn = false
+      this.addPartCategory.PartCategoryName = ""
     },
     closeDialogAddRepairCategory() {
       this.addRepairCategory = {
         RepairCategory: "",
         PresetID: [],
-      };
-      this.dialogAddRepairCategory = false;
+      }
+      this.dialogAddRepairCategory = false
     },
     closeDialogShowPreset() {
-      this.dialogShowPreset = false;
-      this.showPresetRepairCategory = null;
+      this.dialogShowPreset = false
+      nextTick(() => {
+        this.showPresetRepairCategory = null
+      })
     },
 
     initialize() {
-      this.getBrandByBrandID(this.BrandID);
-      this.getPartCategory();
-      this.getPresets();
-      this.ModelID = null;
-      this.ModelName = null;
-      this.PartCategoryID = null;
-      this.PartCategoryName = null;
-      this.showPresetRepairCategory = null;
-      this.repairCategories = [];
-      this.showRepairCategoryColumn = false;
+      this.getBrandByBrandID(this.BrandID)
+      this.getPartCategory()
+      this.getPresets()
+      this.ModelID = null
+      this.ModelName = null
+      this.PartCategoryID = null
+      this.PartCategoryName = null
+      this.showPresetRepairCategory = null
+      this.repairCategories = []
+      this.showRepairCategoryColumn = false
     },
   },
   mounted() {
-    this.initialize();
+    this.initialize()
   },
-};
+}
 </script>
 <template>
   <BaseBreadcrumb
@@ -566,7 +569,7 @@ export default {
       style="max-width: 1000px"
       persistent
     >
-      <v-card class="pa-3">
+      <v-card class="pa-3" v-if="showPresetRepairCategory != null">
         <v-card-title>
           #{{ showPresetRepairCategory.RepairCategoryID }}.
           {{ showPresetRepairCategory.RepairCategory }}
@@ -579,7 +582,6 @@ export default {
                   ref, index
                 ) in showPresetRepairCategory.ref_model_category_parts"
                 :key="index"
-                text="test"
                 :color="
                   checkStockInPreset(ref.preset.presetDetails)
                     ? `secondary`
@@ -591,7 +593,7 @@ export default {
                 >#{{ ref.preset.PresetID }}. {{ ref.preset.Preset }}</v-btn
               >
             </v-col>
-            <v-col>test</v-col>
+            <v-col class="text-center">Coming soon...</v-col>
           </v-row>
         </v-card-text>
         <hr />

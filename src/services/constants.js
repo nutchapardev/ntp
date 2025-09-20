@@ -8,8 +8,8 @@ export const UPLOAD_PHOTO_FAIL_MESSAGE =
 export const NOT_CONNECT_NETWORK = "NOT_CONNECT_NETWORK"
 
 export const apiPath = "ntp-api"
-// export const basePath = "http://49.231.43.77"
-export const basePath = "http://localhost:8080"
+export const basePath = "http://49.231.43.77"
+// export const basePath = "http://localhost:8080"
 export const apiUrl = basePath + "/" + apiPath
 
 export const server = {
@@ -29,9 +29,9 @@ export const server = {
   PROVINCE_URL: `province`,
   CUSTOMER_TITLE_URL: `customertitle`,
   PART_URL: `parts`,
-  PART_CATEGORY_URL:`partcategory`,
-  REPAIR_CATEGORY_URL:`repaircategory`,
-  PRESET_URL:`preset`,
+  PART_CATEGORY_URL: `partcategory`,
+  REPAIR_CATEGORY_URL: `repaircategory`,
+  PRESET_URL: `preset`,
   REF_MODEL_CATEGORY_PART_URL: `refModelCategoryParts`,
 }
 
