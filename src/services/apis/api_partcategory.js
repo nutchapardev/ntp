@@ -9,3 +9,7 @@ export const getPartCategory = () => {
 export const addPartCategory = (data) => {
   return httpClient.post(server.PART_CATEGORY_URL, data);
 };
+
+export const editPartCategoryByID = (id, data) => {
+  return httpClient.put(`${server.PART_CATEGORY_URL}/${id}`, data);
+};

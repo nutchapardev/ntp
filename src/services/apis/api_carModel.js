@@ -9,3 +9,7 @@ export const getCarModelByBrandID = (id) => {
 export const addCarModel = (data) => {
   return httpClient.post(server.CAR_MODEL_URL, data);
 };
+
+export const editModelByID = (id, data) => {
+  return httpClient.put(`${server.CAR_MODEL_URL}/${id}`, data);
+};

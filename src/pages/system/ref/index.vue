@@ -1,15 +1,21 @@
 <script>
-import { nextTick } from "vue"
-import BaseBreadcrumb from "@/components/shared/BaseBreadcrumb.vue"
-import UiParentCard from "@/components/shared/UiParentCard.vue"
-import serverService from "@/services/serverService"
-import { CirclePlusIcon, TrashIcon, CircleMinusIcon } from "vue-tabler-icons"
-import Swal from "sweetalert2"
+import { nextTick } from "vue";
+import BaseBreadcrumb from "@/components/shared/BaseBreadcrumb.vue";
+import UiParentCard from "@/components/shared/UiParentCard.vue";
+import serverService from "@/services/serverService";
+import {
+  CirclePlusIcon,
+  TrashIcon,
+  CircleMinusIcon,
+  CircleXIcon,
+  EditIcon,
+} from "vue-tabler-icons";
+import Swal from "sweetalert2";
 import {
   checkPresetAvailability,
   checkStockAvailability,
   formatCurrency,
-} from "@/utils/functions"
+} from "@/utils/functions";
 
 export default {
   name: "Ref",
@@ -18,7 +24,9 @@ export default {
     UiParentCard,
     CirclePlusIcon,
     CircleMinusIcon,
+    CircleXIcon,
     TrashIcon,
+    EditIcon,
   },
   data() {
     return {
@@ -45,15 +53,23 @@ export default {
       partCategories: [],
       repairCategories: [],
       presets: [],
+      presetsForAdd: [],
+      editPartCategory: null,
+      editModel: null,
       showRepairCategoryColumn: false,
       showPresetRepairCategory: null,
       showSinglePreset: null,
+      // Edit Column
+      editModelColumn: false,
+      editPartCategoryColumn: false,
       // dialog
       dialogAddModel: false,
       dialogAddPartCategory: false,
       dialogAddRepairCategory: false,
       dialogAddPreset: false,
       dialogShowPreset: false,
+      dialogEditPartCategory: false,
+      dialogEditModel: false,
       // data table
       showSinglePreSetHeaders: [
         {
@@ -87,74 +103,130 @@ export default {
       addPreset: {
         PresetID: [],
       },
-    }
+    };
   },
   methods: {
     formatSeperateCurrency(total) {
-      return formatCurrency(total)
+      return formatCurrency(total);
+    },
+    toggleShowEditPartCategoryColumn() {
+      this.editPartCategoryColumn = !this.editPartCategoryColumn;
+      this.closeDialogAddPartCategory();
+    },
+    toggleShowEditModelColumn() {
+      this.editModelColumn = !this.editModelColumn;
+      this.initialize();
     },
     async getBrandByBrandID(BrandID) {
-      const response = await serverService.getBrandByBrandID(BrandID)
-      this.brandData = response.data
+      const response = await serverService.getBrandByBrandID(BrandID);
+      this.brandData = response.data;
     },
     async getPartCategory() {
-      const response = await serverService.getPartCategory()
-      this.partCategories = response.data
+      const response = await serverService.getPartCategory();
+      this.partCategories = response.data;
     },
     async getPresets() {
-      const response = await serverService.getAllPresets()
-      // console.log(response.data);
-
-      this.presets = response.data
+      const response = await serverService.getAllPresets();
+      this.presets = response.data;
     },
-    removePresetFromRepairCategory(PresetID) {
+    removePresetFromRepairCategory(showPreset) {
       if (this.showPresetRepairCategory.ref_model_category_parts.length == 1) {
-        alert("ไม่สามารถลบได้ เนื่องจากต้องมีอย่างน้อย 1 รายการในกลุ่มงาน")
-        return
+        Swal.fire(
+          "Alert!",
+          "ไม่สามารถลบได้ เนื่องจากต้องมีอย่างน้อย 1 รายการในกลุ่มงาน",
+          "warning"
+        );
+        return;
       }
 
-      this.showPresetRepairCategory.ref_model_category_parts =
-        this.showPresetRepairCategory.ref_model_category_parts.filter(
-          (e) => e.preset.PresetID != PresetID
-        )
+      Swal.fire({
+        title: "Are you sure?",
+        text: "ต้องการลบพรีเซ็ตนี้ออกจากกลุ่มงาน ใช่หรือไม่?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "<span style='color:white;'>Yes, continue!</span>",
+        cancelButtonText: "<span style='color:white;'>Cancel</span>",
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          const response = await serverService.deleteRefModelCategoryPartByID(
+            showPreset.RefID
+          );
+          if (response.data.result) {
+            this.showPresetRepairCategory.ref_model_category_parts =
+              this.showPresetRepairCategory.ref_model_category_parts.filter(
+                (e) => e.preset.PresetID != showPreset.PresetID
+              );
 
-      nextTick(() => {
-        this.showSinglePreset = null
-      })
+            nextTick(() => {
+              this.showSinglePreset = null;
+            });
+          } else {
+            Swal.fire("Error!", response.message, "error");
+            return;
+          }
+        }
+      });
+    },
+    deleteRefByRepairCategoryIDWithModelID(showPreset) {
+      Swal.fire({
+        title: "Are you sure?",
+        text: "ต้องการลบกลุ่มงานนี้ ใช่หรือไม่?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "<span style='color:white;'>Yes, continue!</span>",
+        cancelButtonText: "<span style='color:white;'>Cancel</span>",
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          const response = await serverService.deleteRefModelCategoryPartByID(
+            showPreset.ref_model_category_parts[0].RefID
+          );
+          if (response.data.result) {
+            nextTick(() => {
+              this.closeDialogShowPreset();
+              this.closeDialogAddPartCategory();
+            });
+          } else {
+            Swal.fire("Error!", response.message, "error");
+            return;
+          }
+        }
+      });
     },
     chooseModel(model) {
-      this.ModelID = model.ModelID
-      this.ModelName = model.Model
-      this.repairCategories = []
-      this.showRepairCategoryColumn = false
-      this.closeDialogAddPartCategory()
+      this.ModelID = model.ModelID;
+      this.ModelName = model.Model;
+      this.repairCategories = [];
+      this.showRepairCategoryColumn = false;
+      this.editPartCategoryColumn = false;
+      this.getPartCategory();
+      this.closeDialogAddPartCategory();
     },
     async chooseCategory(category) {
-      // console.log(category.PartCategoryID);
-      this.PartCategoryName = category.PartCategoryName
-      this.PartCategoryID = category.PartCategoryID
+      this.PartCategoryName = category.PartCategoryName;
+      this.PartCategoryID = category.PartCategoryID;
       const response =
         await serverService.getRepairCategoryByModelAndPartCategory(
           this.ModelID,
           category.PartCategoryID
-        )
-      // console.log(response.data);
-      this.repairCategories = response.data
-      this.showRepairCategoryColumn = true
+        );
+      this.repairCategories = response.data;
+      this.showRepairCategoryColumn = true;
     },
-    chooseSinglePreset(preset) {
-      this.showSinglePreset = preset
-      // console.log(preset)
+    chooseSinglePreset(ref) {
+      this.showSinglePreset = ref;
     },
     chooseRepairCategory(repairCategory) {
-      // console.log("repairCategory", repairCategory)
-      this.showPresetRepairCategory = repairCategory
-      this.dialogShowPreset = true
+      this.showPresetRepairCategory = repairCategory;
+      this.dialogShowPreset = true;
     },
     async submitAddModel() {
       if (this.addModel.Model == "") {
-        Swal.fire("Alert!", "กรุณากรอกข้อมูลให้ครบถ้วน", "warning")
-        return
+        Swal.fire("Alert!", "กรุณากรอกข้อมูลให้ครบถ้วน", "warning");
+        return;
       }
 
       Swal.fire({
@@ -171,22 +243,22 @@ export default {
           const payload = {
             BrandID: this.brandData.BrandID,
             Model: this.addModel.Model,
-          }
-          const response = await serverService.addCarModel(payload)
+          };
+          const response = await serverService.addCarModel(payload);
           if (response.data.result) {
-            this.closeDialogAddModel()
-            this.initialize()
+            this.closeDialogAddModel();
+            this.initialize();
           } else {
-            Swal.fire("Error!", response.message, "error")
-            return
+            Swal.fire("Error!", response.message, "error");
+            return;
           }
         }
-      })
+      });
     },
     async submitAddPartCategory() {
       if (this.addPartCategory.PartCategoryName == "") {
-        Swal.fire("Alert!", "กรุณากรอกข้อมูลให้ครบถ้วน", "warning")
-        return
+        Swal.fire("Alert!", "กรุณากรอกข้อมูลให้ครบถ้วน", "warning");
+        return;
       }
 
       Swal.fire({
@@ -202,25 +274,25 @@ export default {
         if (result.isConfirmed) {
           const payload = {
             PartCategoryName: this.addPartCategory.PartCategoryName,
-          }
-          const response = await serverService.addPartCategory(payload)
+          };
+          const response = await serverService.addPartCategory(payload);
           if (response.data.result) {
-            this.closeDialogAddPartCategory()
-            this.getPartCategory()
+            this.closeDialogAddPartCategory();
+            this.getPartCategory();
           } else {
-            Swal.fire("Error!", response.message, "error")
-            return
+            Swal.fire("Error!", response.message, "error");
+            return;
           }
         }
-      })
+      });
     },
     async submitAddRepairCategory() {
       if (
         this.addRepairCategory.RepairCategory == "" ||
         this.addRepairCategory.PresetID.length == 0
       ) {
-        Swal.fire("Alert!", "กรุณากรอกข้อมูลให้ครบถ้วน", "warning")
-        return
+        Swal.fire("Alert!", "กรุณากรอกข้อมูลให้ครบถ้วน", "warning");
+        return;
       }
 
       Swal.fire({
@@ -234,40 +306,37 @@ export default {
         cancelButtonText: "<span style='color:white;'>Cancel</span>",
       }).then(async (result) => {
         if (result.isConfirmed) {
-          // console.log(this.partCategories);
-          const { PresetID, RepairCategory } = this.addRepairCategory
+          const { PresetID, RepairCategory } = this.addRepairCategory;
           const payload = {
             BrandID: this.BrandID,
             ModelID: this.ModelID,
             PartCategoryID: this.PartCategoryID,
             RepairCategory,
             PresetID,
-          }
-          // console.log("payload", payload);
+          };
 
           const response = await serverService.addRepairCategoryWithRefs(
             payload
-          )
-          // console.log("addRepairCategoryWithRefs", response.data);
+          );
 
           if (response.data.result) {
             this.chooseCategory({
               PartCategoryName: this.PartCategoryName,
               PartCategoryID: this.PartCategoryID,
-            })
-            this.closeDialogAddRepairCategory()
-            this.getPartCategory()
+            });
+            this.closeDialogAddRepairCategory();
+            this.getPartCategory();
           } else {
-            Swal.fire("Error!", response.message, "error")
-            return
+            Swal.fire("Error!", response.message, "error");
+            return;
           }
         }
-      })
+      });
     },
     async submitAddPreset() {
       if (this.addPreset.PresetID.length == 0) {
-        Swal.fire("Alert!", "กรุณากรอกข้อมูลให้ครบถ้วน", "warning")
-        return
+        Swal.fire("Alert!", "กรุณากรอกข้อมูลให้ครบถ้วน", "warning");
+        return;
       }
 
       Swal.fire({
@@ -281,87 +350,175 @@ export default {
         cancelButtonText: "<span style='color:white;'>Cancel</span>",
       }).then(async (result) => {
         if (result.isConfirmed) {
-          // console.log(this.partCategories);
           const payload = {
-            // BrandID: this.BrandID,
-            // ModelID: this.ModelID,
-            // PartCategoryID: this.PartCategoryID,
-            // RepairCategory,
+            BrandID: this.BrandID,
+            ModelID: this.ModelID,
+            PartCategoryID:
+              this.showPresetRepairCategory.ref_model_category_parts[0]
+                .PartCategoryID,
+            RepairCategoryID: this.showPresetRepairCategory.RepairCategoryID,
             PresetID: this.addPreset.PresetID,
+          };
+
+          const response =
+            await serverService.createMultipleRefModelCategoryPartByModelID(
+              payload
+            );
+
+          if (response.data.result) {
+            this.chooseCategory({
+              PartCategoryName: this.PartCategoryName,
+              PartCategoryID: this.PartCategoryID,
+            });
+            nextTick(() => {
+              this.closeDialogAddPreset();
+              this.closeDialogShowPreset();
+            });
+          } else {
+            Swal.fire("Error!", response.message, "error");
+            return;
           }
-          console.log("payload", payload)
-
-          // const response = await serverService.addRepairCategoryWithRefs(
-          //   payload
-          // )
-          // console.log("addRepairCategoryWithRefs", response.data);
-
-          // if (response.data.result) {
-          // this.chooseCategory({
-          //   PartCategoryName: this.PartCategoryName,
-          //   PartCategoryID: this.PartCategoryID,
-          // })
-          this.closeDialogAddPreset()
-          // } else {
-          //   Swal.fire("Error!", response.message, "error")
-          //   return
-          // }
         }
-      })
+      });
+    },
+    async submitEditPartCategory() {
+      Swal.fire({
+        title: "Are you sure?",
+        text: "ต้องการแก้ไขข้อมูล ใช่หรือไม่?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "<span style='color:white;'>Yes, continue!</span>",
+        cancelButtonText: "<span style='color:white;'>Cancel</span>",
+      }).then(async (result) => {
+        const { PartCategoryID, PartCategoryName } = this.editPartCategory;
+        if (result.isConfirmed) {
+          const response = await serverService.editPartCategoryByID(
+            PartCategoryID,
+            { PartCategoryName }
+          );
+          if (response.data.result) {
+            nextTick(() => {
+              this.getPartCategory();
+              this.closeEditPartCategoryDialog();
+            });
+          } else {
+            Swal.fire("Error!", response.message, "error");
+            return;
+          }
+        }
+      });
+    },
+    async submitEditModel() {
+      Swal.fire({
+        title: "Are you sure?",
+        text: "ต้องการแก้ไขข้อมูล ใช่หรือไม่?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "<span style='color:white;'>Yes, continue!</span>",
+        cancelButtonText: "<span style='color:white;'>Cancel</span>",
+      }).then(async (result) => {
+        const { ModelID, Model } = this.editModel;
+        if (result.isConfirmed) {
+          const response = await serverService.editModelByID(ModelID, {
+            Model,
+          });
+          if (response.data.result) {
+            nextTick(() => {
+              this.closeEditModelDialog();
+              this.initialize();
+            });
+          } else {
+            Swal.fire("Error!", response.message, "error");
+            return;
+          }
+        }
+      });
+    },
+    showEditPartCategoryDialog(item) {
+      this.dialogEditPartCategory = true;
+      this.editPartCategory = item;
+    },
+    showEditModelDialog(item) {
+      this.dialogEditModel = true;
+      this.editModel = item;
     },
     checkPreset(data) {
-      return checkPresetAvailability(data).summary
+      return checkPresetAvailability(data).summary;
     },
     checkStockInPreset(data) {
-      return checkStockAvailability(data)
+      return checkStockAvailability(data);
+    },
+    findMissingPresets(presets, refs) {
+      const refIds = new Set(refs.map((ref) => ref.PresetID));
+      return presets.filter((preset) => !refIds.has(preset.PresetID));
+    },
+    openDialogaddPreset() {
+      this.dialogAddPreset = true;
+      this.presetsForAdd = this.findMissingPresets(
+        this.presets,
+        this.showPresetRepairCategory.ref_model_category_parts
+      );
+    },
+    closeEditModelDialog() {
+      this.dialogEditModel = false;
+      this.editModelColumn = false;
+      this.editModel = null;
+    },
+    closeEditPartCategoryDialog() {
+      this.dialogEditPartCategory = false;
+      this.editPartCategoryColumn = false;
+      this.editPartCategory = null;
     },
     closeDialogAddModel() {
-      this.dialogAddModel = false
-      this.addModel.Model = ""
+      this.dialogAddModel = false;
+      this.addModel.Model = "";
     },
     closeDialogAddPartCategory() {
-      this.dialogAddPartCategory = false
-      this.PartCategoryID = null
-      this.PartCategoryName = null
-      this.showRepairCategoryColumn = false
-      this.addPartCategory.PartCategoryName = ""
+      this.dialogAddPartCategory = false;
+      this.PartCategoryID = null;
+      this.PartCategoryName = null;
+      this.showRepairCategoryColumn = false;
+      this.addPartCategory.PartCategoryName = "";
     },
     closeDialogAddRepairCategory() {
       this.addRepairCategory = {
         RepairCategory: "",
         PresetID: [],
-      }
-      this.dialogAddRepairCategory = false
+      };
+      this.dialogAddRepairCategory = false;
     },
     closeDialogShowPreset() {
-      this.dialogShowPreset = false
+      this.dialogShowPreset = false;
       nextTick(() => {
-        this.showPresetRepairCategory = null
-        this.showSinglePreset = null
-      })
+        this.showPresetRepairCategory = null;
+        this.showSinglePreset = null;
+      });
     },
     closeDialogAddPreset() {
-      this.dialogAddPreset = false
-      this.addPreset.PresetID = []
+      this.dialogAddPreset = false;
+      this.addPreset.PresetID = [];
     },
-
     initialize() {
-      this.getBrandByBrandID(this.BrandID)
-      this.getPartCategory()
-      this.getPresets()
-      this.ModelID = null
-      this.ModelName = null
-      this.PartCategoryID = null
-      this.PartCategoryName = null
-      this.showPresetRepairCategory = null
-      this.repairCategories = []
-      this.showRepairCategoryColumn = false
+      this.getBrandByBrandID(this.BrandID);
+      this.getPartCategory();
+      this.getPresets();
+      this.ModelID = null;
+      this.ModelName = null;
+      this.PartCategoryID = null;
+      this.PartCategoryName = null;
+      this.showPresetRepairCategory = null;
+      this.repairCategories = [];
+      this.showRepairCategoryColumn = false;
     },
   },
   mounted() {
-    this.initialize()
+    this.initialize();
   },
-}
+};
 </script>
 <template>
   <BaseBreadcrumb
@@ -376,8 +533,29 @@ export default {
     <v-row>
       <!-- Models Section -->
       <v-col cols="12" md="4">
-        <UiParentCard v-if="brandData != null" Tableard title="รุ่นรถยนต์">
+        <UiParentCard
+          v-if="brandData != null"
+          Tableard
+          :title="`รุ่นรถยนต์ ${editModelColumn}`"
+        >
           <template v-slot:action>
+            <v-spacer></v-spacer>
+            <div class="mr-1">
+              <v-avatar
+                :color="!editModelColumn ? `lightsuccess` : `lighterror`"
+                size="32"
+                @click="toggleShowEditModelColumn"
+              >
+                <EditIcon
+                  v-if="!editModelColumn"
+                  class="text-success"
+                  size="18"
+                />
+                <CircleXIcon v-else class="text-error" size="18" />
+              </v-avatar>
+              <v-tooltip activator="parent" location="top">แก้ไข</v-tooltip>
+            </div>
+
             <div>
               <v-avatar
                 color="lightprimary"
@@ -399,14 +577,24 @@ export default {
                 class="mb-3"
                 max-width="344"
                 link
-                :color="model.Model == ModelName ? 'primary' : 'lightprimary'"
+                :color="
+                  editModelColumn
+                    ? 'warning'
+                    : model.Model == ModelName
+                    ? 'primary'
+                    : 'lightprimary'
+                "
               >
                 <v-list-item
                   append-icon="mdi-chevron-right"
                   lines="two"
                   :title="model.Model"
                   link
-                  @click="chooseModel(model)"
+                  @click="
+                    editModelColumn
+                      ? showEditModelDialog(model)
+                      : chooseModel(model)
+                  "
                 ></v-list-item>
               </v-card>
             </div>
@@ -418,6 +606,22 @@ export default {
       <v-col cols="12" md="4">
         <UiParentCard v-if="ModelID != null" Tableard :title="`ประเภทการซ่อม`">
           <template v-slot:action>
+            <v-spacer></v-spacer>
+            <div class="mr-1">
+              <v-avatar
+                :color="!editPartCategoryColumn ? `lightsuccess` : `lighterror`"
+                size="32"
+                @click="toggleShowEditPartCategoryColumn"
+              >
+                <EditIcon
+                  v-if="!editPartCategoryColumn"
+                  class="text-success"
+                  size="18"
+                />
+                <CircleXIcon v-else class="text-error" size="18" />
+              </v-avatar>
+              <v-tooltip activator="parent" location="top">แก้ไข</v-tooltip>
+            </div>
             <div>
               <v-avatar
                 color="lightprimary"
@@ -427,8 +631,8 @@ export default {
                 <CirclePlusIcon class="text-primary" size="18" />
               </v-avatar>
               <v-tooltip activator="parent" location="top"
-                >เพิ่มประเภทการซ่อม</v-tooltip
-              >
+                >เพิ่มประเภทการซ่อม
+              </v-tooltip>
             </div>
           </template>
           <template v-slot:default>
@@ -440,7 +644,9 @@ export default {
                 max-width="344"
                 link
                 :color="
-                  category.PartCategoryName == PartCategoryName
+                  editPartCategoryColumn
+                    ? 'warning'
+                    : category.PartCategoryName == PartCategoryName
                     ? 'primary'
                     : 'lightinfo'
                 "
@@ -450,7 +656,11 @@ export default {
                   lines="two"
                   :title="`${index + 1}. ${category.PartCategoryName}`"
                   link
-                  @click="chooseCategory(category)"
+                  @click="
+                    editPartCategoryColumn
+                      ? showEditPartCategoryDialog(category)
+                      : chooseCategory(category)
+                  "
                 ></v-list-item>
               </v-card>
             </div>
@@ -672,7 +882,7 @@ export default {
           <v-select
             class="mt-2"
             v-model="addPreset.PresetID"
-            :items="presets"
+            :items="presetsForAdd"
             item-value="PresetID"
             item-title="Preset"
             label="พรีเซ็ตข้อมูล"
@@ -721,19 +931,34 @@ export default {
         <v-card-title>
           <v-row>
             <v-col cols="12" md="6">
-              #{{ showPresetRepairCategory.RepairCategoryID }}.
-              {{ showPresetRepairCategory.RepairCategory }}
+              <div class="text-wrap">
+                #{{ showPresetRepairCategory.RepairCategoryID }}.
+                {{ showPresetRepairCategory.RepairCategory }}
+              </div>
             </v-col>
             <v-col cols="12" md="6">
               <v-row>
                 <v-col cols="6" class="text-center">
-                  <v-btn color="error" variant="outlined" block>
+                  <v-btn
+                    color="error"
+                    variant="outlined"
+                    block
+                    :disabled="
+                      showPresetRepairCategory.ref_model_category_parts.length >
+                      1
+                    "
+                    @click="
+                      deleteRefByRepairCategoryIDWithModelID(
+                        showPresetRepairCategory
+                      )
+                    "
+                  >
                     <CircleMinusIcon size="18" />
                     &nbsp; ลบกลุ่มงาน
                   </v-btn>
                 </v-col>
                 <v-col cols="6" class="text-center">
-                  <v-btn color="info" block @click="dialogAddPreset = true">
+                  <v-btn color="info" block @click="openDialogaddPreset">
                     <CirclePlusIcon size="18" />
                     &nbsp; เพิ่มพรีเซ็ต
                   </v-btn>
@@ -761,7 +986,7 @@ export default {
                 <v-card-text
                   class="text-center"
                   link
-                  @click="chooseSinglePreset(ref.preset)"
+                  @click="chooseSinglePreset(ref)"
                 >
                   #{{ ref.preset.PresetID }}. {{ ref.preset.Preset }}
                 </v-card-text>
@@ -770,8 +995,8 @@ export default {
             <v-col cols="12" md="9" class="text-center">
               <div v-if="showSinglePreset != null">
                 <h3 class="mt-0 mb-2">
-                  #{{ showSinglePreset.PresetID }}.
-                  {{ showSinglePreset.Preset }}
+                  #{{ showSinglePreset.preset.PresetID }}.
+                  {{ showSinglePreset.preset.Preset }}
                 </h3>
                 <v-table class="border rounded-md">
                   <template v-slot:default>
@@ -787,7 +1012,8 @@ export default {
                     </thead>
                     <tbody>
                       <tr
-                        v-for="(item, index) in showSinglePreset.presetDetails"
+                        v-for="(item, index) in showSinglePreset.preset
+                          .presetDetails"
                         :key="index"
                         :style="`${
                           item.NumOfUse <= item.part.PartAmount
@@ -811,9 +1037,7 @@ export default {
                   <v-btn
                     color="error"
                     variant="outlined"
-                    @click="
-                      removePresetFromRepairCategory(showSinglePreset.PresetID)
-                    "
+                    @click="removePresetFromRepairCategory(showSinglePreset)"
                     >นำพรีเซ็ตนี้ออกจากกลุ่มงาน</v-btn
                   >
                 </div>
@@ -833,5 +1057,61 @@ export default {
       </v-card>
     </v-dialog>
     <!-- Dialog Show Preset Section -->
+    <!-- Dialog Edit Part Category -->
+    <v-dialog
+      v-model="dialogEditPartCategory"
+      class="dialog-mw"
+      style="max-width: 500px"
+      persistent
+    >
+      <v-card class="pa-3" v-if="editPartCategory != null">
+        <v-card-text>
+          <v-text-field
+            label="ประเภทการซ่อม"
+            v-model.trim="editPartCategory.PartCategoryName"
+            :rules="rules"
+          ></v-text-field>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="info" block flat @click="submitEditPartCategory"
+            >บันทึกข้อมูล</v-btn
+          >
+        </v-card-actions>
+        <v-card-actions>
+          <v-btn color="error" @click="closeEditPartCategoryDialog" block flat
+            >ปิดหน้าต่าง</v-btn
+          >
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <!-- Dialog Edit Part Category -->
+    <!-- Dialog Edit Model -->
+    <v-dialog
+      v-model="dialogEditModel"
+      class="dialog-mw"
+      style="max-width: 500px"
+      persistent
+    >
+      <v-card class="pa-3" v-if="editModel != null">
+        <v-card-text>
+          <v-text-field
+            label="รุ่น"
+            v-model.trim="editModel.Model"
+            :rules="rules"
+          ></v-text-field>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="info" block flat @click="submitEditModel"
+            >บันทึกข้อมูล</v-btn
+          >
+        </v-card-actions>
+        <v-card-actions>
+          <v-btn color="error" @click="closeEditModelDialog" block flat
+            >ปิดหน้าต่าง</v-btn
+          >
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <!-- Dialog Edit Model -->
   </div>
 </template>
