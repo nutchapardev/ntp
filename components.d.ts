@@ -44,6 +44,7 @@ declare module 'vue' {
     NotificationTab: typeof import('./src/components/account-settings/NotificationTab.vue')['default']
     OurVisitors: typeof import('./src/components/dashboards/analytical/OurVisitors.vue')['default']
     OverlayProfile: typeof import('./src/components/dashboards/modern/OverlayProfile.vue')['default']
+    PresetTable: typeof import('./src/components/preset/PresetTable.vue')['default']
     ProductAvaibility: typeof import('./src/components/dashboards/modern/ProductAvaibility.vue')['default']
     ProductOverview: typeof import('./src/components/dashboards/ecommerce/ProductOverview.vue')['default']
     ProductSales: typeof import('./src/components/dashboards/ecommerce/ProductSales.vue')['default']

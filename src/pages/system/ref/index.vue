@@ -56,12 +56,14 @@ export default {
       presetsForAdd: [],
       editPartCategory: null,
       editModel: null,
+      editRepairCategory: null,
       showRepairCategoryColumn: false,
       showPresetRepairCategory: null,
       showSinglePreset: null,
       // Edit Column
       editModelColumn: false,
       editPartCategoryColumn: false,
+      editRepairCategoryColumn: false,
       // dialog
       dialogAddModel: false,
       dialogAddPartCategory: false,
@@ -70,6 +72,7 @@ export default {
       dialogShowPreset: false,
       dialogEditPartCategory: false,
       dialogEditModel: false,
+      dialogEditRepairCategory: false,
       // data table
       showSinglePreSetHeaders: [
         {
@@ -116,6 +119,10 @@ export default {
     toggleShowEditModelColumn() {
       this.editModelColumn = !this.editModelColumn;
       this.initialize();
+    },
+    toggleShowEditRepairCategoryColumn() {
+      this.editRepairCategoryColumn = !this.editRepairCategoryColumn;
+      this.closeEditModelDialog();
     },
     async getBrandByBrandID(BrandID) {
       const response = await serverService.getBrandByBrandID(BrandID);
@@ -438,6 +445,36 @@ export default {
         }
       });
     },
+    async submitEditRepairCategory() {
+      Swal.fire({
+        title: "Are you sure?",
+        text: "ต้องการแก้ไขข้อมูล ใช่หรือไม่?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "<span style='color:white;'>Yes, continue!</span>",
+        cancelButtonText: "<span style='color:white;'>Cancel</span>",
+      }).then(async (result) => {
+        const { RepairCategoryID, RepairCategory } = this.editRepairCategory;
+        if (result.isConfirmed) {
+          const response = await serverService.editRepairCategoryByID(
+            RepairCategoryID,
+            {
+              RepairCategory,
+            }
+          );
+          if (response.data.result) {
+            nextTick(() => {
+              this.closeEditRepairCategoryDialog();
+            });
+          } else {
+            Swal.fire("Error!", response.message, "error");
+            return;
+          }
+        }
+      });
+    },
     showEditPartCategoryDialog(item) {
       this.dialogEditPartCategory = true;
       this.editPartCategory = item;
@@ -445,6 +482,11 @@ export default {
     showEditModelDialog(item) {
       this.dialogEditModel = true;
       this.editModel = item;
+    },
+    showEditRapairCategoryDialog(item) {
+      this.dialogEditRepairCategory = true;
+      this.editRepairCategory = item;
+      this.closeEditModelDialog();
     },
     checkPreset(data) {
       return checkPresetAvailability(data).summary;
@@ -472,6 +514,11 @@ export default {
       this.dialogEditPartCategory = false;
       this.editPartCategoryColumn = false;
       this.editPartCategory = null;
+    },
+    closeEditRepairCategoryDialog() {
+      this.dialogEditRepairCategory = false;
+      this.editRepairCategoryColumn = false;
+      this.editRepairCategory = null;
     },
     closeDialogAddModel() {
       this.dialogAddModel = false;
@@ -533,11 +580,7 @@ export default {
     <v-row>
       <!-- Models Section -->
       <v-col cols="12" md="4">
-        <UiParentCard
-          v-if="brandData != null"
-          Tableard
-          :title="`รุ่นรถยนต์ ${editModelColumn}`"
-        >
+        <UiParentCard v-if="brandData != null" Tableard :title="`รุ่นรถยนต์`">
           <template v-slot:action>
             <v-spacer></v-spacer>
             <div class="mr-1">
@@ -676,6 +719,24 @@ export default {
           :title="PartCategoryName"
         >
           <template v-slot:action>
+            <v-spacer></v-spacer>
+            <div class="mr-1">
+              <v-avatar
+                :color="
+                  !editRepairCategoryColumn ? `lightsuccess` : `lighterror`
+                "
+                size="32"
+                @click="toggleShowEditRepairCategoryColumn"
+              >
+                <EditIcon
+                  v-if="!editRepairCategoryColumn"
+                  class="text-success"
+                  size="18"
+                />
+                <CircleXIcon v-else class="text-error" size="18" />
+              </v-avatar>
+              <v-tooltip activator="parent" location="top">แก้ไข</v-tooltip>
+            </div>
             <div>
               <v-avatar
                 color="lightprimary"
@@ -700,9 +761,18 @@ export default {
                 class="mb-3"
                 max-width="344"
                 link
-                color="lightsuccess"
+                :color="`${
+                  editRepairCategoryColumn ? 'warning' : 'lightsuccess'
+                }`"
               >
-                <v-card-text link @click="chooseRepairCategory(repairCate)">
+                <v-card-text
+                  link
+                  @click="
+                    editRepairCategoryColumn
+                      ? showEditRapairCategoryDialog(repairCate)
+                      : chooseRepairCategory(repairCate)
+                  "
+                >
                   <v-row>
                     <v-col cols="8">
                       {{ index + 1 }}. {{ repairCate.RepairCategory }}
@@ -718,7 +788,7 @@ export default {
                           </span>
                         </v-btn>
                         <v-tooltip activator="parent" location="top"
-                          >จำนวนพรีเซ็ตที่พร้อมใช้งาน</v-tooltip
+                          >พร้อมใช้งาน</v-tooltip
                         >
                       </div>
 
@@ -729,7 +799,7 @@ export default {
                           </span>
                         </v-btn>
                         <v-tooltip activator="parent" location="top"
-                          >จำนวนพรีเซ็ตที่ไม่พร้อมใช้งาน</v-tooltip
+                          >ไม่พร้อมใช้งาน</v-tooltip
                         >
                       </div>
                     </v-col>
@@ -998,7 +1068,7 @@ export default {
                   #{{ showSinglePreset.preset.PresetID }}.
                   {{ showSinglePreset.preset.Preset }}
                 </h3>
-                <v-table class="border rounded-md">
+                <v-table class="border rounded-md" density="compact">
                   <template v-slot:default>
                     <thead>
                       <tr>
@@ -1113,5 +1183,33 @@ export default {
       </v-card>
     </v-dialog>
     <!-- Dialog Edit Model -->
+    <!-- Dialog Edit Repair Category -->
+    <v-dialog
+      v-model="dialogEditRepairCategory"
+      class="dialog-mw"
+      style="max-width: 500px"
+      persistent
+    >
+      <v-card class="pa-3" v-if="editRepairCategory != null">
+        <v-card-text>
+          <v-text-field
+            label="ชื่อกลุ่มงาน"
+            v-model.trim="editRepairCategory.RepairCategory"
+            :rules="rules"
+          ></v-text-field>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="info" block flat @click="submitEditRepairCategory"
+            >บันทึกข้อมูล</v-btn
+          >
+        </v-card-actions>
+        <v-card-actions>
+          <v-btn color="error" @click="closeEditRepairCategoryDialog" block flat
+            >ปิดหน้าต่าง</v-btn
+          >
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <!-- Dialog Edit Repair Category -->
   </div>
 </template>

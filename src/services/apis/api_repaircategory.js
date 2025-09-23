@@ -14,3 +14,7 @@ export const getRepairCategoryByModelAndPartCategory = (
 export const addRepairCategoryWithRefs = (data) => {
   return httpClient.post(`${server.REPAIR_CATEGORY_URL}/create-with-ref`, data);
 };
+
+export const editRepairCategoryByID = (id, data) => {
+  return httpClient.put(`${server.REPAIR_CATEGORY_URL}/${id}`, data);
+};

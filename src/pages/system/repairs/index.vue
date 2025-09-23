@@ -124,7 +124,7 @@ export default {
     async getRepairs() {
       try {
         const response = await serverService.getAllRepairs();
-        console.log("Repairs data:", response.data);
+        // console.log("Repairs data:", response.data);
         this.RepairsData = response.data;
       } catch (error) {
         console.error("Error fetching repairs:", error);

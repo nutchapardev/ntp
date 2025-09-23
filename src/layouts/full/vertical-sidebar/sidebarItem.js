@@ -28,11 +28,11 @@ const sidebarItem = [
     to: "/system/vendors",
   },
   { header: "STOCKS" },
-  {
-    title: "สินค้าคงคลัง",
-    icon: "bedside-table-3-linear",
-    to: "/system/stock",
-  },
+  // {
+  //   title: "สินค้าคงคลัง",
+  //   icon: "bedside-table-3-linear",
+  //   to: "/system/stock",
+  // },
   {
     title: "ข้อมูลอะไหล่",
     icon: "command-linear",
@@ -41,6 +41,10 @@ const sidebarItem = [
       {
         title: "จัดกลุ่มข้อมูลกับรถยนต์",
         to: "/system/ref",
+      },
+      {
+        title: "สินค้าคงคลัง",
+        to: "/system/stock",
       },
       {
         title: "พรีเซ็ตข้อมูล",

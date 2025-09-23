@@ -26,6 +26,7 @@ declare module 'vue-router/auto-routes' {
     '/login': RouteRecordInfo<'/login', '/login', Record<never, never>, Record<never, never>>,
     '/system/customers/': RouteRecordInfo<'/system/customers/', '/system/customers', Record<never, never>, Record<never, never>>,
     '/system/employees/': RouteRecordInfo<'/system/employees/', '/system/employees', Record<never, never>, Record<never, never>>,
+    '/system/preset/': RouteRecordInfo<'/system/preset/', '/system/preset', Record<never, never>, Record<never, never>>,
     '/system/ref/': RouteRecordInfo<'/system/ref/', '/system/ref', Record<never, never>, Record<never, never>>,
     '/system/repairs/': RouteRecordInfo<'/system/repairs/', '/system/repairs', Record<never, never>, Record<never, never>>,
     '/system/repairs/[repairID]': RouteRecordInfo<'/system/repairs/[repairID]', '/system/repairs/:repairID', { repairID: ParamValue<true> }, { repairID: ParamValue<false> }>,

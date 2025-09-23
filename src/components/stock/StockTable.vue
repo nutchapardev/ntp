@@ -10,8 +10,8 @@ export default {
       headers: [
         { title: "#ID", align: "start", key: "PartID" },
         { title: "รหัสอุปกรณ์", align: "start", key: "PartNumber" },
-        { title: "ชื่ออุปกรณ์ TH", align: "start", key: "PartName_th" },
-        { title: "ชื่ออุปกรณ์ EN", align: "start", key: "PartName_en" },
+        { title: "ชื่ออุปกรณ์", align: "start", key: "PartName_th" },
+        // { title: "ชื่ออุปกรณ์ EN", align: "start", key: "PartName_en" },
         { title: "ราคาต่อหน่วย (บาท)", align: "end", key: "PricePerUnit" },
         { title: "จำนวนในคลัง", align: "end", key: "PartAmount" },
         { title: "", align: "end", key: "actions" },
@@ -83,7 +83,6 @@ export default {
     items-per-page="10"
     :row-props="setRowClass"
     class="border rounded-md"
-    density="compact"
   >
     <template v-slot:item.PricePerUnit="{ item }">
       <div class="text-end">

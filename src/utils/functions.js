@@ -130,7 +130,6 @@ function checkPresetAvailability(data) {
       insufficientCount: 0,
     },
   };
-
   // ตรวจสอบว่ามี ref_model_category_parts และเป็น array หรือไม่
   if (!data || !Array.isArray(data.ref_model_category_parts)) {
     console.error(
@@ -191,8 +190,44 @@ function checkPresetAvailability(data) {
 const checkStockAvailability = (partsArray) => {
   // ใช้ method every() เพื่อตรวจสอบทุก element ใน array
   // เงื่อนไขคือ part.PartAmount ต้องมากกว่าหรือเท่ากับ NumOfUse
-  return partsArray.every(item => item.part.PartAmount >= item.NumOfUse);
+  return partsArray.every((item) => item.part.PartAmount >= item.NumOfUse);
 };
+
+function countPresetStatus(presets) {
+  let sufficientCount = 0;
+  let insufficientCount = 0;
+
+  // วนลูปเช็คแต่ละ preset ใน Array หลัก
+  for (const preset of presets) {
+    // กำหนดให้ preset นั้นเพียงพอเป็นค่าเริ่มต้น
+    let isPresetSufficient = true;
+
+    // วนลูปเช็ครายละเอียดของแต่ละ preset (presetDetails)
+    for (const detail of preset.presetDetails) {
+      // ตรวจสอบว่าจำนวนที่ต้องใช้ (NumOfUse) มากกว่าจำนวนที่มีอยู่ (PartAmount) หรือไม่
+      if (detail.NumOfUse > detail.part.PartAmount) {
+        // หากมี part แม้แต่ชิ้นเดียวที่ไม่เพียงพอ ให้ถือว่า preset ทั้งหมด "ไม่เพียงพอ" ทันที
+        isPresetSufficient = false;
+        // หยุดการตรวจสอบ part ที่เหลือใน preset นี้ แล้วไป preset ถัดไป
+        break;
+      }
+    }
+
+    // หลังจากตรวจสอบรายละเอียดทั้งหมดของ preset แล้ว
+    // หาก isPresetSufficient ยังเป็น true แสดงว่าทุก part เพียงพอ
+    if (isPresetSufficient) {
+      sufficientCount++;
+    } else {
+      insufficientCount++;
+    }
+  }
+
+  // คืนค่าผลลัพธ์เป็น Object ที่มีจำนวนที่เพียงพอและไม่เพียงพอ
+  return {
+    sufficient: sufficientCount,
+    insufficient: insufficientCount,
+  };
+}
 
 export {
   getNumberOfDigits,
@@ -202,7 +237,8 @@ export {
   toThaiDateTimeString,
   formatCurrency,
   checkPresetAvailability,
-  checkStockAvailability
+  checkStockAvailability,
+  countPresetStatus,
 };
 
 // --- ตัวอย่างการใช้งาน ---
