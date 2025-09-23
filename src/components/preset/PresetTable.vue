@@ -1,14 +1,14 @@
 <script>
-import serverService from "@/services/serverService";
-import Swal from "sweetalert2";
-import { checkStockAvailability } from "@/utils/functions";
+import serverService from "@/services/serverService"
+import Swal from "sweetalert2"
+import { checkStockAvailability } from "@/utils/functions"
 import {
   CirclePlusIcon,
   TrashIcon,
   CircleMinusIcon,
   CircleXIcon,
   EditIcon,
-} from "vue-tabler-icons";
+} from "vue-tabler-icons"
 export default {
   components: {
     CirclePlusIcon,
@@ -50,83 +50,142 @@ export default {
       //   dialog
       dialogShowPart: false,
       dialogEditPart: false,
-    };
+    }
   },
   methods: {
     async getPresets() {
-      this.resetDefaultData();
-      const response = await serverService.getAllPresets();
+      this.resetDefaultData()
+      const response = await serverService.getAllPresets()
       this.presets = response.data.map((preset) => {
-        let available = this.checkStockInPreset(preset.presetDetails);
+        let available =
+          this.checkStockInPreset(preset.presetDetails) &&
+          preset.presetDetails.length > 0
         if (available) {
-          this.activePreset.push({ ...preset, available });
-          this.sumActive++;
+          this.activePreset.push({ ...preset, available })
+          this.sumActive++
         } else {
-          this.inactivePreset.push({ ...preset, available });
-          this.sumInActive++;
+          this.inactivePreset.push({ ...preset, available })
+          this.sumInActive++
         }
         return {
           ...preset,
           available,
-        };
-      });
+        }
+      })
+    },
+    async submitEditPart() {
+      // console.log(this.editPart)
+
+      const { PresetDetailID, NumOfUse } = this.editPart
+      if (
+        NumOfUse <= 0 ||
+        NumOfUse == null ||
+        !PresetDetailID ||
+        PresetDetailID == null
+      ) {
+        Swal.fire({
+          icon: "error",
+          title: "เกิดข้อผิดพลาด",
+          text: "กรุณากรอกจำนวนที่ใช้ให้ถูกต้อง",
+        })
+        return
+      }
+
+      Swal.fire({
+        title: "Are you sure?",
+        text: "ท่านต้องการแก้ไขข้อมูล ใช่หรือไม่?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "<span style='color:white;'>Yes, continue!</span>",
+        cancelButtonText: "<span style='color:white;'>Cancel</span>",
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            const response = await serverService.updatePresetDetailByID(
+              PresetDetailID,
+              { NumOfUse: parseInt(NumOfUse) }
+            )
+            if (response.data.result) {
+              Swal.fire({
+                icon: "success",
+                title: "สำเร็จ",
+                text: "แก้ไขข้อมูลสำเร็จ",
+                timer: 1500,
+                showConfirmButton: false,
+              })
+              this.closeEditPartDialog()
+              this.closePartDialog()
+              this.initialize()
+            }
+          } catch (error) {
+            console.error(error)
+            Swal.fire({
+              icon: "error",
+              title: "Error!",
+              text: "ไม่สามารถแก้ไขข้อมูลได้ กรุณาลองใหม่อีกครั้ง",
+            })
+          }
+        }
+      })
     },
     setPresetDataStatus(status) {
-      this.search = "";
-      if (status) this.presets = this.activePreset;
-      else this.presets = this.inactivePreset;
+      this.search = ""
+      if (status) this.presets = this.activePreset
+      else this.presets = this.inactivePreset
     },
     resetDefaultData() {
-      this.search = "";
-      this.sumActive = 0;
-      this.sumInActive = 0;
-      this.activePreset = [];
-      this.inactivePreset = [];
+      this.search = ""
+      this.sumActive = 0
+      this.sumInActive = 0
+      this.activePreset = []
+      this.inactivePreset = []
     },
     checkStockInPreset(data) {
-      return checkStockAvailability(data);
+      return checkStockAvailability(data)
     },
     openPartDialog(data) {
-      this.dialogShowPart = true;
-      this.showPartData = data;
+      this.dialogShowPart = true
+      this.showPartData = data
     },
     openEditPartDialog(item) {
       this.editPart = {
         PresetDetailID: item.PresetDetailID,
         PartName_th: item.part.PartName_th,
         NumOfUse: item.NumOfUse,
-      };
-      console.log(this.editPart);
+      }
+      // console.log(this.editPart)
 
-      this.dialogEditPart = true;
+      this.dialogEditPart = true
     },
     closePartDialog() {
-      this.dialogShowPart = false;
-      this.showPartData = null;
+      this.dialogShowPart = false
+      this.showPartData = null
     },
     closeEditPartDialog() {
-      this.dialogEditPart = false;
+      this.dialogEditPart = false
       this.editPart = {
         PresetDetailID: null,
         PartName_th: "",
         NumOfUse: null,
-      };
+      }
     },
     setRowClass({ item }) {
       if (item.NumOfUse <= item.part.PartAmount) {
-        return { class: "" };
+        return { class: "" }
       }
-      return { class: "high-fat-row" };
+      return { class: "high-fat-row" }
     },
     async initialize() {
-      await this.getPresets();
-      this.showPartData = null;
+      await this.getPresets()
+      this.showPartData = null
     },
   },
   created() {
-    this.initialize();
+    this.initialize()
   },
-};
+}
 </script>
 <template>
   <v-row class="mb-3">
@@ -258,12 +317,12 @@ export default {
 
     <template v-slot:item.actions="{ item }">
       <div class="d-flex ga-3 align-center justify-center">
-        <div>
+        <!-- <div>
           <v-avatar color="lightsuccess" size="32">
             <EditIcon class="text-success" size="18" />
           </v-avatar>
           <v-tooltip activator="parent" location="bottom">Edit</v-tooltip>
-        </div>
+        </div> -->
         <div>
           <v-avatar color="lighterror" size="32">
             <TrashIcon class="text-error" size="18" />
@@ -341,7 +400,9 @@ export default {
         />
       </v-card-text>
       <v-card-actions>
-        <v-btn color="info" block flat>บันทึกข้อมูล</v-btn>
+        <v-btn color="info" block flat @click="submitEditPart"
+          >บันทึกข้อมูล</v-btn
+        >
       </v-card-actions>
       <v-card-actions>
         <v-btn color="error" @click="closeEditPartDialog" block flat

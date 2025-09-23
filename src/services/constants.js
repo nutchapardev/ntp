@@ -33,6 +33,7 @@ export const server = {
   PART_CATEGORY_URL: `partcategory`,
   REPAIR_CATEGORY_URL: `repaircategory`,
   PRESET_URL: `preset`,
+  PRESET_DETAIL_URL: `presetdetails`,
   REF_MODEL_CATEGORY_PART_URL: `refModelCategoryParts`,
 }
 
