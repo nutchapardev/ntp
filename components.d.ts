@@ -20,6 +20,7 @@ declare module 'vue' {
     BlogCard: typeof import('./src/components/dashboards/general/BlogCard.vue')['default']
     BreadcrumbChart: typeof import('./src/components/shared/BreadcrumbChart.vue')['default']
     CardHeaderFooter: typeof import('./src/components/shared/CardHeaderFooter.vue')['default']
+    CarTable: typeof import('./src/components/cars/CarTable.vue')['default']
     ChartBox: typeof import('./src/components/dashboards/analytical/ChartBox.vue')['default']
     ContactCard: typeof import('./src/components/dashboards/modern/ContactCard.vue')['default']
     Contacts: typeof import('./src/components/dashboards/campaign/Contacts.vue')['default']

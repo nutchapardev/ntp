@@ -18,14 +18,19 @@ const sidebarItem = [
   },
   { header: "Customers and Vendors" },
   {
-    title: "Customers",
-    icon: "screencast-2-linear",
+    title: "ข้อมูลลูกค้า",
+    icon: "face-scan-circle-linear",
     to: "/system/customers",
   },
   {
-    title: "Vendors",
-    icon: "screencast-2-linear",
+    title: "ข้อมูลคู่ค้า",
+    icon: "user-hand-up-broken",
     to: "/system/vendors",
+  },
+  {
+    title: "ข้อมูลรถยนต์",
+    icon: "battery-charge-minimalistic-broken",
+    to: "/system/cars",
   },
   { header: "STOCKS" },
   // {
@@ -35,7 +40,8 @@ const sidebarItem = [
   // },
   {
     title: "ข้อมูลอะไหล่",
-    icon: "command-linear",
+    // icon: "command-linear",
+    icon: "align-vertical-center-line-duotone",
     to: "/system/ref",
     children: [
       {
@@ -72,37 +78,37 @@ const sidebarItem = [
   },
 
   // --------------------------------
-  { header: "Personal" },
-  {
-    title: "General",
-    icon: "screencast-2-linear",
-    to: "/dashboards/general",
-  },
-  {
-    title: "Classic",
-    icon: "atom-linear",
-    to: "/dashboards/classic",
-  },
-  {
-    title: "Analytical",
-    icon: "box-minimalistic-linear",
-    to: "/dashboards/analytical",
-  },
-  {
-    title: "Campaign",
-    icon: "buildings-2-linear",
-    to: "/dashboards/campaign",
-  },
-  {
-    title: "Modern",
-    icon: "basketball-linear",
-    to: "/dashboards/modern",
-  },
-  {
-    title: "eCommerce",
-    icon: "cart-large-2-linear",
-    to: "/dashboards/ecommerce",
-  },
+  // { header: "Personal" },
+  // {
+  //   title: "General",
+  //   icon: "screencast-2-linear",
+  //   to: "/dashboards/general",
+  // },
+  // {
+  //   title: "Classic",
+  //   icon: "atom-linear",
+  //   to: "/dashboards/classic",
+  // },
+  // {
+  //   title: "Analytical",
+  //   icon: "box-minimalistic-linear",
+  //   to: "/dashboards/analytical",
+  // },
+  // {
+  //   title: "Campaign",
+  //   icon: "buildings-2-linear",
+  //   to: "/dashboards/campaign",
+  // },
+  // {
+  //   title: "Modern",
+  //   icon: "basketball-linear",
+  //   to: "/dashboards/modern",
+  // },
+  // {
+  //   title: "eCommerce",
+  //   icon: "cart-large-2-linear",
+  //   to: "/dashboards/ecommerce",
+  // },
 
   // {
   //   title: "Front Pages",

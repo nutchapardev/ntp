@@ -9,3 +9,7 @@ export const getAllPresets = () => {
 export const addPreset = (data) => {
   return httpClient.post(server.PRESET_URL, data);
 };
+
+export const deletePresetByID = (id) => {
+  return httpClient.delete(`${server.PRESET_URL}/${id}`);
+};

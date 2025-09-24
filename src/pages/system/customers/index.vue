@@ -1,11 +1,11 @@
 <script>
-import { nextTick } from "vue"
-import BaseBreadcrumb from "@/components/shared/BaseBreadcrumb.vue"
-import UiParentCard from "@/components/shared/UiParentCard.vue"
-import serverService from "@/services/serverService"
-import Swal from "sweetalert2"
-import { getNumberOfDigits, getRandomColor } from "@/utils/functions"
-import { getCars } from "@/services/apis/api_car"
+import { nextTick } from "vue";
+import BaseBreadcrumb from "@/components/shared/BaseBreadcrumb.vue";
+import UiParentCard from "@/components/shared/UiParentCard.vue";
+import serverService from "@/services/serverService";
+import Swal from "sweetalert2";
+import { getNumberOfDigits, getRandomColor } from "@/utils/functions";
+import { getCars } from "@/services/apis/api_car";
 // import { sub } from "date-fns"
 
 export default {
@@ -96,27 +96,27 @@ export default {
         { title: "ไม่ระบุ", value: 99 },
       ],
       subDistrictItems: [],
-    }
+    };
   },
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? "เพิ่มข้อมูล" : "แก้ไขข้อมูล"
+      return this.editedIndex === -1 ? "เพิ่มข้อมูล" : "แก้ไขข้อมูล";
     },
   },
   watch: {
     dialog(val) {
-      val || this.close()
+      val || this.close();
     },
     dialogDelete(val) {
-      val || this.closeDelete()
+      val || this.closeDelete();
     },
   },
   created() {
-    this.initialize()
+    this.initialize();
   },
   methods: {
     async addAddress() {
-      const { SubDistrictID } = this.addressForAdd
+      const { SubDistrictID } = this.addressForAdd;
       if (this.editedIndex === -1) {
         // console.log("เพิ่มข้อมูล")
         let payload = {
@@ -124,20 +124,23 @@ export default {
           ProvinceID: getNumberOfDigits(SubDistrictID, 2, true),
           // AddressTypeID: 1,
           ...this.addressForAdd,
-        }
+        };
 
-        this.editedItem.addresses.push(payload)
-        this.closeDialogAddAddress()
+        this.editedItem.addresses.push(payload);
+        this.closeDialogAddAddress();
       } else {
         // console.log("แก้ไขข้อมูล")
-        if (!this.addressForAdd.Line1) {
+        if (
+          (this.addressForAdd.Line1 == "" && this.addressForAdd.Line2 == "") ||
+          this.addressForAdd.SubDistrictID == null
+        ) {
           Swal.fire({
             icon: "warning",
-            text: "กรุณาเพิ่มที่อยู่บรรทัดที่ 1",
+            text: "กรุณาเพิ่มที่อยู่ให้ครบถ้วน",
             showConfirmButton: false,
             timer: 1500,
-          })
-          return
+          });
+          return;
         }
         let payload = {
           OwnerID: this.editedItem.CustomerID,
@@ -145,17 +148,17 @@ export default {
           ProvinceID: getNumberOfDigits(SubDistrictID, 2, true),
           AddressTypeID: 1,
           ...this.addressForAdd,
-        }
-        const response = await serverService.addAddress(payload)
+        };
+        const response = await serverService.addAddress(payload);
 
         if (response.data.result) {
           payload = {
             ...payload,
-            AddressID: response.data.dataValues.AddressID,
-          }
+            AddressID: response.data.AddressID,
+          };
         }
-        this.editedItem.addresses.push(payload)
-        this.closeDialogEditAddress()
+        this.editedItem.addresses.push(payload);
+        this.closeDialogEditAddress();
       }
     },
     async deleteAddress(AddressID, index) {
@@ -163,9 +166,9 @@ export default {
         this.editedItem.addresses = this.editedItem.addresses.splice(
           index - 1,
           1
-        )
+        );
         // console.log("remove item in local")
-        return
+        return;
       } else {
         Swal.fire({
           title: "Are you sure?",
@@ -181,51 +184,51 @@ export default {
           if (result.isConfirmed) {
             const response = (
               await serverService.deleteAddressByAddressID(AddressID)
-            ).data
+            ).data;
             if (response.result) {
               this.editedItem.addresses = this.editedItem.addresses.filter(
                 (item) => item.AddressID !== AddressID
-              )
+              );
             } else {
               Swal.fire({
                 title: "Error!",
                 text: response.message,
                 icon: "error",
-              })
+              });
             }
             Swal.fire({
               title: "Deleted!",
               text: "Your data has been deleted.",
               icon: "success",
-            })
+            });
           }
-        })
+        });
       }
     },
     async getCustomers() {
       try {
-        const response = await serverService.getAllCustomers()
-        this.customers = response.data
+        const response = await serverService.getAllCustomers();
+        this.customers = response.data;
       } catch (error) {
-        console.error("Error fetching customers:", error)
+        console.error("Error fetching customers:", error);
       }
     },
     async getSubDistricts() {
       try {
-        const response = await serverService.getAllSubDistricts()
-        this.subDistrictItems = response.data
+        const response = await serverService.getAllSubDistricts();
+        this.subDistrictItems = response.data;
       } catch (error) {
-        console.error("Error fetching sub-districts:", error)
+        console.error("Error fetching sub-districts:", error);
       }
     },
     initialize() {
-      this.getCustomers()
-      this.getSubDistricts()
+      this.getCustomers();
+      this.getSubDistricts();
     },
     editItem(item) {
-      this.editedIndex = this.customers.indexOf(item)
-      this.editedItem = Object.assign({}, item)
-      this.dialog = true
+      this.editedIndex = this.customers.indexOf(item);
+      this.editedItem = Object.assign({}, item);
+      this.dialog = true;
     },
     deleteItem(item) {
       Swal.fire({
@@ -241,57 +244,57 @@ export default {
         if (result.isConfirmed) {
           const response = await serverService.deleteCustomerByID(
             item.CustomerID
-          )
+          );
           if (response.data.result) {
-            this.getCustomers()
+            this.getCustomers();
           } else {
             Swal.fire({
               title: "Error!",
               text: response.data.message,
               icon: "error",
-            })
-            return
+            });
+            return;
           }
 
           Swal.fire({
             title: "Deleted!",
             text: "Your data has been deleted.",
             icon: "success",
-          })
+          });
         }
-      })
+      });
     },
     deleteItemConfirm() {
-      this.customers.splice(this.editedIndex, 1)
-      this.closeDelete()
+      this.customers.splice(this.editedIndex, 1);
+      this.closeDelete();
     },
     close() {
-      this.dialog = false
+      this.dialog = false;
       nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem)
-        this.editedIndex = -1
-      })
+        this.editedItem = Object.assign({}, this.defaultItem);
+        this.editedIndex = -1;
+      });
     },
     closeDialogEditAddress() {
-      this.dialogAddAddress = false
+      this.dialogAddAddress = false;
       nextTick(() => {
-        this.addressForAdd = Object.assign({}, this.defaultAddressForAdd)
+        this.addressForAdd = Object.assign({}, this.defaultAddressForAdd);
         // this.editedIndex = -1
-      })
+      });
     },
     closeDialogAddAddress() {
-      this.dialogAddAddress = false
+      this.dialogAddAddress = false;
       nextTick(() => {
-        this.addressForAdd = Object.assign({}, this.defaultAddressForAdd)
+        this.addressForAdd = Object.assign({}, this.defaultAddressForAdd);
         // this.editedIndex = -1
-      })
+      });
     },
     closeDelete() {
-      this.dialogDelete = false
+      this.dialogDelete = false;
       nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem)
-        this.editedIndex = -1
-      })
+        this.editedItem = Object.assign({}, this.defaultItem);
+        this.editedIndex = -1;
+      });
     },
     async save() {
       if (this.editedItem.CustomerName.length === 0) {
@@ -300,56 +303,56 @@ export default {
           text: "กรุณาเพิ่มชื่อจริง",
           showConfirmButton: false,
           timer: 1500,
-        })
-        return
+        });
+        return;
       }
       if (this.editedIndex > -1) {
         // console.log("edit data in this section.")
         const response = await serverService.editCustomerByID(
           this.editedItem.CustomerID,
           this.editedItem
-        )
+        );
         if (response.data.result) {
-          this.getCustomers()
-          this.close()
+          this.getCustomers();
+          this.close();
           Swal.fire({
             icon: "success",
             text: "แก้ไขข้อมูลเรียบร้อย",
             showConfirmButton: false,
             timer: 1500,
-          })
+          });
         } else {
           Swal.fire({
             icon: "error",
             title: "Error!",
             text: response.data.message,
-          })
+          });
         }
       } else {
         const response = await serverService.addCustomersAndAddresses(
           this.editedItem
-        )
+        );
         if (response.data.result) {
-          this.getCustomers()
-          this.close()
+          this.getCustomers();
+          this.close();
           Swal.fire({
             icon: "success",
             text: "บันทึกข้อมูลเรียบร้อย",
             showConfirmButton: false,
             timer: 1500,
-          })
+          });
         } else {
           Swal.fire({
             icon: "error",
             title: "Error!",
             text: response.data.message,
-          })
+          });
         }
       }
       // this.close()
     },
   },
-}
+};
 </script>
 
 <template>
@@ -423,7 +426,7 @@ export default {
                             v-for="(item, index) in editedItem.addresses"
                             :key="item.AddressID"
                             variant="tonal"
-                            class="bg-secondary mb-3"
+                            class="bg-light mb-3"
                             closable
                             height="70px"
                           >
@@ -537,7 +540,12 @@ export default {
             </v-toolbar>
           </template>
           <template v-slot:item.CustomerName="{ item }">
-            {{ item.customerTitle.CustomerTitle }} {{ item.CustomerName }}
+            {{
+              item.customerTitle.CustomerTitleID != 99
+                ? item.customerTitle.CustomerTitle
+                : ""
+            }}
+            {{ item.CustomerName }}
             {{ item.CustomerSurname }}
           </template>
           <template v-slot:item.cars="{ item }">
@@ -613,13 +621,13 @@ export default {
             <v-row class="mt-3"
               ><v-col cols="12">
                 <v-text-field
-                  v-model="addressForAdd.Line1"
+                  v-model.trim="addressForAdd.Line1"
                   label="ที่อยู่บรรทัดที่ 1"
                 ></v-text-field>
               </v-col>
               <v-col cols="12">
                 <v-text-field
-                  v-model="addressForAdd.Line2"
+                  v-model.trim="addressForAdd.Line2"
                   label="ที่อยู่บรรทัดที่ 2"
                 ></v-text-field>
               </v-col>

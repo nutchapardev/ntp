@@ -229,7 +229,8 @@ export default {
       if (
         customer.CustomerTitleID == null ||
         customer.CustomerName == null ||
-        customer.CustomerSurname == null
+        customer.CustomerName == "" ||
+        customer.CustomerSurname == null 
       ) {
         Swal.fire("Alert!", "กรุณากรอกข้อมูลลูกค้าให้ครบถ้วน", "warning");
         return;
@@ -238,7 +239,9 @@ export default {
         car.BrandID == null ||
         car.ModelID == null ||
         car.CarTitle == null ||
+        car.CarTitle == "" ||
         car.CarNumber == null ||
+        car.CarNumber == "" ||
         car.ProvinceID == null
       ) {
         Swal.fire("Alert!", "กรุณากรอกข้อมูลรถยนต์ให้ครบถ้วน", "warning");
@@ -609,7 +612,7 @@ export default {
       </v-card-text>
 
       <v-card-actions class="mb-3">
-        <v-btn color="error" variant="outline" dark @click="close">
+        <v-btn color="error" variant="outlined" dark @click="close">
           ยกเลิก
         </v-btn>
         <!-- <v-spacer></v-spacer> -->
@@ -617,7 +620,7 @@ export default {
         <v-btn
           color="primary"
           class="ml-3 mr-3"
-          variant="outline"
+          variant="outlined"
           dark
           @click="save"
         >
