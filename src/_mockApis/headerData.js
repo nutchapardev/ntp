@@ -216,24 +216,24 @@ const appsLink = [
 
 // Side Profile
 const SideProfile = [
-  {
-    icon: "user-circle-outline",
-    color: "primary",
-    title: "My Profile",
-    href: "/apps/user/profile",
-  },
-  {
-    icon: "notification-unread-lines-outline",
-    color: "secondary",
-    title: "My Notes",
-    href: "/apps/notes",
-  },
-  {
-    icon: "inbox-line-outline",
-    color: "success",
-    title: "Inbox",
-    href: "/apps/email",
-  },
+  // {
+  //   icon: "user-circle-outline",
+  //   color: "primary",
+  //   title: "My Profile",
+  //   href: "/apps/user/profile",
+  // },
+  // {
+  //   icon: "notification-unread-lines-outline",
+  //   color: "secondary",
+  //   title: "My Notes",
+  //   href: "/apps/notes",
+  // },
+  // {
+  //   icon: "inbox-line-outline",
+  //   color: "success",
+  //   title: "Inbox",
+  //   href: "/apps/email",
+  // },
   {
     icon: "settings-linear",
     color: "warning",

@@ -182,7 +182,7 @@ export default {
       </v-btn>
     </v-col>
   </v-row>
-  <v-data-table :search="search" :headers="headers" :items="cars">
+  <v-data-table :search="search" :headers="headers" :items="cars" class="border rounded-md">
     <template v-slot:item.CarID="{ item }">#{{ item.CarID }}</template>
     <template v-slot:item.CarNumber="{ item }">
       {{ item.CarTitle }} {{ item.CarNumber }}

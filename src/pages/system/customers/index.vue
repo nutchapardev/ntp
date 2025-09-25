@@ -5,7 +5,6 @@ import UiParentCard from "@/components/shared/UiParentCard.vue";
 import serverService from "@/services/serverService";
 import Swal from "sweetalert2";
 import { getNumberOfDigits, getRandomColor } from "@/utils/functions";
-import { getCars } from "@/services/apis/api_car";
 // import { sub } from "date-fns"
 
 export default {
@@ -17,6 +16,7 @@ export default {
   data() {
     return {
       getRandomColor,
+      search: "",
       page: { title: "Customers" },
       breadcrumbs: [
         {
@@ -60,16 +60,7 @@ export default {
         CustomerSurname: "",
         IDNumber: null,
         CustomerTel: null,
-        addresses: [
-          // {
-          //   AddressTypeID: 1,
-          //   DistrictID: 1001,
-          //   Line1: "11",
-          //   Line2: "22",
-          //   ProvinceID: 10,
-          //   SubDistrictID: 100101,
-          // },
-        ],
+        addresses: [],
       },
       defaultItem: {
         CustomerTitleID: 99,
@@ -189,6 +180,7 @@ export default {
               this.editedItem.addresses = this.editedItem.addresses.filter(
                 (item) => item.AddressID !== AddressID
               );
+              this.initialize();
             } else {
               Swal.fire({
                 title: "Error!",
@@ -220,10 +212,6 @@ export default {
       } catch (error) {
         console.error("Error fetching sub-districts:", error);
       }
-    },
-    initialize() {
-      this.getCustomers();
-      this.getSubDistricts();
     },
     editItem(item) {
       this.editedIndex = this.customers.indexOf(item);
@@ -351,6 +339,10 @@ export default {
       }
       // this.close()
     },
+    initialize() {
+      this.getCustomers();
+      this.getSubDistricts();
+    },
   },
 };
 </script>
@@ -363,182 +355,33 @@ export default {
   <v-row>
     <v-col cols="12">
       <UiParentCard Tableard title="ตารางข้อมูลลูกค้า">
+        <v-row>
+          <v-col cols="12" md="9">
+            <v-text-field
+              v-model="search"
+              label="ค้นหา"
+              prepend-inner-icon="mdi-magnify"
+            />
+          </v-col>
+          <v-col cols="12" md="3">
+            <v-btn
+              height="48"
+              block
+              color="secondary"
+              variant="flat"
+              dark
+              @click="dialog = true"
+              ><v-icon size="20">mdi-plus-circle-outline</v-icon>
+              <span class="hidden-sm-and-down">&nbsp;เพิ่มข้อมูลลูกค้า</span>
+            </v-btn>
+          </v-col>
+        </v-row>
         <v-data-table
           class="border rounded-md"
           :headers="headers"
           :items="customers"
           :sort-by="[{ key: 'CustomerID', order: 'desc' }]"
         >
-          <template v-slot:top>
-            <v-toolbar class="bg-lightsecondary" flat>
-              <v-toolbar-title>รายละเอียด</v-toolbar-title>
-              <v-spacer></v-spacer>
-              <v-dialog v-model="dialog" max-width="700px">
-                <template v-slot:activator="{ props }">
-                  <v-btn color="primary" variant="flat" dark v-bind="props"
-                    >เพิ่มข้อมูล</v-btn
-                  >
-                </template>
-                <v-card>
-                  <v-card-title class="pa-4 bg-secondary">
-                    <span class="text-h5">{{ formTitle }}</span>
-                  </v-card-title>
-
-                  <v-card-text>
-                    <v-container class="px-0">
-                      <v-row>
-                        <v-col cols="12" sm="6" md="4">
-                          <v-select
-                            :items="title_items"
-                            v-model="editedItem.CustomerTitleID"
-                            label="คำนำหน้าชื่อ"
-                            hide-details
-                          ></v-select>
-                        </v-col>
-                        <v-col cols="12" sm="6" md="4">
-                          <v-text-field
-                            v-model="editedItem.CustomerName"
-                            label="ชื่อจริง"
-                          ></v-text-field>
-                        </v-col>
-                        <v-col cols="12" sm="6" md="4">
-                          <v-text-field
-                            v-model="editedItem.CustomerSurname"
-                            label="นามสกุล"
-                          ></v-text-field>
-                        </v-col>
-                        <v-col cols="12" sm="6" md="4">
-                          <v-text-field
-                            v-model="editedItem.IDNumber"
-                            label="รหัสประจำตัวประชาชน"
-                          ></v-text-field>
-                        </v-col>
-                        <v-col cols="12" sm="6" md="4">
-                          <v-text-field
-                            v-model="editedItem.CustomerTel"
-                            label="เบอร์โทรศัพท์"
-                          ></v-text-field>
-                        </v-col>
-                      </v-row>
-                      <v-row>
-                        <v-col cols="12">
-                          <v-alert
-                            v-for="(item, index) in editedItem.addresses"
-                            :key="item.AddressID"
-                            variant="tonal"
-                            class="bg-light mb-3"
-                            closable
-                            height="70px"
-                          >
-                            <!-- <h5 class="text-h6 text-capitalize">error</h5> -->
-                            <div style="font-size: 1rem">
-                              {{ item.Line1 }} {{ item.Line2 }}
-                            </div>
-                            <div style="font-size: 0.875rem">
-                              {{
-                                subDistrictItems.find(
-                                  (sub) =>
-                                    sub.SubDistrictID === item.SubDistrictID
-                                )?.name_th || "ไม่พบข้อมูล"
-                              }}
-                              |
-                              {{
-                                subDistrictItems.find(
-                                  (sub) =>
-                                    sub.SubDistrictID === item.SubDistrictID
-                                )?.district.name_th || "ไม่พบข้อมูล"
-                              }}
-                              |
-                              {{
-                                subDistrictItems.find(
-                                  (sub) =>
-                                    sub.SubDistrictID === item.SubDistrictID
-                                )?.district.province.name_th || "ไม่พบข้อมูล"
-                              }},
-                              {{
-                                subDistrictItems.find(
-                                  (sub) =>
-                                    sub.SubDistrictID === item.SubDistrictID
-                                )?.Zipcode || "ไม่พบข้อมูล"
-                              }}
-                              <!-- {{
-                                subDistrictItems.find(
-                                  (sub) =>
-                                    sub.SubDistrictID ===
-                                    item.subDistrict.SubDistrictID
-                                )?.province.name_th || "ไม่พบข้อมูล"
-                              }} -->
-                              <!-- แขวง{{ item.subDistrict.name_th }} เขต{{
-                                item.district.name_th
-                              }}
-                              {{ item.province.name_th }},
-                              {{ item.subDistrict.Zipcode }} -->
-                            </div>
-                            <template v-slot:close>
-                              <v-btn
-                                icon
-                                @click="deleteAddress(item.AddressID, index)"
-                              >
-                                <v-icon>mdi-close</v-icon>
-                              </v-btn>
-                            </template>
-                          </v-alert>
-                        </v-col>
-                      </v-row>
-                    </v-container>
-                  </v-card-text>
-
-                  <v-card-actions>
-                    <v-btn
-                      color="primary"
-                      dark
-                      @click="dialogAddAddress = true"
-                    >
-                      <v-icon>mdi-plus</v-icon>เพิ่มที่อยู่
-                    </v-btn>
-                    <v-spacer></v-spacer>
-                    <v-btn color="error" variant="flat" dark @click="close">
-                      ยกเลิก
-                    </v-btn>
-                    <v-btn
-                      color="success"
-                      class="ml-3"
-                      variant="flat"
-                      dark
-                      @click="save"
-                    >
-                      บันทึก
-                    </v-btn>
-                  </v-card-actions>
-                </v-card>
-              </v-dialog>
-              <v-dialog v-model="dialogDelete" max-width="500px">
-                <v-card>
-                  <v-card-title class="text-h5 text-center py-6"
-                    >Are you sure you want to delete this item?</v-card-title
-                  >
-                  <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn
-                      color="error"
-                      variant="flat"
-                      dark
-                      @click="closeDelete"
-                      >Cancel</v-btn
-                    >
-                    <v-btn
-                      color="success"
-                      variant="flat"
-                      dark
-                      @click="deleteItemConfirm"
-                      >OK</v-btn
-                    >
-                    <v-spacer></v-spacer>
-                  </v-card-actions>
-                </v-card>
-              </v-dialog>
-            </v-toolbar>
-          </template>
           <template v-slot:item.CustomerName="{ item }">
             {{
               item.customerTitle.CustomerTitleID != 99
@@ -588,109 +431,204 @@ export default {
           </template>
         </v-data-table>
       </UiParentCard>
-      <!-- dialod delete address -->
-      <v-dialog v-model="dialogDeleteAddress" height="200px" width="400px">
-        <v-card>
-          <v-card-text class="d-flex justify-center align-center">
-            ท่านต้องการลบที่อยู่นี้ใช่หรือไม่?
-          </v-card-text>
-          <v-card-actions>
-            <div class="d-flex">
-              <v-btn color="secondary" @click="dialogDeleteAddress = false" flat
-                >ยกเลิก</v-btn
-              >
-              <v-spacer></v-spacer>
-              <v-btn
-                class="ml-3"
-                color="error"
-                variant="flat"
-                @click="dialogDeleteAddress = false"
-                flat
-                >ลบข้อมูล</v-btn
-              >
-            </div>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-      <!-- dialod delete address -->
-      <!-- dialod add address -->
-      <v-dialog v-model="dialogAddAddress" height="auto" width="600px">
-        <v-card>
-          <v-card-text class="d-flex justify-center align-center">
-            <!-- ท่านต้องการลบที่อยู่นี้ใช่หรือไม่? -->
-            <v-row class="mt-3"
-              ><v-col cols="12">
-                <v-text-field
-                  v-model.trim="addressForAdd.Line1"
-                  label="ที่อยู่บรรทัดที่ 1"
-                ></v-text-field>
-              </v-col>
-              <v-col cols="12">
-                <v-text-field
-                  v-model.trim="addressForAdd.Line2"
-                  label="ที่อยู่บรรทัดที่ 2"
-                ></v-text-field>
-              </v-col>
-              <v-col cols="12">
-                <v-autocomplete
-                  prepend-inner-icon="mdi-magnify"
-                  label="ค้นหา"
-                  v-model="addressForAdd.SubDistrictID"
-                  :items="subDistrictItems"
-                  item-title="name_th"
-                  item-value="SubDistrictID"
-                  color="primary"
-                  variant="outlined"
-                  hide-details
-                >
-                  <template v-slot:item="{ props, item }">
-                    <v-list-item
-                      v-bind="props"
-                      :title="`${item.raw.name_th} >> ${item.raw.district.name_th} >> ${item.raw.district.province.name_th}, ${item.raw.Zipcode}`"
-                    >
-                    </v-list-item>
-                  </template>
-                  <template v-slot:selection="{ item }">
-                    <span>
-                      {{ item.raw.name_th }} >>
-                      {{ item.raw.district.name_th }} >>
-                      {{ item.raw.district.province.name_th }},
-                      {{ item.raw.Zipcode }}
-                    </span>
-                  </template>
-                </v-autocomplete>
-              </v-col></v-row
-            >
-          </v-card-text>
-          <v-card-actions>
-            <div class="d-flex">
-              <v-btn color="secondary" @click="dialogAddAddress = false" flat
-                >ยกเลิก</v-btn
-              >
-              <v-spacer></v-spacer>
-              <v-btn
-                class="ml-3"
-                color="error"
-                variant="flat"
-                @click="addAddress"
-                flat
-                >บันทึกที่อยู่</v-btn
-              >
-            </div>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-      <!-- dialod delete address -->
     </v-col>
   </v-row>
-</template>
 
-<style scoped>
-.chip-activator {
-  position: relative;
-  min-height: 28px; /* ความสูงของ v-chip size="small" + padding เล็กน้อย */
-  min-width: 150px; /* ความกว้างขั้นต่ำเพื่อไม่ให้ UI กระโดด */
-  cursor: pointer;
-  display: inline-block;
-}
-</style>
+  <!-- dialog add customer -->
+  <v-dialog v-model="dialog" max-width="700px">
+    <v-card>
+      <v-card-title class="pa-4 bg-secondary">
+        <span class="text-h5">{{ formTitle }}</span>
+      </v-card-title>
+
+      <v-card-text>
+        <v-container class="px-0">
+          <v-row>
+            <v-col cols="12" sm="6" md="4">
+              <v-select
+                :items="title_items"
+                v-model="editedItem.CustomerTitleID"
+                label="คำนำหน้าชื่อ"
+                hide-details
+              ></v-select>
+            </v-col>
+            <v-col cols="12" sm="6" md="4">
+              <v-text-field
+                v-model="editedItem.CustomerName"
+                label="ชื่อจริง"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="6" md="4">
+              <v-text-field
+                v-model="editedItem.CustomerSurname"
+                label="นามสกุล"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="6" md="4">
+              <v-text-field
+                v-model="editedItem.IDNumber"
+                label="รหัสประจำตัวประชาชน"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="6" md="4">
+              <v-text-field
+                v-model="editedItem.CustomerTel"
+                label="เบอร์โทรศัพท์"
+              ></v-text-field>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col cols="12">
+              <v-alert
+                v-for="(item, index) in editedItem.addresses"
+                :key="item.AddressID"
+                variant="tonal"
+                class="bg-light mb-3"
+                closable
+                height="70px"
+              >
+                <!-- <h5 class="text-h6 text-capitalize">error</h5> -->
+                <div style="font-size: 1rem">
+                  {{ item.Line1 }} {{ item.Line2 }}
+                </div>
+                <div style="font-size: 0.875rem">
+                  {{
+                    subDistrictItems.find(
+                      (sub) => sub.SubDistrictID === item.SubDistrictID
+                    )?.name_th || "ไม่พบข้อมูล"
+                  }}
+                  |
+                  {{
+                    subDistrictItems.find(
+                      (sub) => sub.SubDistrictID === item.SubDistrictID
+                    )?.district.name_th || "ไม่พบข้อมูล"
+                  }}
+                  |
+                  {{
+                    subDistrictItems.find(
+                      (sub) => sub.SubDistrictID === item.SubDistrictID
+                    )?.district.province.name_th || "ไม่พบข้อมูล"
+                  }},
+                  {{
+                    subDistrictItems.find(
+                      (sub) => sub.SubDistrictID === item.SubDistrictID
+                    )?.Zipcode || "ไม่พบข้อมูล"
+                  }}
+                </div>
+                <template v-slot:close>
+                  <v-btn icon @click="deleteAddress(item.AddressID, index)">
+                    <v-icon>mdi-close</v-icon>
+                  </v-btn>
+                </template>
+              </v-alert>
+            </v-col>
+          </v-row>
+        </v-container>
+      </v-card-text>
+
+      <v-card-actions>
+        <v-btn color="primary" dark @click="dialogAddAddress = true">
+          <v-icon>mdi-plus</v-icon>เพิ่มที่อยู่
+        </v-btn>
+        <v-spacer></v-spacer>
+        <v-btn color="error" variant="flat" dark @click="close"> ยกเลิก </v-btn>
+        <v-btn color="success" class="ml-3" variant="flat" dark @click="save">
+          บันทึก
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+  <!-- dialog add customer -->
+  <!-- dialog delete address -->
+  <v-dialog v-model="dialogDeleteAddress" height="200px" width="400px">
+    <v-card>
+      <v-card-text class="d-flex justify-center align-center">
+        ท่านต้องการลบที่อยู่นี้ใช่หรือไม่?
+      </v-card-text>
+      <v-card-actions>
+        <div class="d-flex">
+          <v-btn color="secondary" @click="dialogDeleteAddress = false" flat
+            >ยกเลิก</v-btn
+          >
+          <v-spacer></v-spacer>
+          <v-btn
+            class="ml-3"
+            color="error"
+            variant="flat"
+            @click="dialogDeleteAddress = false"
+            flat
+            >ลบข้อมูล</v-btn
+          >
+        </div>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+  <!-- dialog delete address -->
+  <!-- dialog add address -->
+  <v-dialog v-model="dialogAddAddress" height="auto" width="600px">
+    <v-card>
+      <v-card-text class="d-flex justify-center align-center">
+        <!-- ท่านต้องการลบที่อยู่นี้ใช่หรือไม่? -->
+        <v-row class="mt-3"
+          ><v-col cols="12">
+            <v-text-field
+              v-model.trim="addressForAdd.Line1"
+              label="ที่อยู่บรรทัดที่ 1"
+            ></v-text-field>
+          </v-col>
+          <v-col cols="12">
+            <v-text-field
+              v-model.trim="addressForAdd.Line2"
+              label="ที่อยู่บรรทัดที่ 2"
+            ></v-text-field>
+          </v-col>
+          <v-col cols="12">
+            <v-autocomplete
+              prepend-inner-icon="mdi-magnify"
+              label="ค้นหา"
+              v-model="addressForAdd.SubDistrictID"
+              :items="subDistrictItems"
+              item-title="name_th"
+              item-value="SubDistrictID"
+              color="primary"
+              variant="outlined"
+              hide-details
+            >
+              <template v-slot:item="{ props, item }">
+                <v-list-item
+                  v-bind="props"
+                  :title="`${item.raw.name_th} >> ${item.raw.district.name_th} >> ${item.raw.district.province.name_th}, ${item.raw.Zipcode}`"
+                >
+                </v-list-item>
+              </template>
+              <template v-slot:selection="{ item }">
+                <span>
+                  {{ item.raw.name_th }} >> {{ item.raw.district.name_th }} >>
+                  {{ item.raw.district.province.name_th }},
+                  {{ item.raw.Zipcode }}
+                </span>
+              </template>
+            </v-autocomplete>
+          </v-col></v-row
+        >
+      </v-card-text>
+      <v-card-actions>
+        <div class="d-flex">
+          <v-btn color="secondary" @click="dialogAddAddress = false" flat
+            >ยกเลิก</v-btn
+          >
+          <v-spacer></v-spacer>
+          <v-btn
+            class="ml-3"
+            color="error"
+            variant="flat"
+            @click="addAddress"
+            flat
+            >บันทึกที่อยู่</v-btn
+          >
+        </div>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+  <!-- dialog delete address -->
+</template>

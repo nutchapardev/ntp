@@ -32,7 +32,8 @@ export default {
     </template>
 
     <v-sheet rounded="md" width="230" elevation="10">
-      <perfect-scrollbar style="height: calc(100vh - 240px); max-height: 240px">
+      <!-- <perfect-scrollbar style="height: calc(100vh - 240px); max-height: 240px"> -->
+        <!-- <perfect-scrollbar> -->
         <v-list class="py-0 theme-list mt-3" lines="two">
           <v-list-item
             v-for="item in SideProfile"
@@ -51,7 +52,7 @@ export default {
           </v-list-item>
           <!-- Sign Out -->
           <v-list-item
-            class="py-3 custom-text-primary"
+            class="py-3 custom-text-primary mb-3"
             @click="authStore.doLogout()"
           >
             <div class="d-flex ga-3 align-center">
@@ -65,8 +66,8 @@ export default {
           </v-list-item>
           <!-- Sign Out -->
         </v-list>
-      </perfect-scrollbar>
-      <v-divider class="mt-2 pb-5"></v-divider>
+      <!-- </perfect-scrollbar> -->
+      <!-- <v-divider class="mt-2 pb-5"></v-divider>
       <div class="pb-6 px-5 text-center">
         <v-btn
           color="primary"
@@ -76,7 +77,7 @@ export default {
           to="/pages/account-settings"
           >View Profile</v-btn
         >
-      </div>
+      </div> -->
     </v-sheet>
   </v-menu>
 </template>

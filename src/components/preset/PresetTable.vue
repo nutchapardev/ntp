@@ -24,6 +24,11 @@ export default {
         { title: "#ID", align: "start", key: "PresetID" },
         { title: "ชื่อพรีเซ็ต", align: "start", key: "Preset" },
         { title: "สถานะ", align: "center", key: "Status" },
+        {
+          title: "กลุ่มงานที่ใช้พรีเซ็ต",
+          align: "end",
+          key: "ref_model_category_parts",
+        },
         { title: "จำนวนอุปกรณ์", align: "end", key: "presetDetails" },
         { title: "", align: "end", key: "actions" },
       ],
@@ -51,6 +56,7 @@ export default {
       sumInActive: 0,
       //   data for show
       showPartData: null,
+      showRef: [],
       editPart: {
         PresetDetailID: null,
         PartName_th: "",
@@ -65,6 +71,7 @@ export default {
       dialogEditPart: false,
       dialogAddPreset: false,
       dialogAddPartToPreset: false,
+      dialogShowRef: false,
     };
   },
   methods: {
@@ -87,6 +94,7 @@ export default {
           available,
         };
       });
+      // console.log(this.presets);
     },
     async getParts() {
       const response = await serverService.getAllParts();
@@ -175,9 +183,6 @@ export default {
           try {
             const { Preset } = this.addPreset;
             const response = await serverService.addPreset({ Preset });
-
-            console.log(response.data);
-
             if (response.data.result) {
               Swal.fire({
                 icon: "success",
@@ -213,7 +218,7 @@ export default {
         }
       });
 
-      if (foundProblem != 0) {
+      if (foundProblem != 0 || this.addPartDataSet.length == 0) {
         Swal.fire({
           icon: "warning",
           title: "Alert!",
@@ -324,30 +329,46 @@ export default {
         cancelButtonText: "<span style='color:white;'>Cancel</span>",
       }).then(async (result) => {
         if (result.isConfirmed) {
-          try {
-            const response = await serverService.deletePresetByID(
-              item.PresetID
-            );
-            if (response.data.result) {
-              Swal.fire({
-                icon: "success",
-                title: "สำเร็จ",
-                text: "ลบข้อมูลสำเร็จ",
-                timer: 1500,
-                showConfirmButton: false,
-              });
-              // this.closeEditPartDialog();
-              // this.closePartDialog();
-              this.initialize();
+          Swal.fire({
+            title: "Are you sure?",
+            text: "พรีเซ็ตจะถูกนำออกจากกลุ่มงานที่ใช้อยู่ปัจจุบัน ท่านแน่ใจแล้ว ใช่หรือไม่?",
+            icon: "warning",
+            color: "red",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText:
+              "<span style='color:white;'>Yes, continue!</span>",
+            cancelButtonText: "<span style='color:white;'>Cancel</span>",
+          }).then(async (result) => {
+            if (result.isConfirmed) {
+              try {
+                const response = await serverService.deletePresetByID(
+                  item.PresetID
+                );
+
+                if (response.data.result) {
+                  Swal.fire({
+                    icon: "success",
+                    title: "สำเร็จ",
+                    text: "ลบข้อมูลสำเร็จ",
+                    timer: 1500,
+                    showConfirmButton: false,
+                  });
+                  // this.closeEditPartDialog();
+                  // this.closePartDialog();
+                  this.initialize();
+                }
+              } catch (error) {
+                console.error(error);
+                Swal.fire({
+                  icon: "error",
+                  title: "Error!",
+                  text: "ไม่สามารถลบข้อมูลได้ กรุณาลองใหม่อีกครั้ง",
+                });
+              }
             }
-          } catch (error) {
-            console.error(error);
-            Swal.fire({
-              icon: "error",
-              title: "Error!",
-              text: "ไม่สามารถลบข้อมูลได้ กรุณาลองใหม่อีกครั้ง",
-            });
-          }
+          });
         }
       });
     },
@@ -386,6 +407,14 @@ export default {
     async openAddPartToPresetDialog() {
       this.dialogAddPartToPreset = true;
       await this.getParts();
+    },
+    openShowRefDialog(item) {
+      this.dialogShowRef = true;
+      this.showRef = item.ref_model_category_parts;
+    },
+    closeShowRefDialog() {
+      this.dialogShowRef = false;
+      this.showRef = [];
     },
     closeAddPartToPresetDialog() {
       this.dialogAddPartToPreset = false;
@@ -521,6 +550,7 @@ export default {
   </v-row>
 
   <v-data-table
+    class="border rounded-md"
     :search="search"
     :headers="headers"
     :items="presets"
@@ -538,6 +568,27 @@ export default {
           class="d-flex justify-center align-center"
         >
           {{ item.available ? "พร้อมใช้งาน" : "ไม่พร้อมใช้งาน" }}
+        </v-chip>
+      </div>
+    </template>
+
+    <template v-slot:item.ref_model_category_parts="{ item }">
+      <div v-if="item.ref_model_category_parts" class="d-flex justify-end">
+        <!-- {{ item.presetDetails.length }} ชิ้นส่วน -->
+
+        <v-chip
+          color="light"
+          style="width: 100px"
+          size="small"
+          label
+          class="d-flex justify-center align-center"
+          link
+          @click="openShowRefDialog(item)"
+        >
+          {{ item.ref_model_category_parts.length }} กลุ่มงาน
+          <v-tooltip activator="parent" location="bottom"
+            >ดูรายละเอียด</v-tooltip
+          >
         </v-chip>
       </div>
     </template>
@@ -709,7 +760,7 @@ export default {
     <v-card class="pa-3">
       <v-card-text>
         <v-autocomplete
-        color="primary"
+          color="primary"
           :items="parts"
           v-model="addPartDataSet"
           item-value="PartID"
@@ -739,7 +790,9 @@ export default {
               <v-text-field
                 style="width: 50px"
                 v-model="addPartDataSet[index].NumOfUse"
+                label="จำนวน"
                 type="number"
+                hide-details=""
               />
             </div>
           </template>
@@ -758,6 +811,57 @@ export default {
     </v-card>
   </v-dialog>
   <!-- Dialog Add Part To Preset -->
+  <!-- Dialog Show Ref -->
+  <v-dialog
+    v-model="dialogShowRef"
+    class="dialog-mw"
+    style="max-width: 1200px"
+    persistent
+  >
+    <v-card class="pa-3">
+      <v-card-text>
+        <!-- <v-text-field label="ชื่อพรีเซ็ต" v-model="addPreset.Preset" /> -->
+        <!-- <v-list-item
+          v-for="(item, index) in showRef"
+          :key="index"
+          :title="`${index + 1}. ${item.repairCategory.RepairCategory}`"
+        >
+        </v-list-item> -->
+        <v-table class="border">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th class="text-start">ประเภทการซ่อม</th>
+              <th class="text-start">ยี่ห้อ / รุ่น</th>
+              <th class="text-center">ชื่อกลุ่มงาน</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-if="showRef.length == 0">
+              <td colspan="4" class="text-center">
+                ไม่พบกลุ่มงานที่ใช้พรีเซ็ตนี้
+              </td>
+            </tr>
+            <tr v-else v-for="(item, index) in showRef" :key="index">
+              <td>{{ index + 1 }}.</td>
+              <td>{{ item.partCategory.PartCategoryName }}</td>
+              <td width="20%">
+                {{ item.brand.Brand }} ({{ item.model.Model }})
+              </td>
+              <td>{{ item.repairCategory.RepairCategory }}</td>
+            </tr>
+          </tbody>
+        </v-table>
+      </v-card-text>
+
+      <v-card-actions>
+        <v-btn color="error" @click="closeShowRefDialog" block flat
+          >ปิดหน้าต่าง</v-btn
+        >
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+  <!-- Dialog Show Ref -->
 </template>
 
 <style>
