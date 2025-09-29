@@ -11,7 +11,7 @@ export default {
         { title: "#ID", align: "start", key: "CarID" },
         { title: "หมายเลขทะเบียน", align: "start", key: "CarNumber" },
         { title: "ยี่ห้อ / รุ่น", align: "start", key: "model" },
-        { title: "เจ้าของ", align: "start", key: "customer" },
+        { title: "เจ้าของ", align: "start", key: "customer.CustomerName" },
         { title: "", align: "end", key: "actions" },
       ],
       BrandID: 1,
@@ -20,7 +20,7 @@ export default {
       modelItems: [],
       provinceItems: [],
       customers: [],
-      addCar: {
+      carDataSet: {
         CustomerID: null,
         BrandID: null,
         ModelID: null,
@@ -42,6 +42,7 @@ export default {
       },
       // dialog
       dialogAddCar: false,
+      dialogEditCar: false,
     };
   },
   methods: {
@@ -83,7 +84,7 @@ export default {
     },
     async submitAddCar() {
       const exceptionKeys = ["VIN", "EC"]; // ยกเว้นการตรวจ มีหรือไม่มีก็ได้
-      const checkNullData = Object.entries(this.addCar).every(
+      const checkNullData = Object.entries(this.carDataSet).every(
         ([key, value]) => {
           return (
             exceptionKeys.includes(key) || (value !== null && value !== "")
@@ -114,7 +115,7 @@ export default {
       }).then(async (result) => {
         if (result.isConfirmed) {
           try {
-            const response = await serverService.addCar(this.addCar);
+            const response = await serverService.addCar(this.carDataSet);
             if (response.data.result) {
               Swal.fire({
                 icon: "success",
@@ -137,22 +138,103 @@ export default {
         }
       });
     },
-    async openAddCarDialog() {
-      await this.getBrands();
-      await this.getProvinces();
-      await this.getCustomers();
-      nextTick(() => {
-        this.dialogAddCar = true;
+    async submitEditCar() {
+      // console.log(this.carDataSet);
+      const exceptionKeys = ["VIN", "EC"]; // ยกเว้นการตรวจ มีหรือไม่มีก็ได้
+      const checkNullData = Object.entries(this.carDataSet).every(
+        ([key, value]) => {
+          return (
+            exceptionKeys.includes(key) || (value !== null && value !== "")
+          );
+        }
+      );
+      const { CarID } = this.carDataSet;
+
+      if (!checkNullData || !CarID) {
+        Swal.fire({
+          icon: "warning",
+          title: "Alert!",
+          text: "กรุณากรอกข้อมูลให้ครบถ้วน",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+        return;
+      }
+
+      Swal.fire({
+        title: "Are you sure?",
+        text: "ท่านต้องการแก้ไขข้อมูล ใช่หรือไม่?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "<span style='color:white;'>Yes, continue!</span>",
+        cancelButtonText: "<span style='color:white;'>Cancel</span>",
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            const response = await serverService.editCarByCarID(
+              CarID,
+              this.carDataSet
+            );
+            if (response.data.result) {
+              Swal.fire({
+                icon: "success",
+                title: "สำเร็จ",
+                text: "แก้ไขข้อมูลสำเร็จ",
+                timer: 1500,
+                showConfirmButton: false,
+              });
+              this.closeDialogEditCar();
+              this.initialize();
+            }
+          } catch (error) {
+            console.error(error);
+            Swal.fire({
+              icon: "error",
+              title: "Error!",
+              text: "ไม่สามารถแก้ไขข้อมูลได้ กรุณาลองใหม่อีกครั้ง",
+            });
+          }
+        }
       });
+    },
+    async openAddCarDialog() {
+      this.dialogAddCar = true;
     },
     closeAddCarDialog() {
       this.dialogAddCar = false;
       nextTick(() => {
-        this.addCar = Object.assign({}, this.defaultItem);
+        this.carDataSet = Object.assign({}, this.defaultItem);
+      });
+    },
+    async openDialogEditCar(item) {
+      this.dialogEditCar = true;
+      await this.getCarModel(item.BrandID);
+      this.carDataSet = {
+        CarID: item.CarID,
+        CustomerID: item.CustomerID,
+        BrandID: item.BrandID,
+        ModelID: item.ModelID,
+        CarTitle: item.CarTitle,
+        CarNumber: item.CarNumber,
+        ProvinceID: item.ProvinceID,
+        VIN: item.VIN,
+        EC: item.EC,
+        isRepaired: item.repairs.length,
+      };
+    },
+    closeDialogEditCar() {
+      this.dialogEditCar = false;
+      nextTick(() => {
+        this.carDataSet = Object.assign({}, this.defaultItem);
       });
     },
     async initialize() {
       await this.getCars();
+      await this.getBrands();
+      await this.getProvinces();
+      await this.getCustomers();
     },
   },
   created() {
@@ -182,7 +264,12 @@ export default {
       </v-btn>
     </v-col>
   </v-row>
-  <v-data-table :search="search" :headers="headers" :items="cars" class="border rounded-md">
+  <v-data-table
+    :search="search"
+    :headers="headers"
+    :items="cars"
+    class="border rounded-md"
+  >
     <template v-slot:item.CarID="{ item }">#{{ item.CarID }}</template>
     <template v-slot:item.CarNumber="{ item }">
       {{ item.CarTitle }} {{ item.CarNumber }}
@@ -191,7 +278,7 @@ export default {
     <template v-slot:item.model="{ item }">
       {{ item.brand.Brand }} ({{ item.model.Model }})
     </template>
-    <template v-slot:item.customer="{ item }">{{
+    <template v-slot:item.customer.CustomerName="{ item }">{{
       item.customer != null
         ? `${
             item.customer.customerTitle.CustomerTitleID != 99
@@ -200,7 +287,14 @@ export default {
           } ${item.customer.CustomerName} ${item.customer.CustomerSurname}`
         : "ไม่ระบุเจ้าของ"
     }}</template>
-    <template v-slot:item.actions="{item}">actions</template>
+    <template v-slot:item.actions="{ item }">
+      <div>
+        <v-btn size="small" @click="openDialogEditCar(item)">
+          <EditIcon class="text-success" size="18" />
+        </v-btn>
+        <v-tooltip activator="parent" location="top">แก้ไข</v-tooltip>
+      </div>
+    </template>
   </v-data-table>
   <!-- dialog Add Car -->
   <v-dialog
@@ -220,7 +314,7 @@ export default {
               :items="brandItems"
               item-value="BrandID"
               item-title="Brand"
-              v-model="addCar.BrandID"
+              v-model="carDataSet.BrandID"
               label="Brand"
               hide-details
               @update:modelValue="getCarModel"
@@ -231,28 +325,28 @@ export default {
               :items="modelItems"
               item-value="ModelID"
               item-title="Model"
-              v-model="addCar.ModelID"
+              v-model="carDataSet.ModelID"
               label="Model"
               hide-details
             ></v-select>
           </v-col>
           <v-col cols="12" sm="6" md="4">
             <v-text-field
-              v-model.trim="addCar.CarTitle"
+              v-model.trim="carDataSet.CarTitle"
               label="หมวดอักษรรถยนต์"
               hide-details
             ></v-text-field>
           </v-col>
           <v-col cols="12" sm="6" md="4">
             <v-text-field
-              v-model.trim="addCar.CarNumber"
+              v-model.trim="carDataSet.CarNumber"
               label="หมายเลขทะเบียน"
               hide-details
             ></v-text-field>
           </v-col>
           <v-col cols="12" sm="6" md="4">
             <v-autocomplete
-              v-model="addCar.ProvinceID"
+              v-model="carDataSet.ProvinceID"
               :items="provinceItems"
               item-value="ProvinceID"
               item-title="name_th"
@@ -266,21 +360,21 @@ export default {
           </v-col>
           <v-col cols="12" sm="6" md="4">
             <v-text-field
-              v-model.trim="addCar.VIN"
+              v-model.trim="carDataSet.VIN"
               label="หมายเลขตัวถัง"
               hide-details
             ></v-text-field>
           </v-col>
           <v-col cols="12" sm="6" md="4">
             <v-text-field
-              v-model.trim="addCar.EC"
+              v-model.trim="carDataSet.EC"
               label="หมายเลขเครื่องยนต์"
               hide-details
             ></v-text-field>
           </v-col>
           <v-col cols="12" sx="6" md="4">
             <v-autocomplete
-              v-model="addCar.CustomerID"
+              v-model="carDataSet.CustomerID"
               :items="customers"
               item-value="CustomerID"
               prepend-inner-icon="mdi-magnify"
@@ -317,4 +411,121 @@ export default {
     </v-card>
   </v-dialog>
   <!-- dialog Add Car -->
+  <!-- dialog Edit Car -->
+  <v-dialog
+    v-model="dialogEditCar"
+    class="dialog-mw"
+    style="max-width: 900px"
+    persistent
+  >
+    <v-card>
+      <v-card-title class="pa-4 bg-secondary">
+        <span class="text-h5">เพิ่มข้อมูลรถยนต์</span>
+      </v-card-title>
+      <v-card-text>
+        <v-row>
+          <v-col cols="12" sm="6" md="6">
+            <v-select
+              :items="brandItems"
+              item-value="BrandID"
+              item-title="Brand"
+              v-model="carDataSet.BrandID"
+              label="Brand"
+              @update:modelValue="getCarModel"
+              :disabled="carDataSet.isRepaired > 0"
+              hide-details
+            ></v-select>
+          </v-col>
+          <v-col cols="12" sm="6" md="6">
+            <v-select
+              :items="modelItems"
+              item-value="ModelID"
+              item-title="Model"
+              v-model="carDataSet.ModelID"
+              label="Model"
+              :disabled="carDataSet.isRepaired > 0"
+              hide-details
+            ></v-select>
+          </v-col>
+          <v-col cols="12" sm="6" md="4">
+            <v-text-field
+              v-model.trim="carDataSet.CarTitle"
+              label="หมวดอักษรรถยนต์"
+              hide-details
+            ></v-text-field>
+          </v-col>
+          <v-col cols="12" sm="6" md="4">
+            <v-text-field
+              v-model.trim="carDataSet.CarNumber"
+              label="หมายเลขทะเบียน"
+              hide-details
+            ></v-text-field>
+          </v-col>
+          <v-col cols="12" sm="6" md="4">
+            <v-autocomplete
+              v-model="carDataSet.ProvinceID"
+              :items="provinceItems"
+              item-value="ProvinceID"
+              item-title="name_th"
+              prepend-inner-icon="mdi-magnify"
+              label="จังหวัด"
+              hide-details
+              color="primary"
+              variant="outlined"
+              autocomplete="false"
+            />
+          </v-col>
+          <v-col cols="12" sm="6" md="4">
+            <v-text-field
+              v-model.trim="carDataSet.VIN"
+              label="หมายเลขตัวถัง"
+              hide-details
+            ></v-text-field>
+          </v-col>
+          <v-col cols="12" sm="6" md="4">
+            <v-text-field
+              v-model.trim="carDataSet.EC"
+              label="หมายเลขเครื่องยนต์"
+              hide-details
+            ></v-text-field>
+          </v-col>
+          <v-col cols="12" sx="6" md="4">
+            <v-autocomplete
+              v-model="carDataSet.CustomerID"
+              :items="customers"
+              item-value="CustomerID"
+              prepend-inner-icon="mdi-magnify"
+              label="เจ้าของ"
+              hide-details
+              color="primary"
+              variant="outlined"
+              autocomplete="false"
+            >
+              <template v-slot:item="{ props, item }">
+                <v-list-item
+                  v-bind="props"
+                  :title="`${item.raw.CustomerName} ${item.raw.CustomerSurname}`"
+                >
+                </v-list-item>
+              </template>
+              <template v-slot:selection="{ item }">
+                {{ item.raw.CustomerName }} {{ item.raw.CustomerSurname }}
+              </template>
+            </v-autocomplete>
+          </v-col>
+        </v-row>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="info" block flat @click="submitEditCar"
+          >บันทึกข้อมูล</v-btn
+        >
+      </v-card-actions>
+      <v-card-actions>
+        <v-btn color="error" block flat @click="closeDialogEditCar"
+          >ปิดหน้าต่าง</v-btn
+        >
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+  <!-- dialog Edit Car -->
 </template>

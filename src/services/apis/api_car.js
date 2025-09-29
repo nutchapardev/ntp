@@ -17,3 +17,7 @@ export const getCarByCarID = (id) => {
 export const createCarWithCustomer = (data) => {
   return httpClient.post(`${server.CAR_URL}/with-customer`, data);
 };
+
+export const editCarByCarID = (id, data) => {
+  return httpClient.put(`${server.CAR_URL}/${id}`, data);
+};

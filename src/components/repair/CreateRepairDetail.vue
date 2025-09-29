@@ -8,6 +8,7 @@ import {
   toThaiDateTimeString,
   formatCurrency,
 } from "@/utils/functions";
+import ImageUploader from "../cars/ImageUploader.vue";
 
 export default {
   name: "CreateRepair",
@@ -15,6 +16,7 @@ export default {
   components: {
     CirclePlusIcon,
     TrashIcon,
+    ImageUploader,
   },
 
   // 2. data() จะ return state ทั้งหมดของคอมโพเนนต์
@@ -297,6 +299,11 @@ export default {
         </v-col>
       </v-row>
     </v-card-item>
+    <v-row>
+      <v-col>
+        <ImageUploader :repairId="repairID" />
+      </v-col>
+    </v-row>
   </v-card>
 
   <v-row class="mt-2">

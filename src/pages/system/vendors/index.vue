@@ -11,7 +11,7 @@ export default {
   },
   data() {
     return {
-      page: { title: "ข้อมูลคู่ค้า" },
+      page: { title: "Vendors" },
       breadcrumbs: [
         {
           text: "Customers and Vendors",
@@ -19,7 +19,7 @@ export default {
           href: "#",
         },
         {
-          text: "ข้อมูลคู่ค้า",
+          text: "Vendors",
           disabled: false,
           href: "#",
         },

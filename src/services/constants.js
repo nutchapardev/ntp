@@ -28,6 +28,7 @@ export const server = {
   CAR_MODEL_URL: `carmodel`,
   CAR_URL: `cars`,
   PROVINCE_URL: `province`,
+  DISTRICT_URL: `district`,
   CUSTOMER_TITLE_URL: `customertitle`,
   PART_URL: `parts`,
   PART_CATEGORY_URL: `partcategory`,
@@ -39,8 +40,9 @@ export const server = {
   EMPLOYEE_STATUS_URL: `employeestatus`,
   POSITION_URL: `position`,
   ROLE_URL: `role`,
-  VENDOR_URL:`vendors`,
-  VENDOR_TYPE_URL:`vendortype`,
+  VENDOR_URL: `vendors`,
+  VENDOR_TYPE_URL: `vendortype`,
+  IMAGE_CAR_TYPE_URL: `imagecartype`,
 };
 
 export const message = {

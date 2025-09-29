@@ -1,18 +1,19 @@
 <script>
-import { nextTick } from "vue";
 import serverService from "@/services/serverService";
 import Swal from "sweetalert2";
+import { nextTick } from "vue";
+import { getNumberOfDigits, getRandomColor } from "@/utils/functions";
 
 export default {
   data() {
     return {
+      //
+      getRandomColor,
       search: "",
-      vendors: [],
-      vendorTypes: [],
       headers: [
         {
           title: "#ID",
-          key: "VendorID",
+          key: "CustomerID",
           align: "start",
           sortable: true,
         },
@@ -20,27 +21,30 @@ export default {
           title: "ชื่อ - นามสกุล",
           align: "start",
           sortable: false,
-          key: "VendorName",
+          key: "CustomerName",
         },
-        { title: "เลขประจำตัวผู้เสียภาษี", key: "IDNumber" },
-        { title: "เบอร์โทรศัพท์", key: "VendorTel" },
-        { title: "ประเภทคู่ค้า", key: "vendorType.VendorType" },
-        { title: "Actions", key: "actions", sortable: false },
+        { title: "รหัสประจำตัวประชาชน", key: "IDNumber" },
+        { title: "เบอร์โทรศัพท์", key: "CustomerTel" },
+        { title: "รถยนต์", key: "cars" },
+        { title: "", key: "actions", sortable: false },
       ],
-      //   default data
+      customers: [],
+      customerTitles: [],
       provinces: [],
       districts: [],
       subDistricts: [],
       //   dialog
-      dialogAddVendor: false,
-      dialogEditVendor: false,
+      dialogAddCustomer: false,
+      dialogEditCustomer: false,
       dialogAddAddress: false,
-      //   dataset
-      vendorDataSet: {
-        VendorName: "",
-        VendorTypeID: "",
+      //   data set
+      customerDataSet: {
+        CustomerTitleID: null,
+        CustomerName: "",
+        CustomerSurname: "",
         IDNumber: "",
-        VendorTel: "",
+        CustomerTel: "",
+        addresses: [], // for Edit
         address: {
           // for Create
           Line1: "",
@@ -50,13 +54,14 @@ export default {
           ProvinceID: null,
           Zipcode: null,
         },
-        addresses: [], // for Edit
       },
       defaultItems: {
-        VendorName: "",
-        VendorTypeID: "",
+        CustomerTitleID: null,
+        CustomerName: "",
+        CustomerSurname: "",
         IDNumber: "",
-        VendorTel: "",
+        CustomerTel: "",
+        addresses: [], // for Edit
         address: {
           // for Create
           Line1: "",
@@ -66,18 +71,17 @@ export default {
           ProvinceID: null,
           Zipcode: null,
         },
-        addresses: [], // for Edit
       },
     };
   },
   methods: {
-    async getVendors() {
-      const response = await serverService.getAllVendors();
-      this.vendors = response.data;
+    async getCustomers() {
+      const response = await serverService.getAllCustomers();
+      this.customers = response.data;
     },
-    async getVendorTypes() {
-      const response = await serverService.getAllVendorType();
-      this.vendorTypes = response.data;
+    async getCustomerTitle() {
+      const response = await serverService.getCustomerTitle();
+      this.customerTitles = response.data;
     },
     async getProvinces() {
       const response = await serverService.getProvinces();
@@ -86,33 +90,30 @@ export default {
     async getDistrict(ProvinceID) {
       const response = await serverService.getDistrictByProvinceID(ProvinceID);
       this.districts = response.data;
-      this.vendorDataSet.address.DistrictID = null;
-      this.vendorDataSet.address.SubDistrictID = null;
-      this.vendorDataSet.address.Zipcode = null;
+      this.customerDataSet.address.DistrictID = null;
+      this.customerDataSet.address.SubDistrictID = null;
+      this.customerDataSet.address.Zipcode = null;
     },
     async getSubDistrict(DistrictID) {
       const response = await serverService.getSubDistrictsByDistrictID(
         DistrictID
       );
       this.subDistricts = response.data;
-      this.vendorDataSet.address.SubDistrictID = null;
-      this.vendorDataSet.address.Zipcode = null;
+      this.customerDataSet.address.SubDistrictID = null;
+      this.customerDataSet.address.Zipcode = null;
     },
     async setZipcode(SubDistrictID) {
       const data = this.subDistricts.find(
         (item) => item.SubDistrictID == SubDistrictID
       );
-      this.vendorDataSet.address.Zipcode = data.Zipcode;
+      this.customerDataSet.address.Zipcode = data.Zipcode;
     },
-    async submitAddVendor() {
-      // console.log(this.vendorDataSet);
-      const { VendorName, VendorTypeID, address } = this.vendorDataSet;
+    async submitAddCustomer() {
+      const { CustomerTitleID, CustomerName, address } = this.customerDataSet;
       const { Line1, SubDistrictID, DistrictID, ProvinceID } = address;
       if (
-        VendorName == null ||
-        VendorName == "" ||
-        VendorTypeID == null ||
-        VendorTypeID == "" ||
+        CustomerTitleID == null ||
+        CustomerName == "" ||
         Line1 == "" ||
         SubDistrictID == null ||
         DistrictID == null ||
@@ -140,7 +141,9 @@ export default {
       }).then(async (result) => {
         if (result.isConfirmed) {
           try {
-            const response = await serverService.addVendor(this.vendorDataSet);
+            const response = await serverService.addCustomersAndAddresses(
+              this.customerDataSet
+            );
             if (response.data.result) {
               Swal.fire({
                 icon: "success",
@@ -149,7 +152,7 @@ export default {
                 timer: 1500,
                 showConfirmButton: false,
               });
-              this.closeDialogAddVendor();
+              this.closeDialogAddCustomer();
               this.initialize();
             }
           } catch (error) {
@@ -163,15 +166,10 @@ export default {
         }
       });
     },
-    async submitEditVendor() {
-      // console.log(this.vendorDataSet);
-      const { VendorID, VendorName, VendorTypeID } = this.vendorDataSet;
-      if (
-        VendorName == null ||
-        VendorName == "" ||
-        VendorTypeID == null ||
-        VendorTypeID == ""
-      ) {
+    async submitEditCustomer() {
+    //   console.log(this.customerDataSet);
+      const { CustomerID, CustomerName } = this.customerDataSet;
+      if (CustomerName == null || CustomerName == "") {
         Swal.fire({
           icon: "warning",
           title: "Alert!",
@@ -194,9 +192,9 @@ export default {
       }).then(async (result) => {
         if (result.isConfirmed) {
           try {
-            const response = await serverService.updateVendor(
-              VendorID,
-              this.vendorDataSet
+            const response = await serverService.editCustomerByID(
+              CustomerID,
+              this.customerDataSet
             );
             if (response.data.result) {
               Swal.fire({
@@ -206,7 +204,7 @@ export default {
                 timer: 1500,
                 showConfirmButton: false,
               });
-              this.closeDialogEditVendor();
+              this.closeDialogEditCustomer();
               this.initialize();
             }
           } catch (error) {
@@ -221,10 +219,10 @@ export default {
       });
     },
     async submitAddAddress() {
-      const { VendorID, address } = this.vendorDataSet;
+      const { CustomerID, address } = this.customerDataSet;
       const { Line1, ProvinceID, DistrictID, SubDistrictID } = address;
       if (
-        !VendorID ||
+        !CustomerID ||
         Line1 == "" ||
         Line1 == null ||
         ProvinceID == null ||
@@ -254,8 +252,8 @@ export default {
         if (result.isConfirmed) {
           try {
             const payload = {
-              OwnerID: VendorID,
-              AddressTypeID: 2,
+              OwnerID: CustomerID,
+              AddressTypeID: 1,
               ...address,
             };
             const response = await serverService.addAddress(payload);
@@ -268,7 +266,7 @@ export default {
                 showConfirmButton: false,
               });
               this.closeDialogAddAddress();
-              this.closeDialogEditVendor();
+              this.closeDialogEditCustomer();
               this.initialize();
             }
           } catch (error) {
@@ -299,11 +297,11 @@ export default {
               addressId
             );
             if (response.data.result) {
-              const indexToDelete = this.vendorDataSet.addresses.findIndex(
+              const indexToDelete = this.customerDataSet.addresses.findIndex(
                 (address) => address.AddressID === addressId
               );
               if (indexToDelete > -1) {
-                this.vendorDataSet.addresses.splice(indexToDelete, 1);
+                this.customerDataSet.addresses.splice(indexToDelete, 1);
               }
               Swal.fire({
                 icon: "success",
@@ -326,28 +324,33 @@ export default {
         }
       });
     },
-    openDialogAddVendor() {
-      this.dialogAddVendor = true;
+    openDialogAddCustomer() {
+      this.dialogAddCustomer = true;
     },
-    closeDialogAddVendor() {
-      this.dialogAddVendor = false;
+    closeDialogAddCustomer() {
+      this.dialogAddCustomer = false;
       nextTick(() => {
-        this.vendorDataSet = Object.assign({}, this.defaultItems);
-        this.districts = [];
-        this.subDistricts = [];
+        this.customerDataSet = Object.assign({}, this.defaultItems);
       });
     },
-    openDialogEditVendor(item) {
-      this.dialogEditVendor = true;
-      this.vendorDataSet = {
-        VendorID: item.VendorID,
-        VendorName: item.VendorName,
-        VendorTypeID: item.VendorTypeID,
+    openDialogEditCustomer(item) {
+      this.dialogEditCustomer = true;
+      this.customerDataSet = {
+        CustomerID: item.CustomerID,
+        CustomerTitleID: item.CustomerTitleID,
+        CustomerName: item.CustomerName,
+        CustomerSurname: item.CustomerSurname,
         IDNumber: item.IDNumber,
-        VendorTel: item.VendorTel,
+        CustomerTel: item.CustomerTel,
         addresses: item.addresses,
         address: this.defaultItems.address,
       };
+    },
+    closeDialogEditCustomer() {
+      this.dialogEditCustomer = false;
+      nextTick(() => {
+        this.customerDataSet = Object.assign({}, this.defaultItems);
+      });
     },
     openDialogAddAddress() {
       this.dialogAddAddress = true;
@@ -355,18 +358,15 @@ export default {
     closeDialogAddAddress() {
       this.dialogAddAddress = false;
       nextTick(() => {
-        this.vendorDataSet.address = Object.assign({}, this.defaultItems.address);
-      });
-    },
-    closeDialogEditVendor() {
-      this.dialogEditVendor = false;
-      nextTick(() => {
-        this.vendorDataSet = Object.assign({}, this.defaultItems);
+        this.customerDataSet.address = Object.assign(
+          {},
+          this.defaultItems.address
+        );
       });
     },
     async initialize() {
-      await this.getVendors();
-      await this.getVendorTypes();
+      await this.getCustomers();
+      await this.getCustomerTitle();
       await this.getProvinces();
     },
   },
@@ -391,63 +391,112 @@ export default {
         color="secondary"
         variant="flat"
         dark
-        @click="openDialogAddVendor"
+        @click="openDialogAddCustomer"
         ><v-icon size="20">mdi-plus-circle-outline</v-icon>
-        <span class="hidden-sm-and-down">&nbsp;เพิ่มข้อมูลคู่ค้า</span>
+        <span class="hidden-sm-and-down">&nbsp;เพิ่มข้อมูลลูกค้า</span>
       </v-btn>
     </v-col>
   </v-row>
-  <v-data-table :items="vendors" :search="search" :headers="headers">
+  <v-data-table
+    class="border rounded-md"
+    :headers="headers"
+    :items="customers"
+    :sort-by="[{ key: 'CustomerID', order: 'desc' }]"
+  >
+    <template v-slot:item.CustomerName="{ item }">
+      {{
+        item.customerTitle.CustomerTitleID != 99
+          ? item.customerTitle.CustomerTitle
+          : ""
+      }}
+      {{ item.CustomerName }}
+      {{ item.CustomerSurname }}
+    </template>
+    <template v-slot:item.cars="{ item }">
+      <!-- {{ item.cars.length }} คัน -->
+      <v-chip
+        v-for="(car, index) in item.cars"
+        :key="index"
+        rounded="pill"
+        class="font-weight-bold"
+        :color="getRandomColor()"
+        size="small"
+        label
+      >
+        {{ car.CarTitle }}
+        {{ car.CarNumber }}
+        <v-tooltip activator="parent" location="top">
+          {{ car.CarTitle }}{{ car.CarNumber }}<br />
+          {{ car.province.name_th }}<br />
+          {{ car.brand.Brand }} ({{ car.model.Model }})<br />
+          หมายเลขตัวถัง : {{ car.VIN }}<br />
+          หมายเลขเครื่องยนต์ : {{ car.EC }}<br />
+        </v-tooltip>
+      </v-chip>
+    </template>
     <template v-slot:item.actions="{ item }">
-      <div class="mr-1">
-        <v-btn size="small" @click="openDialogEditVendor(item)">
-          <EditIcon class="text-success" size="18" />
-        </v-btn>
-        <v-tooltip activator="parent" location="top">แก้ไข</v-tooltip>
+      <div class="d-flex">
+        <div>
+          <v-btn size="small" @click="openDialogEditCustomer(item)">
+            <EditIcon class="text-success" size="18" />
+          </v-btn>
+          <v-tooltip activator="parent" location="top">แก้ไข</v-tooltip>
+        </div>
       </div>
     </template>
+    <template v-slot:no-data>
+      <v-btn color="primary" @click="initialize"> Reset </v-btn>
+    </template>
   </v-data-table>
-  <!-- Dialog Add Vendor -->
+  <!-- Dialog Add Customer -->
   <v-dialog
-    v-model="dialogAddVendor"
+    v-model="dialogAddCustomer"
     class="dialog-mw"
     style="max-width: 800px"
     persistent
   >
     <v-card>
       <v-card-title class="pa-4 bg-secondary">
-        <span class="text-h5">เพิ่มข้อมูลคู่ค้า</span>
+        <span class="text-h5">เพิ่มข้อมูลลูกค้า</span>
       </v-card-title>
       <v-card-text>
         <v-row>
-          <v-col cols="12" md="8">
+          <v-col cols="12" md="4">
+            <v-select
+              :items="customerTitles"
+              v-model="customerDataSet.CustomerTitleID"
+              item-value="CustomerTitleID"
+              item-title="CustomerTitle"
+              label="คำนำหน้า"
+              hide-details
+            ></v-select>
+          </v-col>
+          <v-col cols="12" md="4">
             <v-text-field
-              label="ชื่อคู่ค้า"
-              v-model="vendorDataSet.VendorName"
+              label="ชื่อจริง"
+              v-model="customerDataSet.CustomerName"
               hide-details
             ></v-text-field>
           </v-col>
           <v-col cols="12" md="4">
-            <v-select
-              :items="vendorTypes"
-              v-model="vendorDataSet.VendorTypeID"
-              item-value="VendorTypeID"
-              item-title="VendorType"
-              label="ประเภทคู่ค้า"
+            <v-text-field
+              label="นามสกุล"
+              v-model="customerDataSet.CustomerSurname"
               hide-details
-            ></v-select>
+            ></v-text-field>
           </v-col>
+
           <v-col cols="12" md="6">
             <v-text-field
-              label="เลขประจำตัวผู้เสียภาษี"
-              v-model="vendorDataSet.IDNumber"
+              label="รหัสประจำตัวประชาชน"
+              v-model="customerDataSet.IDNumber"
               hide-details
             ></v-text-field>
           </v-col>
           <v-col cols="12" md="6">
             <v-text-field
               label="เบอร์โทรศัพท์"
-              v-model="vendorDataSet.VendorTel"
+              v-model="customerDataSet.CustomerTel"
               hide-details
             ></v-text-field>
           </v-col>
@@ -456,21 +505,21 @@ export default {
           <v-col cols="12" md="6">
             <v-text-field
               label="ที่อยู่บรรทัดที่ 1"
-              v-model="vendorDataSet.address.Line1"
+              v-model="customerDataSet.address.Line1"
               hide-details
             ></v-text-field>
           </v-col>
           <v-col cols="12" md="6">
             <v-text-field
               label="ที่อยู่บรรทัดที่ 2"
-              v-model="vendorDataSet.address.Line2"
+              v-model="customerDataSet.address.Line2"
               hide-details
             ></v-text-field>
           </v-col>
           <v-col cols="12" md="3">
             <v-select
               :items="provinces"
-              v-model="vendorDataSet.address.ProvinceID"
+              v-model="customerDataSet.address.ProvinceID"
               item-value="ProvinceID"
               item-title="name_th"
               label="จังหวัด"
@@ -481,7 +530,7 @@ export default {
           <v-col cols="12" md="3">
             <v-select
               :items="districts"
-              v-model="vendorDataSet.address.DistrictID"
+              v-model="customerDataSet.address.DistrictID"
               item-value="DistrictID"
               item-title="name_th"
               label="เขต / ตำบล"
@@ -492,7 +541,7 @@ export default {
           <v-col cols="12" md="3">
             <v-select
               :items="subDistricts"
-              v-model="vendorDataSet.address.SubDistrictID"
+              v-model="customerDataSet.address.SubDistrictID"
               item-value="SubDistrictID"
               item-title="name_th"
               label="แขวง / อำเภอ"
@@ -502,7 +551,7 @@ export default {
           </v-col>
           <v-col cols="12" md="3">
             <v-text-field
-              v-model="vendorDataSet.address.Zipcode"
+              v-model="customerDataSet.address.Zipcode"
               label="รหัสไปรษณีย์"
               readonly
               hide-details
@@ -511,62 +560,70 @@ export default {
         </v-row>
       </v-card-text>
       <v-card-actions>
-        <v-btn color="info" block flat @click="submitAddVendor"
+        <v-btn color="info" block flat @click="submitAddCustomer"
           >บันทึกข้อมูล</v-btn
         >
       </v-card-actions>
 
       <v-card-actions>
         <v-col class="align-center"
-          ><v-btn color="error" @click="closeDialogAddVendor" flat block
+          ><v-btn color="error" @click="closeDialogAddCustomer" flat block
             >ปิดหน้าต่าง</v-btn
           ></v-col
         >
       </v-card-actions>
     </v-card>
   </v-dialog>
-  <!-- Dialog Add Vendor -->
-  <!-- Dialog Edit Vendor -->
+  <!-- Dialog Add Customer -->
+  <!-- Dialog Edit Customer -->
   <v-dialog
-    v-model="dialogEditVendor"
+    v-model="dialogEditCustomer"
     class="dialog-mw"
     style="max-width: 800px"
     persistent
   >
     <v-card>
       <v-card-title class="pa-4 bg-secondary">
-        <span class="text-h5">แก้ไขข้อมูลคู่ค้า</span>
+        <span class="text-h5">แก้ไขข้อมูลลูกค้า</span>
       </v-card-title>
       <v-card-text>
         <v-row>
-          <v-col cols="12" md="8">
-            <v-text-field
-              label="ชื่อคู่ค้า"
-              v-model="vendorDataSet.VendorName"
-              hide-details
-            ></v-text-field>
-          </v-col>
           <v-col cols="12" md="4">
             <v-select
-              :items="vendorTypes"
-              v-model="vendorDataSet.VendorTypeID"
-              item-value="VendorTypeID"
-              item-title="VendorType"
+              :items="customerTitles"
+              v-model="customerDataSet.CustomerTitleID"
+              item-value="CustomerTitleID"
+              item-title="CustomerTitle"
               label="ประเภทคู่ค้า"
               hide-details
             ></v-select>
           </v-col>
+          <v-col cols="12" md="4">
+            <v-text-field
+              label="ชื่อจริง"
+              v-model="customerDataSet.CustomerName"
+              hide-details
+            ></v-text-field>
+          </v-col>
+          <v-col cols="12" md="4">
+            <v-text-field
+              label="ชื่อคู่ค้า"
+              v-model="customerDataSet.CustomerSurname"
+              hide-details
+            ></v-text-field>
+          </v-col>
+
           <v-col cols="12" md="6">
             <v-text-field
-              label="เลขประจำตัวผู้เสียภาษี"
-              v-model="vendorDataSet.IDNumber"
+              label="รหัสประจำตัวประชาชน"
+              v-model="customerDataSet.IDNumber"
               hide-details
             ></v-text-field>
           </v-col>
           <v-col cols="12" md="6">
             <v-text-field
               label="เบอร์โทรศัพท์"
-              v-model="vendorDataSet.VendorTel"
+              v-model="customerDataSet.CustomerTel"
               hide-details
             ></v-text-field>
           </v-col>
@@ -587,7 +644,7 @@ export default {
           <v-col
             cols="12"
             md="6"
-            v-for="(address, index) in vendorDataSet.addresses"
+            v-for="(address, index) in customerDataSet.addresses"
           >
             <v-card class="mx-auto" color="lightinfo">
               <v-card-text style="height: 80px">
@@ -616,18 +673,18 @@ export default {
         </v-row>
       </v-card-text>
       <v-card-actions>
-        <v-btn color="info" block flat @click="submitEditVendor"
+        <v-btn color="info" block flat @click="submitEditCustomer"
           >บันทึกข้อมูล</v-btn
         >
       </v-card-actions>
       <v-card-actions>
-        <v-btn color="error" @click="closeDialogEditVendor" block flat
+        <v-btn color="error" @click="closeDialogEditCustomer" block flat
           >ปิดหน้าต่าง</v-btn
         >
       </v-card-actions>
     </v-card>
   </v-dialog>
-  <!-- Dialog Edit Vendor -->
+  <!-- Dialog Edit Customer -->
   <!-- Dialog Add Address -->
   <v-dialog
     v-model="dialogAddAddress"
@@ -641,21 +698,21 @@ export default {
           <v-col cols="12" md="6">
             <v-text-field
               label="ที่อยู่บรรทัดที่ 1"
-              v-model="vendorDataSet.address.Line1"
+              v-model="customerDataSet.address.Line1"
               hide-details
             ></v-text-field>
           </v-col>
           <v-col cols="12" md="6">
             <v-text-field
               label="ที่อยู่บรรทัดที่ 2"
-              v-model="vendorDataSet.address.Line2"
+              v-model="customerDataSet.address.Line2"
               hide-details
             ></v-text-field>
           </v-col>
           <v-col cols="12" md="3">
             <v-select
               :items="provinces"
-              v-model="vendorDataSet.address.ProvinceID"
+              v-model="customerDataSet.address.ProvinceID"
               item-value="ProvinceID"
               item-title="name_th"
               label="จังหวัด"
@@ -666,7 +723,7 @@ export default {
           <v-col cols="12" md="3">
             <v-select
               :items="districts"
-              v-model="vendorDataSet.address.DistrictID"
+              v-model="customerDataSet.address.DistrictID"
               item-value="DistrictID"
               item-title="name_th"
               label="เขต / ตำบล"
@@ -677,7 +734,7 @@ export default {
           <v-col cols="12" md="3">
             <v-select
               :items="subDistricts"
-              v-model="vendorDataSet.address.SubDistrictID"
+              v-model="customerDataSet.address.SubDistrictID"
               item-value="SubDistrictID"
               item-title="name_th"
               label="แขวง / อำเภอ"
@@ -687,7 +744,7 @@ export default {
           </v-col>
           <v-col cols="12" md="3">
             <v-text-field
-              v-model="vendorDataSet.address.Zipcode"
+              v-model="customerDataSet.address.Zipcode"
               label="รหัสไปรษณีย์"
               readonly
               hide-details
