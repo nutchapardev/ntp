@@ -5,7 +5,7 @@ import {
   NOT_CONNECT_NETWORK,
   NETWORK_CONNECTION_MESSAGE,
 } from "@/services/constants";
-import router from "@/router";
+// import router from "@/router";
 // import store from "@/store";
 import { useAuthStore } from "@/stores/authStore";
 

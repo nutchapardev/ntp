@@ -25,7 +25,9 @@ import * as employeeStatusApis from "@/services/apis/api_employeeStatus";
 import * as vendorApis from "@/services/apis/api_vendor";
 import * as vendorTypeApis from "@/services/apis/api_vendorType";
 import * as districtApis from "@/services/apis/api_districts";
+import * as imageCarApis from "@/services/apis/api_imageCar";
 import * as imageCarTypeApis from "@/services/apis/api_imageCarType";
+import * as repairPartApis from "@/services/apis/api_repairpart";
 
 const login = async (values) => {
   const resultLogin = await httpClient.post(server.LOGIN_URL, values);
@@ -70,5 +72,7 @@ export default {
   ...vendorApis,
   ...vendorTypeApis,
   ...districtApis,
+  ...imageCarApis,
   ...imageCarTypeApis,
+  ...repairPartApis,
 };

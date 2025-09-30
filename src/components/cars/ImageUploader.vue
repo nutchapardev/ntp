@@ -135,7 +135,7 @@ import { server, apiUrl } from "@/services/constants";
 import serverService from "@/services/serverService";
 import Swal from "sweetalert2";
 export default {
-  name: "ImageUploaderVuetify",
+  name: "ImageUploader",
   props: {
     repairId: {
       type: String,

@@ -42,7 +42,9 @@ export const server = {
   ROLE_URL: `role`,
   VENDOR_URL: `vendors`,
   VENDOR_TYPE_URL: `vendortype`,
+  IMAGE_CAR_URL: `imagecar`,
   IMAGE_CAR_TYPE_URL: `imagecartype`,
+  REPAIR_PART_URL: `repairpart`,
 };
 
 export const message = {

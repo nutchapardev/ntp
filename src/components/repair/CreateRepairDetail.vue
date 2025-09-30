@@ -30,6 +30,7 @@ export default {
       rules: [(v) => !!v || "This field is required"],
       vatRate: 0.07,
       selectedItems: [],
+      parts: [],
       RepairItems: {},
       newRepairItems: {},
       refItems: [],
@@ -43,6 +44,24 @@ export default {
       ],
       // dialog
       dialogAddPart: false,
+      dialogAddImages: false,
+      dialogShowImages: false,
+      dialogAddItems: false,
+      // dataset
+      addItem: {
+        RepairDetailID: null,
+        PartID: null,
+        NumOfUse: null,
+        PricePerUnit: null,
+        PartAmount: null, // for show
+      },
+      defaultItem: {
+        RepairDetailID: null,
+        PartID: null,
+        NumOfUse: null,
+        PricePerUnit: null,
+        PartAmount: null, // for show
+      },
     };
   },
 
@@ -134,21 +153,18 @@ export default {
     submitSave() {
       alert("submit save");
     },
-
-    addOrderRow() {
-      this.invoice.orders = this.invoice.orders ?? [];
-      this.invoice.orders.push({
-        itemName: "",
-        unitPrice: 0,
-        units: 0,
-        unitTotalPrice: 0,
-      });
-    },
-
+    // addOrderRow() {
+    //   this.invoice.orders = this.invoice.orders ?? [];
+    //   this.invoice.orders.push({
+    //     itemName: "",
+    //     unitPrice: 0,
+    //     units: 0,
+    //     unitTotalPrice: 0,
+    //   });
+    // },
     deletePart(index) {
       alert("delete : ", index);
     },
-    // NutCha methods
     async getRepairByID() {
       const response = await serverService.getRepairByID(this.repairID);
       this.RepairItems = response.data;
@@ -164,6 +180,10 @@ export default {
         this.repairID
       );
       this.repairDetails = response.data;
+    },
+    async getParts() {
+      const response = await serverService.getAllParts();
+      this.parts = response.data;
     },
     setRowClass({ item }) {
       if (item.NumOfUse > item.part.PartAmount) {
@@ -219,6 +239,52 @@ export default {
         }
       });
     },
+    async submitAddItem() {
+      const { PartID, PartAmount, NumOfUse } = this.addItem;
+      if (NumOfUse > PartAmount || NumOfUse < 0) {
+        Swal.fire({
+          icon: "warning",
+          title: "Alert!",
+          text: "จำนวนที่ใช้เกินกว่าที่มีในคลัง",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+        return;
+      }
+      if (!PartID || PartID == null || NumOfUse == null || NumOfUse == "") {
+        Swal.fire({
+          icon: "warning",
+          title: "Alert!",
+          text: "กรุณากรอกข้อมูลให้ครบถ้วน",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+        return;
+      }
+      Swal.fire({
+        title: "Are you sure?",
+        text: "ท่านต้องการเพิ่มข้อมูล ใช่หรือไม่?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "<span style='color:white;'>Yes, continue!</span>",
+        cancelButtonText: "<span style='color:white;'>Cancel</span>",
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          delete this.addItem.PartAmount;
+          this.addItem.NumOfUse = parseInt(this.addItem.NumOfUse);
+          const response = await serverService.addRepairPart(this.addItem);
+          // console.log(response.data);
+
+          if (response.data.result) {
+            this.closeDialogAddItems();
+            this.initialize();
+            Swal.fire("Success!", "เพิ่มข้อมูลแล้ว", "success");
+          }
+        }
+      });
+    },
     choosePreset(preset) {
       this.showPresetDetail = preset;
       this.selectedItems = []; // เพิ่มบรรทัดนี้เพื่อล้างค่าที่เลือกไว้
@@ -234,6 +300,38 @@ export default {
     closeDialogAddPart() {
       this.dialogAddPart = false;
       this.removeObjectPresetAndSelectedItems();
+    },
+    openDialogAddImages() {
+      this.dialogAddImages = true;
+    },
+    closeDialogAddImages() {
+      this.dialogAddImages = false;
+    },
+    openDialogShowImages() {
+      this.dialogShowImages = true;
+    },
+    closeDialogShowImages() {
+      this.dialogShowImages = false;
+    },
+    async openDialogAddItems(item) {
+      this.addItem.RepairDetailID = item.RepairDetailID;
+      await this.getParts();
+      nextTick(() => {
+        this.dialogAddItems = true;
+      });
+    },
+    setAddItem(partId) {
+      const filter = this.parts.filter((part) => part.PartID == partId);
+      const data = filter[0];
+      this.addItem.PartID = data.PartID;
+      this.addItem.PricePerUnit = data.PricePerUnit;
+      this.addItem.PartAmount = data.PartAmount;
+    },
+    closeDialogAddItems() {
+      this.dialogAddItems = false;
+      nextTick(() => {
+        this.addItem = Object.assign({}, this.defaultItem);
+      });
     },
     initialize() {
       this.getRepairByID();
@@ -290,6 +388,13 @@ export default {
             {{ RepairItems.employee.LastName }}
           </p>
           <br />
+          <v-btn @click="openDialogShowImages">
+            <v-icon>mdi-file-image</v-icon>
+          </v-btn>
+          <v-btn @click="openDialogAddImages">
+            <v-icon>mdi-file-image-plus-outline</v-icon>
+          </v-btn>
+          <br />
           <p class="textSecondary text-14 mt-2 d-flex justify-end align-center">
             สถานะ : &nbsp;&nbsp;
             <v-chip color="primary">
@@ -299,11 +404,11 @@ export default {
         </v-col>
       </v-row>
     </v-card-item>
-    <v-row>
+    <!-- <v-row>
       <v-col>
         <ImageUploader :repairId="repairID" />
       </v-col>
-    </v-row>
+    </v-row> -->
   </v-card>
 
   <v-row class="mt-2">
@@ -465,10 +570,23 @@ export default {
           variant="outlined"
         >
           <!-- <span class="mt-10 font-weight-bold">{{ index + 1 }}. {{ detail.repairCategory.RepairCategory }}</span> -->
-          <span class="mt-10 font-weight-bold"
-            >#{{ index + 1 }}.&nbsp;&nbsp;&nbsp;&nbsp;
+          <div class="mt-10 font-weight-bold d-flex align-center">
+            #{{ index + 1 }}.&nbsp;&nbsp;&nbsp;&nbsp;
             {{ detail.preset.Preset }}
-          </span>
+            <v-btn
+              flat
+              icon
+              color="lightprimary"
+              size="x-small"
+              class="ms-3"
+              @click="openDialogAddItems(detail)"
+            >
+              <CirclePlusIcon class="text-primary" size="18" />
+              <v-tooltip activator="parent" location="bottom"
+                >เพิ่มอุปกรณ์</v-tooltip
+              >
+            </v-btn>
+          </div>
           <v-table class="invoice-table mt-6" density="compact">
             <template v-slot:default>
               <thead>
@@ -576,6 +694,118 @@ export default {
       </v-form>
     </v-card-item>
   </v-card>
+  <!-- dialog Add Images -->
+  <v-dialog
+    v-model="dialogAddImages"
+    class="dialog-mw"
+    style="max-width: 900px"
+    persistent
+  >
+    <v-card>
+      <v-card-title class="pa-4 bg-secondary">
+        <span class="text-h5">เพิ่มรูปภาพ</span>
+      </v-card-title>
+      <v-card-text>
+        <ImageUploader :repairId="repairID" />
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="error" block flat @click="closeDialogAddImages"
+          >ปิดหน้าต่าง</v-btn
+        >
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+  <!-- dialog Add Images -->
+  <!-- dialog Show Images -->
+  <v-dialog
+    v-model="dialogShowImages"
+    class="dialog-mw"
+    style="max-width: 900px"
+    persistent
+  >
+    <v-card>
+      <v-card-title class="pa-4 bg-secondary">
+        <span class="text-h5">รูปรถยนต์</span>
+      </v-card-title>
+      <v-card-text>
+        <CarImages :repairId="repairID" />
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="error" block flat @click="closeDialogShowImages"
+          >ปิดหน้าต่าง</v-btn
+        >
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+  <!-- dialog Show Images -->
+  <!-- dialog Add Items -->
+  <v-dialog
+    v-model="dialogAddItems"
+    class="dialog-mw"
+    style="max-width: 900px"
+    persistent
+  >
+    <v-card>
+      <v-card-title class="pa-4 bg-secondary">
+        <span class="text-h5">Items</span>
+      </v-card-title>
+      <v-card-text>
+        <v-row>
+          <v-col cols="12" md="8">
+            <v-autocomplete
+              v-model="addItem.PartID"
+              :items="parts"
+              item-value="PartID"
+              item-title="PartName_th"
+              prepend-inner-icon="mdi-magnify"
+              label="อุปกรณ์"
+              hide-details
+              color="primary"
+              variant="outlined"
+              autocomplete="false"
+              @update:modelValue="setAddItem"
+            >
+              <template v-slot:item="{ props, item }">
+                <v-list-item
+                  v-bind="props"
+                  :title="`รหัส : ${item.raw.PartNumber} || ${item.raw.PartName_th}`"
+                >
+                </v-list-item>
+              </template>
+            </v-autocomplete>
+          </v-col>
+          <v-col cols="12" md="2">
+            <v-text-field
+              v-model="addItem.NumOfUse"
+              type="number"
+              label="จำนวนที่ใช้"
+              hide-details
+            />
+          </v-col>
+          <v-col cols="12" md="2">
+            <v-text-field
+              v-model="addItem.PartAmount"
+              type="number"
+              label="จำนวนในคลัง"
+              readonly
+              hide-details
+            />
+          </v-col>
+        </v-row>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="primary" block flat @click="submitAddItem"
+          >เพิ่มอุปกรณ์</v-btn
+        >
+      </v-card-actions>
+      <v-card-actions>
+        <v-btn color="error" block flat @click="closeDialogAddItems"
+          >ปิดหน้าต่าง</v-btn
+        >
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+  <!-- dialog Add Items -->
 </template>
 
 <style>
