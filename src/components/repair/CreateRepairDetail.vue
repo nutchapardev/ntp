@@ -151,7 +151,48 @@ export default {
     },
 
     submitSave() {
-      alert("submit save");
+      let updates = [];
+      this.repairDetails.forEach((item) => {
+        updates.push(...item.repairParts);
+      });
+
+      if (updates.length == 0) {
+        Swal.fire({
+          icon: "warning",
+          title: "Alert!",
+          text: "ไม่พบข้อมูลสำหรับการ update!",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+        return;
+      }
+
+      Swal.fire({
+        title: "Are you sure?",
+        text: "ท่านต้องการเพิ่มรายละเอียดการซ่อม ใช่หรือไม่?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "<span style='color:white;'>Yes, continue!</span>",
+        cancelButtonText: "<span style='color:white;'>Cancel</span>",
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          const response = await serverService.bulkUpdateRepairPart({
+            updates,
+          });
+          if (response.data.result) {
+            this.initialize();
+            Swal.fire({
+              icon: "success",
+              title: "สำเร็จ",
+              text: "ลบข้อมูลสำเร็จ",
+              timer: 1500,
+              showConfirmButton: false,
+            });
+          }
+        }
+      });
     },
     // addOrderRow() {
     //   this.invoice.orders = this.invoice.orders ?? [];
@@ -162,8 +203,43 @@ export default {
     //     unitTotalPrice: 0,
     //   });
     // },
-    deletePart(index) {
-      alert("delete : ", index);
+    async deletePart(item) {
+      if (!item.RepairPartID) {
+        Swal.fire({
+          title: "Alert!",
+          text: "ไม่พบ RepairPartID เกิดข้อผิดพลาด!",
+          icon: "warning",
+          confirmButtonText: "<span style='color:white;'>ตกลง</span>",
+        });
+        return;
+      }
+      Swal.fire({
+        title: "Are you sure?",
+        text: "ท่านต้องการเพิ่มรายละเอียดการซ่อม ใช่หรือไม่?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "<span style='color:white;'>Yes, continue!</span>",
+        cancelButtonText: "<span style='color:white;'>Cancel</span>",
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          const response = await serverService.deleteRepairPartByID(
+            item.RepairPartID
+          );
+          if (response.data.result) {
+            this.getRefModelCategoryPartByBrandID();
+            this.getRepairDetail();
+            Swal.fire({
+              icon: "success",
+              title: "สำเร็จ",
+              text: "ลบข้อมูลสำเร็จ",
+              timer: 1500,
+              showConfirmButton: false,
+            });
+          }
+        }
+      });
     },
     async getRepairByID() {
       const response = await serverService.getRepairByID(this.repairID);
@@ -626,7 +702,7 @@ export default {
                     <v-avatar
                       color="lighterror"
                       size="32"
-                      @click="deletePart(index)"
+                      @click="deletePart(part)"
                     >
                       <TrashIcon class="text-error" size="18" />
                     </v-avatar>

@@ -6,6 +6,7 @@ import HorizontalHeader from "./full/horizontal-header/HorizontalHeader.vue";
 import HorizontalSidebar from "./full/horizontal-sidebar/HorizontalSidebar.vue";
 import Customizer from "./full/customizer/Customizer.vue";
 import { useCustomizerStore } from "@/stores/customizer";
+import { useAuthStore } from "@/stores/authStore";
 import { SettingsIcon } from "vue-tabler-icons";
 
 export default {
@@ -19,10 +20,12 @@ export default {
     Customizer,
     SettingsIcon,
   },
-  setup() {
+  data() {
     const customizer = useCustomizerStore();
+    const authStore = useAuthStore();
     return {
       customizer,
+      authStore,
     };
   },
 };
@@ -58,6 +61,7 @@ export default {
       <HorizontalSidebar v-if="customizer.setHorizontalLayout" />
 
       <v-main>
+        <Loading :loading="authStore.getLoading" />
         <v-container fluid class="page-wrapper pb-sm-15 pb-10">
           <div :class="customizer.boxed ? 'maxWidth' : ''">
             <RouterView v-slot="{ Component, route }">
