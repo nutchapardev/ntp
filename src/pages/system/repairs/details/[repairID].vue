@@ -42,15 +42,16 @@ export default {
     },
     async getRepairByID() {
       const response = await serverService.getRepairByID(this.repairID);
-      console.log(response.data);
       this.RepairItems = response.data;
     },
     async getRepairDetail() {
       const response = await serverService.getRepairDetailByRepairID(
         this.repairID
       );
-      console.log(response.data);
       this.repairDetails = response.data;
+    },
+    async createQuotation() {
+      console.log(this.RepairItems);
     },
     async initialize() {
       await this.getRepairByID().then(() => this.getRepairDetail());
@@ -191,8 +192,15 @@ export default {
                     <template v-slot:default>
                       <thead>
                         <tr>
-                          <th class="text-14 text-no-wrap text-start" width="200px">#</th>
-                          <th class="text-14 text-no-wrap text-center">รายละเอียด</th>
+                          <th
+                            class="text-14 text-no-wrap text-start"
+                            width="200px"
+                          >
+                            #
+                          </th>
+                          <th class="text-14 text-no-wrap text-center">
+                            รายละเอียด
+                          </th>
                           <th class="text-14 text-no-wrap text-end">
                             ราคาต่อหน่วย
                           </th>
@@ -266,12 +274,14 @@ export default {
           </v-col>
         </v-row>
         <div class="d-flex ga-3 justify-end mt-6">
-          <v-btn color="warning" :to="`/apps/invoice/edit/xxx`" flat
-            >Edit Invoice</v-btn
-          >
-          <v-btn to="/apps/invoice" color="primary" flat
-            >Back To Invoice List</v-btn
-          >
+          <v-btn color="warning" :to="`/system/repairs/${repairID}`" flat>
+            <EditIcon size="18" />
+            &nbsp;Edit
+          </v-btn>
+          <v-btn @click="createQuotation" color="primary" flat>
+            <v-icon>mdi-send-variant</v-icon>
+            &nbsp;สร้างใบเสนอราคา
+          </v-btn>
         </div>
       </div>
       <div v-else>

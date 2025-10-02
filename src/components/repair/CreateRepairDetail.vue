@@ -3,6 +3,7 @@ import { useInvoicestore } from "@/stores/apps/invoice";
 import { CirclePlusIcon, TrashIcon } from "vue-tabler-icons";
 import serverService from "@/services/serverService";
 import Swal from "sweetalert2";
+// import { useRouter } from 'vue-router'
 import {
   toThaiDateString,
   toThaiDateTimeString,
@@ -10,6 +11,7 @@ import {
   getColorByNumber,
 } from "@/utils/functions";
 import ImageUploader from "../cars/ImageUploader.vue";
+import router from "@/router";
 
 export default {
   name: "CreateRepair",
@@ -129,6 +131,9 @@ export default {
 
   // 4. methods ใช้สำหรับฟังก์ชันต่างๆ ที่จะเรียกใช้ในคอมโพเนนต์
   methods: {
+    goBack(){
+      router.back()
+    },
     getColor(number) {
       return getColorByNumber(number);
     },
@@ -761,7 +766,7 @@ export default {
             :disabled="repairDetails.length == 0"
             >บันทึกข้อมูลการรับรถ</v-btn
           >
-          <v-btn flat color="error" to="/system/repairs" class="mt-6"
+          <v-btn flat color="error" @click="goBack" class="mt-6"
             >ย้อนกลับ</v-btn
           >
           <!-- <v-btn flat color="error" to="/system/repairs" class="mt-6"
