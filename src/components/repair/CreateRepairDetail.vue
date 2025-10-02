@@ -7,6 +7,7 @@ import {
   toThaiDateString,
   toThaiDateTimeString,
   formatCurrency,
+  getColorByNumber,
 } from "@/utils/functions";
 import ImageUploader from "../cars/ImageUploader.vue";
 
@@ -128,6 +129,9 @@ export default {
 
   // 4. methods ใช้สำหรับฟังก์ชันต่างๆ ที่จะเรียกใช้ในคอมโพเนนต์
   methods: {
+    getColor(number) {
+      return getColorByNumber(number);
+    },
     // สร้าง method ห่อหุ้ม `format` เพื่อให้ template เรียกใช้ได้
     formatSeperateCurrency(total) {
       return formatCurrency(total);
@@ -169,7 +173,7 @@ export default {
 
       Swal.fire({
         title: "Are you sure?",
-        text: "ท่านต้องการเพิ่มรายละเอียดการซ่อม ใช่หรือไม่?",
+        text: "ท่านต้องการบันทึกละเอียดการซ่อม ใช่หรือไม่?",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -182,11 +186,19 @@ export default {
             updates,
           });
           if (response.data.result) {
+            const { WorkStatusID } = this.RepairItems.workStatus;
+            // update สถานะในกรณีที่อยู่ในสถานะกำลังรับรถ
+            if (WorkStatusID == 1) {
+              await serverService.updateRepairByID(this.repairID, {
+                WorkStatusID: 2,
+              });
+            }
+            // update สถานะ
             this.initialize();
             Swal.fire({
               icon: "success",
               title: "สำเร็จ",
-              text: "ลบข้อมูลสำเร็จ",
+              text: "บันทึกข้อมูลสำเร็จ",
               timer: 1500,
               showConfirmButton: false,
             });
@@ -194,15 +206,6 @@ export default {
         }
       });
     },
-    // addOrderRow() {
-    //   this.invoice.orders = this.invoice.orders ?? [];
-    //   this.invoice.orders.push({
-    //     itemName: "",
-    //     unitPrice: 0,
-    //     units: 0,
-    //     unitTotalPrice: 0,
-    //   });
-    // },
     async deletePart(item) {
       if (!item.RepairPartID) {
         Swal.fire({
@@ -473,18 +476,13 @@ export default {
           <br />
           <p class="textSecondary text-14 mt-2 d-flex justify-end align-center">
             สถานะ : &nbsp;&nbsp;
-            <v-chip color="primary">
+            <v-chip :color="getColor(RepairItems.workStatus.WorkStatusID)">
               {{ RepairItems.workStatus.WorkStatus_th }}
             </v-chip>
           </p>
         </v-col>
       </v-row>
     </v-card-item>
-    <!-- <v-row>
-      <v-col>
-        <ImageUploader :repairId="repairID" />
-      </v-col>
-    </v-row> -->
   </v-card>
 
   <v-row class="mt-2">
@@ -761,11 +759,14 @@ export default {
             @click="submitSave"
             class="mt-6"
             :disabled="repairDetails.length == 0"
-            >บันทึกข้อมูลการซ่อม</v-btn
+            >บันทึกข้อมูลการรับรถ</v-btn
           >
           <v-btn flat color="error" to="/system/repairs" class="mt-6"
             >ย้อนกลับ</v-btn
           >
+          <!-- <v-btn flat color="error" to="/system/repairs" class="mt-6"
+            >บัน</v-btn
+          > -->
         </div>
       </v-form>
     </v-card-item>

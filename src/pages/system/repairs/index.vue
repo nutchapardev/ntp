@@ -6,16 +6,14 @@ import UiParentCard from "@/components/shared/UiParentCard.vue";
 import serverService from "@/services/serverService";
 import Swal from "sweetalert2";
 import { useAuthStore } from "@/stores/authStore";
-import { toShortThaiDateString } from "@/utils/functions";
+import { toShortThaiDateString, getColorByNumber } from "@/utils/functions";
 
 export default {
   name: "Repairs",
-  // 2. ลงทะเบียน Components ที่จะใช้ใน Template
   components: {
     BaseBreadcrumb,
     UiParentCard,
   },
-  // 3. ข้อมูลทั้งหมดจะถูกย้ายมาไว้ใน data()
   data() {
     const authStore = useAuthStore();
     return {
@@ -108,8 +106,10 @@ export default {
       dialogCustomer: false,
     };
   },
-  // 4. ฟังก์ชันต่างๆ จะถูกย้ายมาไว้ใน methods
   methods: {
+    getColor(number) {
+      return getColorByNumber(number);
+    },
     formatDateString(date) {
       return toShortThaiDateString(date);
     },
@@ -230,7 +230,7 @@ export default {
         customer.CustomerTitleID == null ||
         customer.CustomerName == null ||
         customer.CustomerName == "" ||
-        customer.CustomerSurname == null 
+        customer.CustomerSurname == null
       ) {
         Swal.fire("Alert!", "กรุณากรอกข้อมูลลูกค้าให้ครบถ้วน", "warning");
         return;
@@ -262,7 +262,6 @@ export default {
           const response = await serverService.createCarWithCustomer(
             this.addItem
           );
-          // console.log("response createCarWithCustomer :", response.data)
           if (response.data.result) {
             const { BrandID, ModelID, CarID, CustomerID } = response.data.data;
             const newRepair = {
@@ -272,9 +271,7 @@ export default {
               CustomerID,
               EmployeeID: this.editedItem.EmployeeID,
             };
-            // console.log(newRepair)
             const responseAddRepair = await serverService.addRepair(newRepair);
-            // console.log("responseAddRepair :", responseAddRepair.data)
             if (responseAddRepair.data.result) {
               Swal.fire("Success!", "บันทึกข้อมูลเรียบร้อย", "success");
             } else {
@@ -295,7 +292,6 @@ export default {
         Swal.fire("Alert!", "กรุณาเลือกข้อมูลรถยนต์", "warning");
         return;
       }
-      // console.log("submitChooseCustomer :", this.carIdForSearch)
       Swal.fire({
         title: "Are you sure?",
         text: "ท่านต้องการเพิ่มข้อมูลนี้ ใช่หรือไม่?",
@@ -310,7 +306,6 @@ export default {
           const response = await serverService.getCarByCarID(
             this.carIdForSearch
           );
-          // console.log("response car by CarID :", response.data)
           if (!response.data.CarID) {
             Swal.fire("Error!", "เกิดข้อผิดพลาด", "error");
             return;
@@ -325,7 +320,6 @@ export default {
             EmployeeID: this.editedItem.EmployeeID,
           };
           const responseAddRepair = await serverService.addRepair(newRepair);
-          // console.log("responseAddRepair :", responseAddRepair.data)
           if (responseAddRepair.data.result) {
             Swal.fire("Success!", "บันทึกข้อมูลเรียบร้อย", "success");
           } else {
@@ -356,7 +350,6 @@ export default {
     :title="page.title"
     :breadcrumbs="breadcrumbs"
   ></BaseBreadcrumb>
-  <!-- {{ editedItem }} -->
   <v-row>
     <v-col cols="12">
       <UiParentCard title="รายการซ่อมรถยนต์">
@@ -440,11 +433,7 @@ export default {
 
           <template v-slot:item.workStatus.WorkStatus_th="{ item }">
             <v-chip
-              :color="
-                item.workStatus.WorkStatus_th == 'กำลังตรวจสอบรถ'
-                  ? 'primary'
-                  : 'success'
-              "
+              :color="getColor(item.workStatus.WorkStatusID)"
               :text="item.workStatus.WorkStatus_th"
               class="text-uppercase"
               label
@@ -453,7 +442,19 @@ export default {
           </template>
 
           <template v-slot:item.actions="{ item }">
-            <div class="d-flex ga-3 align-center justify-center">
+            <div class="d-flex ga-3 align-center justify-end">
+              <RouterLink
+                :to="`/system/repairs/details/${item.RepairID}`"
+                v-if="item.workStatus.WorkStatusID != 1"
+              >
+                <v-avatar color="lightprimary" size="32">
+                  <EyeIcon class="text-primary" size="18" />
+                </v-avatar>
+                <v-tooltip activator="parent" location="bottom"
+                  >View Repair</v-tooltip
+                >
+              </RouterLink>
+
               <RouterLink :to="`/system/repairs/${item.RepairID}`">
                 <v-avatar color="lightsuccess" size="32">
                   <EditIcon class="text-success" size="18" />
@@ -463,16 +464,7 @@ export default {
                 >
               </RouterLink>
 
-              <RouterLink :to="`/system/repairs/view/view_id`">
-                <v-avatar color="lightprimary" size="32">
-                  <EyeIcon class="text-primary" size="18" />
-                </v-avatar>
-                <v-tooltip activator="parent" location="bottom"
-                  >View Repair</v-tooltip
-                >
-              </RouterLink>
-
-              <RouterLink
+              <!-- <RouterLink
                 to=""
                 @click.stop="deleteItem(item.RepairID)"
                 class="cursor-pointer"
@@ -483,7 +475,7 @@ export default {
                 <v-tooltip activator="parent" location="bottom"
                   >Delete Repair</v-tooltip
                 >
-              </RouterLink>
+              </RouterLink> -->
             </div>
           </template>
         </v-data-table>

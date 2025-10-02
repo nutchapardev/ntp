@@ -229,6 +229,29 @@ function countPresetStatus(presets) {
   };
 }
 
+function getColorByNumber(number) {
+  switch (number) {
+    case 1:
+      return "primary"; // สีแดง
+    case 2:
+      return "success"; // สีเขียว
+    case 3:
+      return "warning"; // สีน้ำเงิน
+    case 4:
+      return "info"; // สีเหลือง
+    case 5:
+      return "lighterror"; // สีม่วง
+    case 6:
+      return "lightsuccess"; // สีส้ม
+    case 7:
+      return "success"; // สีชมพู
+    case 8:
+      return "warning"; // สีน้ำตาล
+    default:
+      return "error"; // กรณีใส่ตัวเลขอื่นที่ไม่ใช่ 1-8
+  }
+}
+
 export {
   getNumberOfDigits,
   getRandomColor,
@@ -239,6 +262,7 @@ export {
   checkPresetAvailability,
   checkStockAvailability,
   countPresetStatus,
+  getColorByNumber,
 };
 
 // --- ตัวอย่างการใช้งาน ---
