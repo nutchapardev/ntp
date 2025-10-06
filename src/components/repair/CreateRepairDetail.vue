@@ -1,17 +1,18 @@
 <script>
-import { useInvoicestore } from "@/stores/apps/invoice";
-import { CirclePlusIcon, TrashIcon } from "vue-tabler-icons";
-import serverService from "@/services/serverService";
-import Swal from "sweetalert2";
+import { useInvoicestore } from "@/stores/apps/invoice"
+import { CirclePlusIcon, TrashIcon } from "vue-tabler-icons"
+import serverService from "@/services/serverService"
+import Swal from "sweetalert2"
+import { useAuthStore } from "@/stores/authStore"
 // import { useRouter } from 'vue-router'
 import {
   toThaiDateString,
   toThaiDateTimeString,
   formatCurrency,
   getColorByNumber,
-} from "@/utils/functions";
-import ImageUploader from "../cars/ImageUploader.vue";
-import router from "@/router";
+} from "@/utils/functions"
+import ImageUploader from "../cars/ImageUploader.vue"
+import router from "@/router"
 
 export default {
   name: "CreateRepair",
@@ -24,8 +25,10 @@ export default {
 
   // 2. data() จะ return state ทั้งหมดของคอมโพเนนต์
   data() {
-    const invoiceStore = useInvoicestore();
+    const invoiceStore = useInvoicestore()
+    const authStore = useAuthStore()
     return {
+      authStore,
       invoiceStore,
       valid: false,
       isVat: false,
@@ -65,7 +68,7 @@ export default {
         PricePerUnit: null,
         PartAmount: null, // for show
       },
-    };
+    }
   },
 
   // 3. computed ใช้สำหรับข้อมูลที่ต้องคำนวณจาก state
@@ -75,95 +78,94 @@ export default {
         return (
           sum +
           (obj.repairParts ?? []).reduce((sum2, part) => {
-            return sum2 + (part.PricePerUnit ?? 0) * (part.NumOfUse ?? 0);
+            return sum2 + (part.PricePerUnit ?? 0) * (part.NumOfUse ?? 0)
           }, 0)
-        );
-      }, 0);
+        )
+      }, 0)
     },
     vatNutCha() {
-      return this.subtotalNutcha * (this.isVat ? this.vatRate : 0);
+      return this.subtotalNutcha * (this.isVat ? this.vatRate : 0)
     },
     grandTotalNutCha() {
-      const total =
-        parseFloat(this.subtotalNutcha) + parseFloat(this.vatNutCha);
-      return total;
+      const total = parseFloat(this.subtotalNutcha) + parseFloat(this.vatNutCha)
+      return total
     },
     repairID() {
-      return this.$route.params.repairID;
+      return this.$route.params.repairID
     },
     selectableItems() {
       // เพิ่มเงื่อนไข: ถ้า showPresetDetail เป็น null หรือไม่มี presetDetails ให้ return เป็น array ว่าง
       if (!this.showPresetDetail || !this.showPresetDetail.presetDetails) {
-        return [];
+        return []
       }
       // ถ้ามีค่า ถึงจะทำการ filter
       return this.showPresetDetail.presetDetails.filter(
         (item) => item.NumOfUse <= item.part.PartAmount
-      );
+      )
     },
     isAllSelectableSelected() {
       return (
         this.selectableItems.length > 0 &&
         this.selectedItems.length === this.selectableItems.length
-      );
+      )
     },
     isSomeSelectableSelected() {
-      return this.selectedItems.length > 0 && !this.isAllSelectableSelected;
+      return this.selectedItems.length > 0 && !this.isAllSelectableSelected
     },
     checkNotEnoughItems() {
       return (
         this.showPresetDetail.presetDetails.filter(
           (item) => item.NumOfUse > item.part.PartAmount
         ).length > 0
-      );
+      )
     },
     notEnoughItems() {
       return this.showPresetDetail.presetDetails.filter(
         (item) => item.NumOfUse > item.part.PartAmount
-      );
+      )
     },
     aviableItems() {
       return this.showPresetDetail.presetDetails.filter(
         (item) => item.NumOfUse <= item.part.PartAmount
-      );
+      )
     },
   },
 
   // 4. methods ใช้สำหรับฟังก์ชันต่างๆ ที่จะเรียกใช้ในคอมโพเนนต์
   methods: {
     goBack() {
-      router.back();
+      router.back()
     },
     getColor(number) {
-      return getColorByNumber(number);
+      return getColorByNumber(number)
     },
     // สร้าง method ห่อหุ้ม `format` เพื่อให้ template เรียกใช้ได้
     formatSeperateCurrency(total) {
-      return formatCurrency(total);
+      return formatCurrency(total)
     },
     formatDate(date) {
-      return date ? toThaiDateString(new Date(date), "E, MMM dd, yyyy") : "N/A";
+      return date ? toThaiDateString(new Date(date), "E, MMM dd, yyyy") : "N/A"
     },
     formatDateTime(date) {
-      return date ? toThaiDateTimeString(new Date(date)) : "N/A";
+      return date ? toThaiDateTimeString(new Date(date)) : "N/A"
     },
     toggleSelectAll() {
       if (this.isAllSelectableSelected) {
-        this.selectedItems = [];
+        this.selectedItems = []
       } else {
-        this.selectedItems = [...this.selectableItems];
+        this.selectedItems = [...this.selectableItems]
       }
     },
     removeSelectedItem() {
-      this.showPresetDetail = null;
-      this.selectedItems = [];
+      this.showPresetDetail = null
+      this.selectedItems = []
     },
 
     async submitSave() {
-      let updates = [];
+      let updates = []
       this.repairDetails.forEach((item) => {
-        updates.push(...item.repairParts);
-      });
+        updates.push(...item.repairParts)
+      })
 
       if (updates.length == 0) {
         Swal.fire({
@@ -172,8 +174,8 @@ export default {
           text: "ไม่พบข้อมูลสำหรับการ update!",
           timer: 1500,
           showConfirmButton: false,
-        });
-        return;
+        })
+        return
       }
 
       Swal.fire({
@@ -189,35 +191,35 @@ export default {
         if (result.isConfirmed) {
           const response = await serverService.bulkUpdateRepairPart({
             updates,
-          });
+          })
           if (response.data.result) {
-            const { WorkStatusID } = this.RepairItems.workStatus;
+            const { WorkStatusID } = this.RepairItems.workStatus
             // update สถานะในกรณีที่อยู่ในสถานะกำลังรับรถ
             if (WorkStatusID == 1) {
               await serverService.updateRepairByID(this.repairID, {
                 WorkStatusID: 2,
-              });
+              })
             }
             // update สถานะ
-            this.initialize();
+            this.initialize()
             Swal.fire({
               icon: "success",
               title: "สำเร็จ",
               text: "บันทึกข้อมูลสำเร็จ",
               timer: 1500,
               showConfirmButton: false,
-            });
+            })
           } else {
             Swal.fire({
               icon: "warning",
               title: "Alert!",
               text: response.data.message,
               showConfirmButton: true,
-            });
-            return;
+            })
+            return
           }
         }
-      });
+      })
     },
     async deletePart(item) {
       if (!item.RepairPartID) {
@@ -226,8 +228,8 @@ export default {
           text: "ไม่พบ RepairPartID เกิดข้อผิดพลาด!",
           icon: "warning",
           confirmButtonText: "<span style='color:white;'>ตกลง</span>",
-        });
-        return;
+        })
+        return
       }
       Swal.fire({
         title: "Are you sure?",
@@ -242,46 +244,46 @@ export default {
         if (result.isConfirmed) {
           const response = await serverService.deleteRepairPartByID(
             item.RepairPartID
-          );
+          )
           if (response.data.result) {
-            this.getRefModelCategoryPartByBrandID();
-            this.getRepairDetail();
+            this.getRefModelCategoryPartByBrandID()
+            this.getRepairDetail()
             Swal.fire({
               icon: "success",
               title: "สำเร็จ",
               text: "ลบข้อมูลสำเร็จ",
               timer: 1500,
               showConfirmButton: false,
-            });
+            })
           }
         }
-      });
+      })
     },
     async getRepairByID() {
-      const response = await serverService.getRepairByID(this.repairID);
-      this.RepairItems = response.data;
+      const response = await serverService.getRepairByID(this.repairID)
+      this.RepairItems = response.data
     },
     async getRefModelCategoryPartByBrandID() {
       const response = await serverService.getRefModelCategoryPartByModelID(
         this.RepairItems.ModelID
-      );
-      this.refItems = response.data;
+      )
+      this.refItems = response.data
     },
     async getRepairDetail() {
       const response = await serverService.getRepairDetailByRepairID(
         this.repairID
-      );
-      this.repairDetails = response.data;
+      )
+      this.repairDetails = response.data
     },
     async getParts() {
-      const response = await serverService.getAllParts();
-      this.parts = response.data;
+      const response = await serverService.getAllParts()
+      this.parts = response.data
     },
     setRowClass({ item }) {
       if (item.NumOfUse > item.part.PartAmount) {
-        return { class: "high-fat-row" };
+        return { class: "high-fat-row" }
       }
-      return { class: "" };
+      return { class: "" }
     },
     async submitAddRepairItem() {
       if (this.selectedItems.length < 1) {
@@ -290,8 +292,8 @@ export default {
           text: "กรุณาเลือกอย่างน้อย 1 รายการ",
           icon: "warning",
           confirmButtonText: "<span style='color:white;'>ตกลง</span>",
-        });
-        return;
+        })
+        return
       }
 
       Swal.fire({
@@ -311,22 +313,22 @@ export default {
               this.showPresetDetail.repairCategory.RepairCategoryID,
             PresetID: this.showPresetDetail.PresetID,
             repairParts: [],
-          };
+          }
 
           this.selectedItems.forEach((e) => {
             payload.repairParts.push({
               PartID: e.part.PartID,
               NumOfUse: e.NumOfUse,
               PricePerUnit: e.part.PricePerUnit,
-            });
-          });
+            })
+          })
 
-          const response = await serverService.addRepairDetailWithPart(payload);
+          const response = await serverService.addRepairDetailWithPart(payload)
           if (response.data.result) {
-            this.getRefModelCategoryPartByBrandID();
-            this.getRepairDetail();
-            this.removeObjectPresetAndSelectedItems();
-            Swal.fire("Success!", "เพิ่มข้อมูลแล้ว", "success");
+            this.getRefModelCategoryPartByBrandID()
+            this.getRepairDetail()
+            this.removeObjectPresetAndSelectedItems()
+            Swal.fire("Success!", "เพิ่มข้อมูลแล้ว", "success")
           } else {
             Swal.fire({
               icon: "warning",
@@ -334,14 +336,14 @@ export default {
               text: response.data.message,
               timer: 1500,
               showConfirmButton: false,
-            });
-            return;
+            })
+            return
           }
         }
-      });
+      })
     },
     async submitAddItem() {
-      const { PartID, PartAmount, NumOfUse } = this.addItem;
+      const { PartID, PartAmount, NumOfUse } = this.addItem
       if (NumOfUse > PartAmount || NumOfUse < 0) {
         Swal.fire({
           icon: "warning",
@@ -349,8 +351,8 @@ export default {
           text: "จำนวนที่ใช้เกินกว่าที่มีในคลัง",
           timer: 1500,
           showConfirmButton: false,
-        });
-        return;
+        })
+        return
       }
       if (!PartID || PartID == null || NumOfUse == null || NumOfUse == "") {
         Swal.fire({
@@ -359,8 +361,8 @@ export default {
           text: "กรุณากรอกข้อมูลให้ครบถ้วน",
           timer: 1500,
           showConfirmButton: false,
-        });
-        return;
+        })
+        return
       }
       Swal.fire({
         title: "Are you sure?",
@@ -373,15 +375,15 @@ export default {
         cancelButtonText: "<span style='color:white;'>Cancel</span>",
       }).then(async (result) => {
         if (result.isConfirmed) {
-          delete this.addItem.PartAmount;
-          this.addItem.NumOfUse = parseInt(this.addItem.NumOfUse);
-          const response = await serverService.addRepairPart(this.addItem);
+          delete this.addItem.PartAmount
+          this.addItem.NumOfUse = parseInt(this.addItem.NumOfUse)
+          const response = await serverService.addRepairPart(this.addItem)
           // console.log(response.data);
 
           if (response.data.result) {
-            this.closeDialogAddItems();
-            this.initialize();
-            Swal.fire("Success!", "เพิ่มข้อมูลแล้ว", "success");
+            this.closeDialogAddItems()
+            this.initialize()
+            Swal.fire("Success!", "เพิ่มข้อมูลแล้ว", "success")
           } else {
             Swal.fire({
               icon: "warning",
@@ -389,63 +391,66 @@ export default {
               text: response.data.message,
               timer: 1500,
               showConfirmButton: false,
-            });
-            return;
+            })
+            return
           }
         }
-      });
+      })
     },
-    choosePreset(preset) {
-      this.showPresetDetail = preset;
-      this.selectedItems = []; // เพิ่มบรรทัดนี้เพื่อล้างค่าที่เลือกไว้
+    choosePreset(preset, category) {
+      this.showPresetDetail = preset
+      this.selectedItems = [] // เพิ่มบรรทัดนี้เพื่อล้างค่าที่เลือกไว้
+      this.showPresetDetail.repairCategory = category.repairCategory
     },
     openDialogAddPart() {
-      this.dialogAddPart = true;
-      this.getRefModelCategoryPartByBrandID();
+      this.dialogAddPart = true
+      this.getRefModelCategoryPartByBrandID()
     },
     removeObjectPresetAndSelectedItems() {
-      this.showPresetDetail = null;
-      this.selectedItems = []; // เพิ่มบรรทัดนี้เพื่อล้างค่าที่เลือกไว้
+      this.showPresetDetail = null
+      this.selectedItems = [] // เพิ่มบรรทัดนี้เพื่อล้างค่าที่เลือกไว้
     },
     closeDialogAddPart() {
-      this.dialogAddPart = false;
-      this.removeObjectPresetAndSelectedItems();
+      this.dialogAddPart = false
+      this.removeObjectPresetAndSelectedItems()
     },
     openDialogAddImages() {
-      this.dialogAddImages = true;
+      this.dialogAddImages = true
     },
     closeDialogAddImages() {
-      this.dialogAddImages = false;
+      this.dialogAddImages = false
     },
     openDialogShowImages() {
-      this.dialogShowImages = true;
+      this.dialogShowImages = true
     },
     closeDialogShowImages() {
-      this.dialogShowImages = false;
+      this.dialogShowImages = false
     },
     async openDialogAddItems(item) {
-      this.addItem.RepairDetailID = item.RepairDetailID;
-      await this.getParts();
+      this.addItem.RepairDetailID = item.RepairDetailID
+      await this.getParts()
       nextTick(() => {
-        this.dialogAddItems = true;
-      });
+        this.dialogAddItems = true
+      })
     },
     setAddItem(partId) {
-      const filter = this.parts.filter((part) => part.PartID == partId);
-      const data = filter[0];
-      this.addItem.PartID = data.PartID;
-      this.addItem.PricePerUnit = data.PricePerUnit;
-      this.addItem.PartAmount = data.PartAmount;
+      const filter = this.parts.filter((part) => part.PartID == partId)
+      const data = filter[0]
+      this.addItem.PartID = data.PartID
+      this.addItem.PricePerUnit = data.PricePerUnit
+      this.addItem.PartAmount = data.PartAmount
     },
     closeDialogAddItems() {
-      this.dialogAddItems = false;
+      this.dialogAddItems = false
       nextTick(() => {
-        this.addItem = Object.assign({}, this.defaultItem);
-      });
+        this.addItem = Object.assign({}, this.defaultItem)
+      })
     },
     initialize() {
-      this.getRepairByID();
-      this.getRepairDetail();
+      this.authStore.setLoadingOn()
+      this.getRepairByID()
+      this.getRepairDetail()
+      this.authStore.setLoadingOff()
     },
   },
   mounted() {
@@ -454,9 +459,9 @@ export default {
 
   // 5. created() เป็น lifecycle hook ที่จะทำงานเมื่อคอมโพเนนต์ถูกสร้างขึ้น
   created() {
-    this.initialize();
+    this.initialize()
   },
-};
+}
 </script>
 
 <template>
@@ -557,11 +562,7 @@ export default {
                             variant="outlined"
                             color=""
                             class="mb-2"
-                            @click="
-                              choosePreset(preset);
-                              showPresetDetail.repairCategory =
-                                category.repairCategory;
-                            "
+                            @click="choosePreset(preset, category)"
                           >
                             รหัส Preset #{{ preset.PresetID }} -
                             {{ preset.Preset }}
@@ -755,7 +756,7 @@ export default {
                 {{ formatSeperateCurrency(subtotalNutcha) }}
               </p>
             </div>
-            <div
+            <!-- <div
               class="d-flex align-center justify-space-between text-14 font-weight-semibold mb-4"
             >
               <div class="d-flex align-center justify-space-between">
@@ -771,15 +772,15 @@ export default {
               <p class="text-16">
                 {{ formatSeperateCurrency(vatNutCha) }}
               </p>
-            </div>
-            <div
+            </div> -->
+            <!-- <div
               class="d-flex align-center justify-space-between text-14 font-weight-semibold"
             >
               <p class="text-muted">Grand Total :</p>
               <p class="text-16">
                 {{ formatSeperateCurrency(grandTotalNutCha) }}
               </p>
-            </div>
+            </div> -->
           </v-col>
         </v-row>
 
