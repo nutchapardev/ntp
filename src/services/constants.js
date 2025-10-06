@@ -45,6 +45,7 @@ export const server = {
   IMAGE_CAR_URL: `imagecar`,
   IMAGE_CAR_TYPE_URL: `imagecartype`,
   REPAIR_PART_URL: `repairpart`,
+  UNIT_URL: `unit`,
 };
 
 export const message = {

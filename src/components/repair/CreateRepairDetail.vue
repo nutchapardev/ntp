@@ -131,8 +131,8 @@ export default {
 
   // 4. methods ใช้สำหรับฟังก์ชันต่างๆ ที่จะเรียกใช้ในคอมโพเนนต์
   methods: {
-    goBack(){
-      router.back()
+    goBack() {
+      router.back();
     },
     getColor(number) {
       return getColorByNumber(number);
@@ -159,7 +159,7 @@ export default {
       this.selectedItems = [];
     },
 
-    submitSave() {
+    async submitSave() {
       let updates = [];
       this.repairDetails.forEach((item) => {
         updates.push(...item.repairParts);
@@ -207,6 +207,14 @@ export default {
               timer: 1500,
               showConfirmButton: false,
             });
+          } else {
+            Swal.fire({
+              icon: "warning",
+              title: "Alert!",
+              text: response.data.message,
+              showConfirmButton: true,
+            });
+            return;
           }
         }
       });
@@ -319,6 +327,15 @@ export default {
             this.getRepairDetail();
             this.removeObjectPresetAndSelectedItems();
             Swal.fire("Success!", "เพิ่มข้อมูลแล้ว", "success");
+          } else {
+            Swal.fire({
+              icon: "warning",
+              title: "Alert!",
+              text: response.data.message,
+              timer: 1500,
+              showConfirmButton: false,
+            });
+            return;
           }
         }
       });
@@ -365,6 +382,15 @@ export default {
             this.closeDialogAddItems();
             this.initialize();
             Swal.fire("Success!", "เพิ่มข้อมูลแล้ว", "success");
+          } else {
+            Swal.fire({
+              icon: "warning",
+              title: "Alert!",
+              text: response.data.message,
+              timer: 1500,
+              showConfirmButton: false,
+            });
+            return;
           }
         }
       });

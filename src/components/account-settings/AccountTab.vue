@@ -240,10 +240,10 @@ export default {
       </v-col> -->
     </v-row>
     <div class="d-flex justify-end mt-5 pb-3">
-      <v-btn size="large" color="primary" class="mr-4" @click="changePassword"
-        >Save</v-btn
+      <v-btn color="primary" class="mr-4" @click="changePassword"
+        >บันทึกการเปลี่ยนแปลง</v-btn
       >
-      <v-btn size="large" class="bg-lighterror text-error">Cancel</v-btn>
+      <!-- <v-btn size="large" class="bg-lighterror text-error">Cancel</v-btn> -->
     </div>
   </v-card>
 </template>

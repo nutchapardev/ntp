@@ -109,6 +109,14 @@ export default {
               });
               this.closeAddEmployeeDialog();
               this.initialize();
+            } else {
+              Swal.fire({
+                icon: "warning",
+                title: "Alert!",
+                text: response.data.message,
+                timer: 1500,
+                showConfirmButton: false,
+              });
             }
           } catch (error) {
             console.error(error);
@@ -249,7 +257,12 @@ export default {
       </v-btn>
     </v-col>
   </v-row>
-  <v-data-table :search="search" :headers="headers" :items="employees" class="border rounded-md">
+  <v-data-table
+    :search="search"
+    :headers="headers"
+    :items="employees"
+    class="border rounded-md"
+  >
     <template v-slot:item.FirstName="{ item }">
       {{ item.FirstName }} {{ item.LastName }}
     </template>

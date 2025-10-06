@@ -42,6 +42,7 @@ export default {
     },
     async getRepairByID() {
       const response = await serverService.getRepairByID(this.repairID);
+      console.log(response.data);
       this.RepairItems = response.data;
     },
     async getRepairDetail() {
@@ -149,20 +150,23 @@ export default {
             <v-col cols="12" md="6">
               <div class="text-14 textSecondary lh-normal">
                 <p>
-                  <span class="font-weight-bold">รถยนต์หมายเลขทะเบียน : </span
-                  >6กศ 2659 กรุงเทพมหานคร
+                  <span class="font-weight-bold">รถยนต์หมายเลขทะเบียน : </span>
+                  {{ RepairItems.car.CarTitle }}
+                  {{ RepairItems.car.CarNumber }}
+                  {{ RepairItems.car.province.name_th }}
                 </p>
                 <p>
-                  <span class="font-weight-bold">ยี่ห้อ / รุ่น : </span>Honda
-                  (Civic 2019)
+                  <span class="font-weight-bold">ยี่ห้อ / รุ่น : </span>
+                  {{ RepairItems.car.brand.Brand }}
+                  ({{ RepairItems.car.model.Model }})
                 </p>
-                <p>
-                  <span class="font-weight-bold">หมายเลขเครื่องยนต์ : </span
-                  >KLDGJSDMF45SD
+                <p v-if="RepairItems.car.EC">
+                  <span class="font-weight-bold">หมายเลขเครื่องยนต์ : </span>
+                  {{ RepairItems.car.EC }}
                 </p>
-                <p>
-                  <span class="font-weight-bold">หมายเลขตัวถัง : </span
-                  >4JKTGJSKS
+                <p v-if="RepairItems.car.VIN">
+                  <span class="font-weight-bold">หมายเลขตัวถัง : </span>
+                  {{ RepairItems.car.VIN }}
                 </p>
               </div>
             </v-col>
