@@ -11,8 +11,8 @@ export const apiPath = "ntp-api"
 // export const apiPath = "ntp-api-uat"
 
 // export const basePath = "http://49.231.43.77"
-export const basePath = "https://iamnutcha.com"
-// export const basePath = "http://localhost:8080"
+// export const basePath = "https://iamnutcha.com"
+export const basePath = "http://localhost:8080"
 export const apiUrl = basePath + "/" + apiPath
 
 export const server = {
