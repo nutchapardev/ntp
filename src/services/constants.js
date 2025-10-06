@@ -8,9 +8,11 @@ export const UPLOAD_PHOTO_FAIL_MESSAGE =
 export const NOT_CONNECT_NETWORK = "NOT_CONNECT_NETWORK"
 
 export const apiPath = "ntp-api"
+// export const apiPath = "ntp-api-uat"
+
 // export const basePath = "http://49.231.43.77"
-// export const basePath = "https://iamnutcha.com"
-export const basePath = "http://localhost:8080"
+export const basePath = "https://iamnutcha.com"
+// export const basePath = "http://localhost:8080"
 export const apiUrl = basePath + "/" + apiPath
 
 export const server = {

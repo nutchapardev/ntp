@@ -1,8 +1,8 @@
 <script>
-import serverService from "@/services/serverService";
-import Swal from "sweetalert2";
-import { nextTick } from "vue";
-import { getNumberOfDigits, getRandomColor } from "@/utils/functions";
+import serverService from "@/services/serverService"
+import Swal from "sweetalert2"
+import { nextTick } from "vue"
+import { getNumberOfDigits, getRandomColor } from "@/utils/functions"
 
 export default {
   data() {
@@ -72,45 +72,45 @@ export default {
           Zipcode: null,
         },
       },
-    };
+    }
   },
   methods: {
     async getCustomers() {
-      const response = await serverService.getAllCustomers();
-      this.customers = response.data;
+      const response = await serverService.getAllCustomers()
+      this.customers = response.data
     },
     async getCustomerTitle() {
-      const response = await serverService.getCustomerTitle();
-      this.customerTitles = response.data;
+      const response = await serverService.getCustomerTitle()
+      this.customerTitles = response.data
     },
     async getProvinces() {
-      const response = await serverService.getProvinces();
-      this.provinces = response.data;
+      const response = await serverService.getProvinces()
+      this.provinces = response.data
     },
     async getDistrict(ProvinceID) {
-      const response = await serverService.getDistrictByProvinceID(ProvinceID);
-      this.districts = response.data;
-      this.customerDataSet.address.DistrictID = null;
-      this.customerDataSet.address.SubDistrictID = null;
-      this.customerDataSet.address.Zipcode = null;
+      const response = await serverService.getDistrictByProvinceID(ProvinceID)
+      this.districts = response.data
+      this.customerDataSet.address.DistrictID = null
+      this.customerDataSet.address.SubDistrictID = null
+      this.customerDataSet.address.Zipcode = null
     },
     async getSubDistrict(DistrictID) {
       const response = await serverService.getSubDistrictsByDistrictID(
         DistrictID
-      );
-      this.subDistricts = response.data;
-      this.customerDataSet.address.SubDistrictID = null;
-      this.customerDataSet.address.Zipcode = null;
+      )
+      this.subDistricts = response.data
+      this.customerDataSet.address.SubDistrictID = null
+      this.customerDataSet.address.Zipcode = null
     },
     async setZipcode(SubDistrictID) {
       const data = this.subDistricts.find(
         (item) => item.SubDistrictID == SubDistrictID
-      );
-      this.customerDataSet.address.Zipcode = data.Zipcode;
+      )
+      this.customerDataSet.address.Zipcode = data.Zipcode
     },
     async submitAddCustomer() {
-      const { CustomerTitleID, CustomerName, address } = this.customerDataSet;
-      const { Line1, SubDistrictID, DistrictID, ProvinceID } = address;
+      const { CustomerTitleID, CustomerName, address } = this.customerDataSet
+      const { Line1, SubDistrictID, DistrictID, ProvinceID } = address
       if (
         CustomerTitleID == null ||
         CustomerName == "" ||
@@ -125,8 +125,8 @@ export default {
           text: "กรุณากรอกข้อมูลให้ครบถ้วน",
           timer: 1500,
           showConfirmButton: false,
-        });
-        return;
+        })
+        return
       }
 
       Swal.fire({
@@ -143,7 +143,7 @@ export default {
           try {
             const response = await serverService.addCustomersAndAddresses(
               this.customerDataSet
-            );
+            )
             if (response.data.result) {
               Swal.fire({
                 icon: "success",
@@ -151,24 +151,24 @@ export default {
                 text: "เพิ่มข้อมูลสำเร็จ",
                 timer: 1500,
                 showConfirmButton: false,
-              });
-              this.closeDialogAddCustomer();
-              this.initialize();
+              })
+              this.closeDialogAddCustomer()
+              this.initialize()
             }
           } catch (error) {
-            console.error(error);
+            console.error(error)
             Swal.fire({
               icon: "error",
               title: "Error!",
               text: "ไม่สามารถเพิ่มข้อมูลได้ กรุณาลองใหม่อีกครั้ง",
-            });
+            })
           }
         }
-      });
+      })
     },
     async submitEditCustomer() {
-    //   console.log(this.customerDataSet);
-      const { CustomerID, CustomerName } = this.customerDataSet;
+      //   console.log(this.customerDataSet);
+      const { CustomerID, CustomerName } = this.customerDataSet
       if (CustomerName == null || CustomerName == "") {
         Swal.fire({
           icon: "warning",
@@ -176,8 +176,8 @@ export default {
           text: "กรุณากรอกข้อมูลให้ครบถ้วน",
           timer: 1500,
           showConfirmButton: false,
-        });
-        return;
+        })
+        return
       }
 
       Swal.fire({
@@ -195,7 +195,7 @@ export default {
             const response = await serverService.editCustomerByID(
               CustomerID,
               this.customerDataSet
-            );
+            )
             if (response.data.result) {
               Swal.fire({
                 icon: "success",
@@ -203,24 +203,24 @@ export default {
                 text: "แก้ไขข้อมูลสำเร็จ",
                 timer: 1500,
                 showConfirmButton: false,
-              });
-              this.closeDialogEditCustomer();
-              this.initialize();
+              })
+              this.closeDialogEditCustomer()
+              this.initialize()
             }
           } catch (error) {
-            console.error(error);
+            console.error(error)
             Swal.fire({
               icon: "error",
               title: "Error!",
               text: "ไม่สามารถแก้ไขข้อมูลได้ กรุณาลองใหม่อีกครั้ง",
-            });
+            })
           }
         }
-      });
+      })
     },
     async submitAddAddress() {
-      const { CustomerID, address } = this.customerDataSet;
-      const { Line1, ProvinceID, DistrictID, SubDistrictID } = address;
+      const { CustomerID, address } = this.customerDataSet
+      const { Line1, ProvinceID, DistrictID, SubDistrictID } = address
       if (
         !CustomerID ||
         Line1 == "" ||
@@ -235,8 +235,8 @@ export default {
           text: "กรุณากรอกข้อมูลให้ครบถ้วน",
           timer: 1500,
           showConfirmButton: false,
-        });
-        return;
+        })
+        return
       }
 
       Swal.fire({
@@ -255,8 +255,8 @@ export default {
               OwnerID: CustomerID,
               AddressTypeID: 1,
               ...address,
-            };
-            const response = await serverService.addAddress(payload);
+            }
+            const response = await serverService.addAddress(payload)
             if (response.data.result) {
               Swal.fire({
                 icon: "success",
@@ -264,21 +264,21 @@ export default {
                 text: "เพิ่มข้อมูลสำเร็จ",
                 timer: 1500,
                 showConfirmButton: false,
-              });
-              this.closeDialogAddAddress();
-              this.closeDialogEditCustomer();
-              this.initialize();
+              })
+              this.closeDialogAddAddress()
+              this.closeDialogEditCustomer()
+              this.initialize()
             }
           } catch (error) {
-            console.error(error);
+            console.error(error)
             Swal.fire({
               icon: "error",
               title: "Error!",
               text: "ไม่สามารถเพิ่มข้อมูลได้ กรุณาลองใหม่อีกครั้ง",
-            });
+            })
           }
         }
-      });
+      })
     },
     async deleteAddress(addressId) {
       Swal.fire({
@@ -295,13 +295,13 @@ export default {
           try {
             const response = await serverService.deleteAddressByAddressID(
               addressId
-            );
+            )
             if (response.data.result) {
               const indexToDelete = this.customerDataSet.addresses.findIndex(
                 (address) => address.AddressID === addressId
-              );
+              )
               if (indexToDelete > -1) {
-                this.customerDataSet.addresses.splice(indexToDelete, 1);
+                this.customerDataSet.addresses.splice(indexToDelete, 1)
               }
               Swal.fire({
                 icon: "success",
@@ -309,32 +309,32 @@ export default {
                 text: "ลบข้อมูลสำเร็จ",
                 timer: 1500,
                 showConfirmButton: false,
-              });
+              })
               // this.closeDialogAddVendor();
               // this.initialize();
             }
           } catch (error) {
-            console.error(error);
+            console.error(error)
             Swal.fire({
               icon: "error",
               title: "Error!",
               text: "ไม่สามารถลบข้อมูลได้ กรุณาลองใหม่อีกครั้ง",
-            });
+            })
           }
         }
-      });
+      })
     },
     openDialogAddCustomer() {
-      this.dialogAddCustomer = true;
+      this.dialogAddCustomer = true
     },
     closeDialogAddCustomer() {
-      this.dialogAddCustomer = false;
+      this.dialogAddCustomer = false
       nextTick(() => {
-        this.customerDataSet = Object.assign({}, this.defaultItems);
-      });
+        this.customerDataSet = Object.assign({}, this.defaultItems)
+      })
     },
     openDialogEditCustomer(item) {
-      this.dialogEditCustomer = true;
+      this.dialogEditCustomer = true
       this.customerDataSet = {
         CustomerID: item.CustomerID,
         CustomerTitleID: item.CustomerTitleID,
@@ -344,36 +344,36 @@ export default {
         CustomerTel: item.CustomerTel,
         addresses: item.addresses,
         address: this.defaultItems.address,
-      };
+      }
     },
     closeDialogEditCustomer() {
-      this.dialogEditCustomer = false;
+      this.dialogEditCustomer = false
       nextTick(() => {
-        this.customerDataSet = Object.assign({}, this.defaultItems);
-      });
+        this.customerDataSet = Object.assign({}, this.defaultItems)
+      })
     },
     openDialogAddAddress() {
-      this.dialogAddAddress = true;
+      this.dialogAddAddress = true
     },
     closeDialogAddAddress() {
-      this.dialogAddAddress = false;
+      this.dialogAddAddress = false
       nextTick(() => {
         this.customerDataSet.address = Object.assign(
           {},
           this.defaultItems.address
-        );
-      });
+        )
+      })
     },
     async initialize() {
-      await this.getCustomers();
-      await this.getCustomerTitle();
-      await this.getProvinces();
+      await this.getCustomers()
+      await this.getCustomerTitle()
+      await this.getProvinces()
     },
   },
   created() {
-    this.initialize();
+    this.initialize()
   },
-};
+}
 </script>
 <template>
   <v-row>
@@ -444,9 +444,9 @@ export default {
         </div>
       </div>
     </template>
-    <template v-slot:no-data>
+    <!-- <template v-slot:no-data>
       <v-btn color="primary" @click="initialize"> Reset </v-btn>
-    </template>
+    </template> -->
   </v-data-table>
   <!-- Dialog Add Customer -->
   <v-dialog
