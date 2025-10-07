@@ -12,9 +12,19 @@ const sidebarItem = [
     to: "/system/repairs",
   },
   {
-    title: "ใบเสนอราคา",
+    title: "Invoices",
     icon: "bill-check-outline",
-    to: "/system/invoices",
+    // to: "/system/invoices",
+    children: [
+      {
+        title: "ใบแจ้งหนี้",
+        to: "/system/invoices",
+      },
+      {
+        title: "ใบเสร็จ/ใบกำกับภาษี",
+        to: "/system/recieve",
+      },
+    ],
   },
   { header: "Customers and Vendors" },
   {
@@ -42,7 +52,7 @@ const sidebarItem = [
     title: "ข้อมูลอะไหล่",
     // icon: "command-linear",
     icon: "align-vertical-center-line-duotone",
-    to: "/system/ref",
+    // to: "/system/ref",
     children: [
       {
         title: "จัดกลุ่มข้อมูลกับรถยนต์",
@@ -666,6 +676,6 @@ const sidebarItem = [
   //   icon: "sticker-smile-circle-2-line-duotone",
   //   to: "/icons/tabler",
   // },
-]
+];
 
-export default sidebarItem
+export default sidebarItem;

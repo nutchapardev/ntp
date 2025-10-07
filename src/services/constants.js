@@ -49,6 +49,7 @@ export const server = {
   REPAIR_PART_URL: `repairpart`,
   UNIT_URL: `unit`,
   COMPANY_DATA_URL: `companydata`,
+  INVOICE_URL: `invoices`,
 }
 
 export const message = {

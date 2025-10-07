@@ -1,17 +1,21 @@
 <script>
-import serverService from "@/services/serverService"
+import serverService from "@/services/serverService";
 import {
   // toThaiDateString,
   // toThaiDateTimeString,
   formatCurrency,
   getColorByNumber,
-} from "@/utils/functions"
-import { sum } from "lodash"
-import { useAuthStore } from "@/stores/authStore"
+} from "@/utils/functions";
+import { sum } from "lodash";
+import { useAuthStore } from "@/stores/authStore";
+import Swal from "sweetalert2";
+import { useRouter } from 'vue-router';
 export default {
   data() {
-    const authStore = useAuthStore()
+    const router = useRouter();
+    const authStore = useAuthStore();
     return {
+      router,
       authStore,
       page: { title: "ค่าใช้จ่ายโดยประมาณ" },
       breadcrumbs: [
@@ -36,72 +40,135 @@ export default {
       companyData: null,
       isVat: false,
       vatRate: 0.07,
-    }
+    };
   },
   methods: {
     getColor(number) {
-      return getColorByNumber(number)
+      return getColorByNumber(number);
     },
     formatSeperateCurrency(total) {
-      return formatCurrency(total)
+      return formatCurrency(total);
     },
     sumPartsCost(parts) {
       return sum(
         (parts ?? []).map(
           (part) => (part.PricePerUnit ?? 0) * (part.NumOfUse ?? 0)
         )
-      )
+      );
     },
     async getRepairByID() {
-      const response = await serverService.getRepairByID(this.repairID)
-      this.RepairItems = response.data
+      const response = await serverService.getRepairByID(this.repairID);
+      this.RepairItems = response.data;
     },
     async getRepairDetail() {
       const response = await serverService.getRepairDetailByRepairID(
         this.repairID
-      )
-      this.repairDetails = response.data
+      );
+      this.repairDetails = response.data;
     },
     async getCompanyData() {
-      const response = await serverService.getCompanyData()
-      this.companyData = response.data[0]
+      const response = await serverService.getCompanyData();
+      this.companyData = response.data[0];
     },
     async createQuotation() {
-      console.log(this.RepairItems)
+      console.log(this.RepairItems);
+      const { RepairID, WorkStatusID } = this.RepairItems;
+      if (!RepairID) {
+        Swal.fire({
+          icon: "warning",
+          title: "Alert!",
+          text: "ไม่พบ RepairID เกิดข้อผิดพลาดของระบบ",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+        return;
+      }
+
+      Swal.fire({
+        title: "Are you sure?",
+        text: "ท่านต้องการสร้างใบแจ้งหนี้ ใช่หรือไม่?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "<span style='color:white;'>Yes, continue!</span>",
+        cancelButtonText: "<span style='color:white;'>Cancel</span>",
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            const response = await serverService.createInvoice({ RepairID });
+            console.log(response.data);
+
+            if (response.data.result) {
+              // เปลี่ยนสถานเป็น สร้างใบแจ้งหนี้
+              if (WorkStatusID == 2) {
+                await serverService.updateRepairByID(RepairID, {
+                  WorkStatusID: 3,
+                });
+                // เปลี่ยนสถานเป็น สร้างใบแจ้งหนี้
+              }
+              Swal.fire({
+                icon: "success",
+                title: "สำเร็จ",
+                text: "สร้างใบแจ้งหนี้สำเร็จ",
+                timer: 1500,
+                showConfirmButton: false,
+              });
+              // this.closeDialogAddCustomer()
+              // this.initialize()
+            } else {
+              Swal.fire({
+                icon: "warning",
+                title: "Alert!",
+                text: response.data.message,
+                timer: 1500,
+                showConfirmButton: false,
+              });
+            }
+          } catch (error) {
+            console.error(error);
+            Swal.fire({
+              icon: "error",
+              title: "Error!",
+              text: "ไม่สามารถสร้างใบแจ้งหนี้ได้ กรุณาลองใหม่อีกครั้ง",
+            });
+          }
+        }
+      });
     },
     async initialize() {
-      this.authStore.setLoadingOn()
-      await this.getRepairByID().then(() => this.getRepairDetail())
-      await this.getCompanyData()
-      this.authStore.setLoadingOff()
+      this.authStore.setLoadingOn();
+      await this.getRepairByID().then(() => this.getRepairDetail());
+      await this.getCompanyData();
+      this.authStore.setLoadingOff();
     },
   },
   created() {
-    this.initialize()
+    this.initialize();
   },
   computed: {
     repairID() {
-      return this.$route.params.repairID
+      return this.$route.params.repairID;
     },
     subtotal() {
       return (this.repairDetails ?? []).reduce((sum, obj) => {
         return (
           sum +
           (obj.repairParts ?? []).reduce((sum2, part) => {
-            return sum2 + (part.PricePerUnit ?? 0) * (part.NumOfUse ?? 0)
+            return sum2 + (part.PricePerUnit ?? 0) * (part.NumOfUse ?? 0);
           }, 0)
-        )
-      }, 0)
+        );
+      }, 0);
     },
     vat() {
-      return this.subtotal * (this.isVat ? this.vatRate : 0)
+      return this.subtotal * (this.isVat ? this.vatRate : 0);
     },
     grandTotal() {
-      const total = parseFloat(this.subtotal) + parseFloat(this.vat)
-      return total
+      const total = parseFloat(this.subtotal) + parseFloat(this.vat);
+      return total;
     },
   },
-}
+};
 </script>
 <template>
   <BaseBreadcrumb

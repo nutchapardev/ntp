@@ -41,6 +41,7 @@ declare module 'vue' {
     Highlights: typeof import('./src/components/dashboards/analytical/Highlights.vue')['default']
     ImageGallery: typeof import('./src/components/cars/ImageGallery.vue')['default']
     ImageUploader: typeof import('./src/components/cars/ImageUploader.vue')['default']
+    InvoiceTable: typeof import('./src/components/invoices/InvoiceTable.vue')['default']
     Loading: typeof import('./src/components/Loading.vue')['default']
     LoginForm: typeof import('./src/components/auth/LoginForm.vue')['default']
     MonthlyWinner: typeof import('./src/components/dashboards/ecommerce/MonthlyWinner.vue')['default']

@@ -6,7 +6,7 @@ export default {
   },
   data() {
     return {
-      page: { title: "Invoices" },
+      page: { title: "Recieve" },
       breadcrumbs: [
         {
           text: "System",
@@ -14,7 +14,7 @@ export default {
           href: "#",
         },
         {
-          text: "Invoices",
+          text: "Recieve",
           disabled: false,
           href: "#",
         },
@@ -28,7 +28,7 @@ export default {
     :title="page.title"
     :breadcrumbs="breadcrumbs"
   ></BaseBreadcrumb>
-  <UiParentCard Tableard title="Invoices">
-    <InvoiceTable />
+  <UiParentCard Tableard title="Recieve">
+    <HelloWorld />
   </UiParentCard>
 </template>
