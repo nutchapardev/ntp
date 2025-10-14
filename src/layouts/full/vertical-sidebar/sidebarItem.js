@@ -12,10 +12,19 @@ const sidebarItem = [
     to: "/system/repairs",
   },
   {
+    title: "ซื้อขายอะไหล่",
+    icon: "add-circle-broken",
+    to: "/system/repairsหห",
+  },
+  {
     title: "Invoices",
     icon: "bill-check-outline",
     // to: "/system/invoices",
     children: [
+      {
+        title: "ใบเสนอราคา",
+        to: "/system/invoicess",
+      },
       {
         title: "ใบแจ้งหนี้",
         to: "/system/invoices",
@@ -676,6 +685,6 @@ const sidebarItem = [
   //   icon: "sticker-smile-circle-2-line-duotone",
   //   to: "/icons/tabler",
   // },
-];
+]
 
-export default sidebarItem;
+export default sidebarItem

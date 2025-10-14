@@ -399,6 +399,7 @@ export default {
   </v-row>
   <v-data-table
     class="border rounded-md"
+    :search="search"
     :headers="headers"
     :items="customers"
     :sort-by="[{ key: 'CustomerID', order: 'desc' }]"

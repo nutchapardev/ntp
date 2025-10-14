@@ -1,13 +1,13 @@
 <script>
-import { RouterView } from "vue-router";
-import VerticalSidebarVue from "./full/vertical-sidebar/VerticalSidebar.vue";
-import VerticalHeaderVue from "./full/vertical-header/VerticalHeader.vue";
-import HorizontalHeader from "./full/horizontal-header/HorizontalHeader.vue";
-import HorizontalSidebar from "./full/horizontal-sidebar/HorizontalSidebar.vue";
-import Customizer from "./full/customizer/Customizer.vue";
-import { useCustomizerStore } from "@/stores/customizer";
-import { useAuthStore } from "@/stores/authStore";
-import { SettingsIcon } from "vue-tabler-icons";
+import { RouterView } from "vue-router"
+import VerticalSidebarVue from "./full/vertical-sidebar/VerticalSidebar.vue"
+import VerticalHeaderVue from "./full/vertical-header/VerticalHeader.vue"
+import HorizontalHeader from "./full/horizontal-header/HorizontalHeader.vue"
+import HorizontalSidebar from "./full/horizontal-sidebar/HorizontalSidebar.vue"
+import Customizer from "./full/customizer/Customizer.vue"
+import { useCustomizerStore } from "@/stores/customizer"
+import { useAuthStore } from "@/stores/authStore"
+import { SettingsIcon } from "vue-tabler-icons"
 
 export default {
   name: "DefaultLayout",
@@ -21,14 +21,14 @@ export default {
     SettingsIcon,
   },
   data() {
-    const customizer = useCustomizerStore();
-    const authStore = useAuthStore();
+    const customizer = useCustomizerStore()
+    const authStore = useAuthStore()
     return {
       customizer,
       authStore,
-    };
+    }
   },
-};
+}
 </script>
 
 <template>
@@ -43,6 +43,8 @@ export default {
     ]"
   >
     <v-locale-provider :rtl="customizer.setRTLLayout">
+      <!-- ปุ่มสำหรับเปลี่ยน Theme -->
+
       <!-- <v-navigation-drawer
         app
         temporary
@@ -54,6 +56,8 @@ export default {
       >
         <Customizer />
       </v-navigation-drawer> -->
+
+      <!-- ปุ่มสำหรับเปลี่ยน Theme -->
 
       <VerticalHeaderVue v-if="!customizer.setHorizontalLayout" />
       <VerticalSidebarVue v-if="!customizer.setHorizontalLayout" />
@@ -72,6 +76,8 @@ export default {
               </transition>
             </RouterView>
 
+            <!-- ปุ่มสำหรับเปลี่ยน Theme -->
+
             <!-- <v-btn
               class="customizer-btn"
               size="large"
@@ -84,6 +90,8 @@ export default {
             >
               <SettingsIcon />
             </v-btn> -->
+
+            <!-- ปุ่มสำหรับเปลี่ยน Theme -->
           </div>
         </v-container>
       </v-main>

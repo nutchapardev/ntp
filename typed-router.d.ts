@@ -34,8 +34,8 @@ declare module 'vue-router/auto-routes' {
     '/system/recieve/': RouteRecordInfo<'/system/recieve/', '/system/recieve', Record<never, never>, Record<never, never>>,
     '/system/ref/': RouteRecordInfo<'/system/ref/', '/system/ref', Record<never, never>, Record<never, never>>,
     '/system/repairs/': RouteRecordInfo<'/system/repairs/', '/system/repairs', Record<never, never>, Record<never, never>>,
-    '/system/repairs/details/[repairID]': RouteRecordInfo<'/system/repairs/details/[repairID]', '/system/repairs/details/:repairID', { repairID: ParamValue<true> }, { repairID: ParamValue<false> }>,
     '/system/repairs/[repairID]': RouteRecordInfo<'/system/repairs/[repairID]', '/system/repairs/:repairID', { repairID: ParamValue<true> }, { repairID: ParamValue<false> }>,
+    '/system/repairs/details/[repairID]': RouteRecordInfo<'/system/repairs/details/[repairID]', '/system/repairs/details/:repairID', { repairID: ParamValue<true> }, { repairID: ParamValue<false> }>,
     '/system/stock/': RouteRecordInfo<'/system/stock/', '/system/stock', Record<never, never>, Record<never, never>>,
     '/system/vendors/': RouteRecordInfo<'/system/vendors/', '/system/vendors', Record<never, never>, Record<never, never>>,
   }
