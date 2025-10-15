@@ -18,8 +18,8 @@ export default {
       checkbox: false,
       valid: false,
       show1: false,
-      username: "",
-      password: "",
+      username: "nutcha",
+      password: "password",
       passwordRules: [
         (v) => !!v || "Password is required",
         (v) =>

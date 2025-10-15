@@ -59,6 +59,8 @@ declare module 'vue' {
     ProfileBox: typeof import('./src/components/dashboards/analytical/ProfileBox.vue')['default']
     ProfileCard: typeof import('./src/components/dashboards/classic/ProfileCard.vue')['default']
     ProgressCards: typeof import('./src/components/dashboards/modern/ProgressCards.vue')['default']
+    '[QuotationID]': typeof import('./src/components/quotation/details/[QuotationID].vue')['default']
+    QuotationTable: typeof import('./src/components/quotation/QuotationTable.vue')['default']
     RecentChats: typeof import('./src/components/dashboards/campaign/RecentChats.vue')['default']
     ReviewsCard: typeof import('./src/components/dashboards/modern/ReviewsCard.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

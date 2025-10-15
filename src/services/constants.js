@@ -50,6 +50,9 @@ export const server = {
   UNIT_URL: `unit`,
   COMPANY_DATA_URL: `companydata`,
   INVOICE_URL: `invoices`,
+  QUOTATION_URL: `quotation`,
+  QUOTATION_DETAIL_URL: `quotation-detail`,
+  QUOTATION_PART_URL: `quotation-part`,
 }
 
 export const message = {

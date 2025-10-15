@@ -23,7 +23,7 @@ const sidebarItem = [
     children: [
       {
         title: "ใบเสนอราคา",
-        to: "/system/invoicess",
+        to: "/system/quotation",
       },
       {
         title: "ใบแจ้งหนี้",
