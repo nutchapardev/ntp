@@ -2,6 +2,7 @@
 import serverService from "@/services/serverService";
 import { toThaiDateString, getColorByNumber } from "@/utils/functions";
 import Swal from "sweetalert2";
+import router from "@/router";
 export default {
   data() {
     return {
@@ -34,6 +35,11 @@ export default {
         ModelID: null,
         Comment: "",
       },
+      defaultItem: {
+        BrandID: null,
+        ModelID: null,
+        Comment: "",
+      },
     };
   },
   methods: {
@@ -54,12 +60,74 @@ export default {
     },
     async submitAddQuotation() {
       console.log("add quotation");
+      const { BrandID, ModelID } = this.quotationDataSet;
+      if (!BrandID || !ModelID) {
+        Swal.fire({
+          icon: "warning",
+          title: "Alert!",
+          text: "brandId or modelid is required.",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+        return;
+      }
+      Swal.fire({
+        title: "Are you sure?",
+        text: "ท่านต้องการเพิ่มข้อมูล ใช่หรือไม่?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "<span style='color:white;'>Yes, continue!</span>",
+        cancelButtonText: "<span style='color:white;'>Cancel</span>",
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          try {
+            const response = await serverService.createQuotation(
+              this.quotationDataSet
+            );
+            if (response.data.result) {
+              Swal.fire({
+                icon: "success",
+                title: "สำเร็จ",
+                text: "เพิ่มข้อมูลสำเร็จ",
+                timer: 1500,
+                showConfirmButton: false,
+              });
+              this.closeDialogAddQuotation();
+              this.getQuotation();
+              this.$router.push(
+                `/system/quotation/details/${response.data.data.QuotationID}`
+              );
+            } else {
+              Swal.fire({
+                icon: "warning",
+                title: "Alert!",
+                text: response.data.message,
+                timer: 1500,
+                showConfirmButton: false,
+              });
+              return;
+            }
+          } catch (error) {
+            console.error(error);
+            Swal.fire({
+              icon: "error",
+              title: "Error!",
+              text: "ไม่สามารถเพิ่มข้อมูลได้ กรุณาลองใหม่อีกครั้ง",
+            });
+          }
+        }
+      });
     },
     openDialogAddQuotation() {
       this.dialogAddQuotation = true;
     },
     closeDialogAddQuotation() {
       this.dialogAddQuotation = false;
+      nextTick(() => {
+        this.quotationDataSet = Object.assign({}, this.defaultItem);
+      });
     },
     async initialize() {
       await this.getQuotation();
@@ -99,9 +167,13 @@ export default {
     :search="search"
     :headers="headers"
     :items="quotations"
+    :sort-by="[{ key: 'QuotationID', order: 'desc' }]"
   >
     <template v-slot:item.QuotationDate="{ item }">
       {{ formatDate(item.QuotationDate) }}
+    </template>
+    <template v-slot:item.model.Model="{ item }">
+      {{ item.brand.Brand }} ( {{ item.model.Model }} )
     </template>
     <template v-slot:item.actions="{ item }">
       <v-btn
@@ -143,7 +215,10 @@ export default {
           item-title="Model"
           label="รุ่น"
         />
-        <v-textarea label="หมายเหตุ"></v-textarea>
+        <v-textarea
+          label="หมายเหตุ"
+          v-model="quotationDataSet.Comment"
+        ></v-textarea>
       </v-card-text>
       <hr />
       <v-card-actions>

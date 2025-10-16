@@ -32,6 +32,7 @@ import * as unitApis from "@/services/apis/api_units";
 import * as companyDataApis from "@/services/apis/api_companyData";
 import * as invoiceApis from "@/services/apis/api_invoices";
 import * as quotationApis from "@/services/apis/api_quotation";
+import * as quotationDetailApis from "@/services/apis/api_quotationDetail";
 
 const login = async (values) => {
   const resultLogin = await httpClient.post(server.LOGIN_URL, values);
@@ -83,4 +84,5 @@ export default {
   ...companyDataApis,
   ...invoiceApis,
   ...quotationApis,
+  ...quotationDetailApis,
 };

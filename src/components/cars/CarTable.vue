@@ -126,6 +126,15 @@ export default {
               });
               this.closeAddCarDialog();
               this.initialize();
+            } else {
+              Swal.fire({
+                icon: "warning",
+                title: "Alert!",
+                text: response.data.message,
+                timer: 1500,
+                showConfirmButton: false,
+              });
+              return;
             }
           } catch (error) {
             console.error(error);
