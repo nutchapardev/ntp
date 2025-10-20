@@ -1,6 +1,7 @@
 <script>
 import serverService from "@/services/serverService";
 import Swal from "sweetalert2";
+import { apiUrl } from "@/services/constants";
 import {
   toThaiDateString,
   toThaiDateTimeString,
@@ -10,6 +11,7 @@ import {
 export default {
   data() {
     return {
+      apiUrl,
       page: { title: "รายละเอียดใบเสนอราคา" },
       breadcrumbs: [
         {
@@ -41,23 +43,27 @@ export default {
       refItems: [],
       showPresetDetail: null,
       selectedItems: [],
+      parts: [],
       showPresetDetail: null,
       // dialog
       dialogAddPart: false,
+      dialogAddItems: false,
       // dataset
       addItem: {
-        RepairDetailID: null,
+        QuotationDetailID: null,
         PartID: null,
         NumOfUse: null,
         PricePerUnit: null,
         PartAmount: null, // for show
+        ServiceFee: null,
       },
       defaultItem: {
-        RepairDetailID: null,
+        QuotationDetailID: null,
         PartID: null,
         NumOfUse: null,
         PricePerUnit: null,
         PartAmount: null, // for show
+        ServiceFee: null,
       },
       expanded: [],
     };
@@ -66,27 +72,33 @@ export default {
     formatSeperateCurrency(total) {
       return formatCurrency(total);
     },
+    formatDate(date) {
+      return date ? toThaiDateString(new Date(date), "E, MMM dd, yyyy") : "N/A";
+    },
+    formatDateTime(date) {
+      return date ? toThaiDateTimeString(new Date(date)) : "N/A";
+    },
     async getQuotation() {
       const response = await serverService.getQuotationByID(this.QuotationID);
-      console.log(response.data);
       this.quotation = response.data;
     },
     async getQuotationDetail() {
       const response = await serverService.getQuotationDetailByQuotationID(
         this.quotationId
       );
-      console.log(response.data);
       this.quotationDetail = response.data;
     },
     async getRefModelCategoryPartByBrandID() {
       const response = await serverService.getRefModelCategoryPartByModelID(
         this.quotation.ModelID
       );
-      console.log(response.data);
       this.refItems = response.data;
     },
+    async getParts() {
+      const response = await serverService.getAllParts();
+      this.parts = response.data;
+    },
     async submitAddQuotaionItem() {
-      // console.log(this.selectedItems);
       if (this.selectedItems.length < 1) {
         Swal.fire({
           title: "Alert!",
@@ -125,8 +137,6 @@ export default {
             });
           });
 
-          console.log(payload);
-
           const response = await serverService.createQuotationDetailsWithParts(
             payload
           );
@@ -146,6 +156,135 @@ export default {
             return;
           }
         }
+      });
+    },
+    async submitAddItem() {
+      const { PartID, NumOfUse } = this.addItem;
+      if (
+        !PartID ||
+        PartID == null ||
+        NumOfUse == null ||
+        NumOfUse <= 0 ||
+        NumOfUse == ""
+      ) {
+        Swal.fire({
+          icon: "warning",
+          title: "Alert!",
+          text: "กรุณากรอกข้อมูลให้ครบถ้วน",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+        return;
+      }
+      Swal.fire({
+        title: "Are you sure?",
+        text: "ท่านต้องการเพิ่มข้อมูล ใช่หรือไม่?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "<span style='color:white;'>Yes, continue!</span>",
+        cancelButtonText: "<span style='color:white;'>Cancel</span>",
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          delete this.addItem.PartAmount;
+          this.addItem.NumOfUse = parseInt(this.addItem.NumOfUse);
+          const response = await serverService.createQuotationPart(
+            this.addItem
+          );
+          if (response.data.result) {
+            this.getQuotationDetail();
+            this.closeDialogAddItems();
+            Swal.fire("Success!", "เพิ่มข้อมูลแล้ว", "success");
+          } else {
+            Swal.fire({
+              icon: "warning",
+              title: "Alert!",
+              text: response.data.message,
+              timer: 1500,
+              showConfirmButton: false,
+            });
+            return;
+          }
+        }
+      });
+    },
+    async openDialogAddItems(item) {
+      this.addItem.QuotationDetailID = item.QuotationDetailID;
+      await this.getParts();
+      nextTick(() => {
+        this.dialogAddItems = true;
+      });
+    },
+    async deletePreset(item) {
+      Swal.fire({
+        title: "Are you sure?",
+        text: "ท่านต้องการลบข้อมูล ใช่หรือไม่?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "<span style='color:white;'>Yes, continue!</span>",
+        cancelButtonText: "<span style='color:white;'>Cancel</span>",
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          const response = await serverService.deleteQuotationDetailsWithParts(
+            item.QuotationDetailID,
+            {
+              quotationParts: item.quotationParts,
+            }
+          );
+          if (response.data.result) {
+            this.initialize();
+            Swal.fire("Success!", "ลบข้อมูลแล้ว", "success");
+          } else {
+            Swal.fire({
+              icon: "warning",
+              title: "Alert!",
+              text: response.data.message,
+              timer: 1500,
+              showConfirmButton: false,
+            });
+            return;
+          }
+        }
+      });
+    },
+    async deletePartInQuotationPart(item) {
+      Swal.fire({
+        title: "Are you sure?",
+        text: "ท่านต้องการลบข้อมูล ใช่หรือไม่?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "<span style='color:white;'>Yes, continue!</span>",
+        cancelButtonText: "<span style='color:white;'>Cancel</span>",
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          const response = await serverService.deleteQuotationPartByID(
+            item.QuotationPartID
+          );
+          if (response.data.result) {
+            this.initialize();
+            Swal.fire("Success!", "ลบข้อมูลแล้ว", "success");
+          } else {
+            Swal.fire({
+              icon: "warning",
+              title: "Alert!",
+              text: response.data.message,
+              timer: 1500,
+              showConfirmButton: false,
+            });
+            return;
+          }
+        }
+      });
+    },
+    closeDialogAddItems() {
+      this.dialogAddItems = false;
+      nextTick(() => {
+        this.addItem = Object.assign({}, this.defaultItem);
       });
     },
     openDialogAddPart() {
@@ -168,6 +307,31 @@ export default {
       this.showPresetDetail = preset;
       this.selectedItems = []; // เพิ่มบรรทัดนี้เพื่อล้างค่าที่เลือกไว้
       this.showPresetDetail.repairCategory = category.repairCategory;
+    },
+    async chooseOtherPreset() {
+      const response = await serverService.createSingleQuotationDetails({
+        QuotationID: this.quotationId,
+        RepairCategoryID: 0,
+        PresetID: 0,
+      });
+      if (response.data.result) {
+        this.initialize();
+        Swal.fire({
+          icon: "success",
+          title: "Success!",
+          text: "เพิ่มข้อมูลแล้ว",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      }
+    },
+    setAddItem(partId) {
+      const filter = this.parts.filter((part) => part.PartID == partId);
+      const data = filter[0];
+      this.addItem.PartID = data.PartID;
+      this.addItem.PricePerUnit = data.PricePerUnit;
+      this.addItem.ServiceFee = data.ServiceFee;
+      // this.addItem.PartAmount = data.PartAmount
     },
     sumPriceSinglePart(part) {
       const subtotal = part.NumOfUse * part.PricePerUnit;
@@ -217,12 +381,29 @@ export default {
     :title="page.title"
     :breadcrumbs="breadcrumbs"
   ></BaseBreadcrumb>
-  <UiParentCard Tableard title="รายละเอียดใบเสนอราคา">
+  <UiParentCard Tableard title="รายละเอียดใบเสนอราคา" v-if="quotation != null">
     <v-row>
-      <v-col> QuotationID : {{ QuotationID }} </v-col>
+      <v-col>
+        เลขที่ : {{ QuotationID }} <br />
+        วันที่สร้าง : {{ formatDateTime(quotation.createdAt) }}</v-col
+      >
       <v-col class="text-end">
-        <v-btn color="warning" size="large" rounded>
-          <v-icon> mdi-note-text-outline </v-icon>
+        <v-btn
+          :href="`${apiUrl}/pdf/create-quotation-group/${quotationId}`"
+          target="_blank"
+          color="success"
+          size="small"
+          class="mr-3"
+        >
+          แสดงใบเสนอราคาแบบจัดกลุ่ม
+        </v-btn>
+        <v-btn
+          :href="`${apiUrl}/pdf/create-quotation/${quotationId}`"
+          target="_blank"
+          color="primary"
+          size="small"
+        >
+          แสดงใบเสนอราคาแบบรายการ
         </v-btn>
       </v-col>
     </v-row>
@@ -281,7 +462,29 @@ export default {
                             </v-expansion-panel-text>
                             <v-divider></v-divider>
                           </v-expansion-panel>
+                          <v-expansion-panel elevation="10">
+                            <v-expansion-panel-title
+                              class="text-h6"
+                              color="info"
+                              @click="removeSelectedItem"
+                            >
+                              อื่นๆ
+                            </v-expansion-panel-title>
+                            <v-expansion-panel-text>
+                              <v-btn
+                                rounded="0"
+                                block
+                                variant="outlined"
+                                color=""
+                                class="mb-2"
+                                @click="chooseOtherPreset"
+                              >
+                                อื่นๆ
+                              </v-btn>
+                            </v-expansion-panel-text>
+                          </v-expansion-panel>
                         </v-expansion-panels>
+
                         <!-- Popout -->
                       </div>
                     </v-col>
@@ -291,55 +494,11 @@ export default {
                       <div class="text-center mt-4 mb-3 font-weight-bold">
                         {{ showPresetDetail.Preset }}
                       </div>
-                      <div v-if="checkNotEnoughItems">
-                        <v-alert
-                          density="compact"
-                          type="error"
-                          class="mb-4"
-                          variant="tonal"
-                        >
-                          <span>อุปกรณ์ไม่เพียงพอ</span> <br />
-                          <v-table
-                            class="border rounded-md mt-2 mb-2"
-                            density="compact"
-                          >
-                            <thead>
-                              <tr>
-                                <th class="text-start">รหัสอุปกรณ์</th>
-                                <th class="text-start">ชื่ออุปกรณ์</th>
-                                <th class="text-start">จำนวนที่ต้องใช้</th>
-                                <th class="text-start">จำนวนที่มี</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr
-                                v-for="(notItem, index) in notEnoughItems"
-                                :key="index"
-                              >
-                                <td class="text-start">
-                                  {{ notItem.part.PartNumber }}
-                                </td>
-                                <td class="text-start">
-                                  {{ notItem.part.PartName_th }}
-                                </td>
-                                <td class="text-end">
-                                  {{ notItem.NumOfUse }}
-                                  {{ notItem.part.unit.Unit }}
-                                </td>
-                                <td class="text-end">
-                                  {{ notItem.part.PartAmount }}
-                                  {{ notItem.part.unit.Unit }}
-                                </td>
-                              </tr>
-                            </tbody>
-                          </v-table>
-                          <!-- </div> -->
-                        </v-alert>
-                      </div>
+
                       <v-data-table
                         items-per-page="10"
                         :headers="headers"
-                        :items="aviableItems"
+                        :items="showPresetDetail.presetDetails"
                         v-model="selectedItems"
                         item-value="PresetDetailID"
                         show-select
@@ -378,8 +537,40 @@ export default {
             <tbody>
               <tr v-for="(detail, index) in quotationDetail" :key="index">
                 <td>
-                  <div class="mt-4">
+                  <div class="mt-4 d-flex align-center">
                     {{ index + 1 }}. {{ detail.preset.Preset }}
+                    <div>
+                      <v-btn
+                        flat
+                        icon
+                        color="lightprimary"
+                        size="x-small"
+                        class="ms-3"
+                        @click="openDialogAddItems(detail)"
+                      >
+                        <CirclePlusIcon class="text-primary" size="18" />
+                        <v-tooltip activator="parent" location="bottom"
+                          >เพิ่มอุปกรณ์</v-tooltip
+                        >
+                      </v-btn>
+                    </div>
+                    <v-spacer />
+                    <div>
+                      <v-btn
+                        flat
+                        icon
+                        color="lighterror"
+                        size="x-small"
+                        class="ms-3"
+                        @click="deletePreset(detail)"
+                      >
+                        <CircleMinusIcon class="text-error" size="18" />
+
+                        <v-tooltip activator="parent" location="bottom"
+                          >เพิ่มอุปกรณ์</v-tooltip
+                        >
+                      </v-btn>
+                    </div>
                   </div>
                   <v-table class="my-4 border">
                     <thead>
@@ -396,7 +587,7 @@ export default {
                     </thead>
                     <tbody>
                       <tr v-for="(part, i) in detail.quotationParts" :key="i">
-                        <td>{{ i+1 }}.</td>
+                        <td>{{ i + 1 }}.</td>
                         <td>{{ part.part.PartNumber }}</td>
                         <td>{{ part.part.PartName_en }}</td>
                         <td class="text-end">{{ part.NumOfUse }}</td>
@@ -409,7 +600,15 @@ export default {
                         <td class="text-end">
                           {{ formatSeperateCurrency(sumPriceSinglePart(part)) }}
                         </td>
-                        <td><v-btn size="small" color="error" variant="tonal"><v-icon>mdi-trash-can-outline</v-icon></v-btn></td>
+                        <td>
+                          <v-btn
+                            size="small"
+                            color="error"
+                            variant="tonal"
+                            @click="deletePartInQuotationPart(part)"
+                            ><v-icon>mdi-trash-can-outline</v-icon></v-btn
+                          >
+                        </td>
                       </tr>
                     </tbody>
                   </v-table>
@@ -426,6 +625,74 @@ export default {
       </div>
     </div>
   </UiParentCard>
+  <!-- dialog Add Items -->
+  <v-dialog
+    v-model="dialogAddItems"
+    class="dialog-mw"
+    style="max-width: 900px"
+    persistent
+  >
+    <v-card>
+      <v-card-title class="pa-4 bg-secondary">
+        <span class="text-h5">Items</span>
+      </v-card-title>
+      <v-card-text>
+        <v-row>
+          <v-col cols="12" md="9">
+            <v-autocomplete
+              v-model="addItem.PartID"
+              :items="parts"
+              item-value="PartID"
+              item-title="PartName_th"
+              prepend-inner-icon="mdi-magnify"
+              label="อุปกรณ์"
+              hide-details
+              color="primary"
+              variant="outlined"
+              autocomplete="false"
+              @update:modelValue="setAddItem"
+            >
+              <template v-slot:item="{ props, item }">
+                <v-list-item
+                  v-bind="props"
+                  :title="`รหัส : ${item.raw.PartNumber} || ${item.raw.PartName_th}`"
+                >
+                </v-list-item>
+              </template>
+            </v-autocomplete>
+          </v-col>
+          <v-col cols="12" md="3">
+            <v-text-field
+              v-model="addItem.NumOfUse"
+              type="number"
+              label="จำนวนที่ใช้"
+              hide-details
+            />
+          </v-col>
+          <!-- <v-col cols="12" md="2">
+            <v-text-field
+              v-model="addItem.PartAmount"
+              type="number"
+              label="จำนวนในคลัง"
+              readonly
+              hide-details
+            />
+          </v-col> -->
+        </v-row>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="primary" block flat @click="submitAddItem"
+          >เพิ่มอุปกรณ์</v-btn
+        >
+      </v-card-actions>
+      <v-card-actions>
+        <v-btn color="error" block flat @click="closeDialogAddItems"
+          >ปิดหน้าต่าง</v-btn
+        >
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+  <!-- dialog Add Items -->
 </template>
 
 <style scoped>
