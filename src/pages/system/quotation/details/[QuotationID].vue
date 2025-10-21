@@ -45,6 +45,7 @@ export default {
       selectedItems: [],
       parts: [],
       showPresetDetail: null,
+      isNotEnoughItem: false,
       // dialog
       dialogAddPart: false,
       dialogAddItems: false,
@@ -79,10 +80,12 @@ export default {
       return date ? toThaiDateTimeString(new Date(date)) : "N/A";
     },
     async getQuotation() {
+      this.isNotEnoughItem = false;
       const response = await serverService.getQuotationByID(this.QuotationID);
       this.quotation = response.data;
     },
     async getQuotationDetail() {
+      this.isNotEnoughItem = false;
       const response = await serverService.getQuotationDetailByQuotationID(
         this.quotationId
       );
@@ -337,6 +340,14 @@ export default {
       const subtotal = part.NumOfUse * part.PricePerUnit;
       return subtotal + part.ServiceFee;
     },
+    setRowColor(item) {
+      if (item.NumOfUse <= item.part.PartAmount) {
+        return "";
+      } else {
+        this.isNotEnoughItem = true
+        return "background-color:#ffcdd2;color:#000;";
+      }
+    },
     async initialize() {
       await this.getQuotation();
       await this.getQuotationDetail();
@@ -388,6 +399,16 @@ export default {
         วันที่สร้าง : {{ formatDateTime(quotation.createdAt) }}</v-col
       >
       <v-col class="text-end">
+        <v-btn
+          :href="`${apiUrl}/pdf/create-quotation-group/${quotationId}`"
+          target="_blank"
+          color="secondary"
+          size="small"
+          class="mr-3"
+          :disabled="isNotEnoughItem"
+        >
+          ส่งซ่อม
+        </v-btn>
         <v-btn
           :href="`${apiUrl}/pdf/create-quotation-group/${quotationId}`"
           target="_blank"
@@ -578,7 +599,7 @@ export default {
                         <th>#</th>
                         <th>รหัสอุปกรณ์</th>
                         <th>ชื่ออุปกรณ์</th>
-                        <th class="text-end">จำนวน</th>
+                        <th class="text-end">จำนวนที่ใช้</th>
                         <th class="text-end">ราคา/หน่วย</th>
                         <th class="text-end">ค่าบริการ</th>
                         <th class="text-end">จำนวนเงิน</th>
@@ -586,11 +607,19 @@ export default {
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-for="(part, i) in detail.quotationParts" :key="i">
+                      <tr
+                        v-for="(part, i) in detail.quotationParts"
+                        :key="i"
+                        :style="setRowColor(part)"
+                      >
                         <td>{{ i + 1 }}.</td>
                         <td>{{ part.part.PartNumber }}</td>
-                        <td>{{ part.part.PartName_en }}</td>
-                        <td class="text-end">{{ part.NumOfUse }}</td>
+                        <td>
+                          {{ part.part.PartName_th }}
+                        </td>
+                        <td class="text-end">
+                          {{ part.NumOfUse }}
+                        </td>
                         <td class="text-end">
                           {{ formatSeperateCurrency(part.part.PricePerUnit) }}
                         </td>
