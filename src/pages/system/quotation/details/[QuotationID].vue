@@ -44,11 +44,14 @@ export default {
       showPresetDetail: null,
       selectedItems: [],
       parts: [],
+      carsItems: [],
       showPresetDetail: null,
       isNotEnoughItem: false,
+      carIdForSearch: null,
       // dialog
       dialogAddPart: false,
       dialogAddItems: false,
+      dialogCustomer: false,
       // dataset
       addItem: {
         QuotationDetailID: null,
@@ -85,10 +88,15 @@ export default {
       this.quotation = response.data;
     },
     async getQuotationDetail() {
-      this.isNotEnoughItem = false;
+      // this.isNotEnoughItem = false;
       const response = await serverService.getQuotationDetailByQuotationID(
         this.quotationId
       );
+      if (response.data.length > 0) {
+        this.isNotEnoughItem = false;
+      } else {
+        this.isNotEnoughItem = true;
+      }
       this.quotationDetail = response.data;
     },
     async getRefModelCategoryPartByBrandID() {
@@ -100,6 +108,16 @@ export default {
     async getParts() {
       const response = await serverService.getAllParts();
       this.parts = response.data;
+    },
+    async getCars() {
+      try {
+        const response = await serverService.getCarByModel(
+          this.quotation.model.ModelID
+        );
+        this.carsItems = response.data;
+      } catch (error) {
+        console.error("Error fetching cars:", error);
+      }
     },
     async submitAddQuotaionItem() {
       if (this.selectedItems.length < 1) {
@@ -284,6 +302,74 @@ export default {
         }
       });
     },
+    async saveComment() {
+      const { QuotationID, Comment } = this.quotation;
+      const response = await serverService.updateQuotationByID(QuotationID, {
+        Comment,
+      });
+      if (response.data.result) {
+        Swal.fire("Success!", "บันทึกข้อมูลแล้ว", "success");
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title: "Alert!",
+          text: response.data.message,
+          timer: 1500,
+          showConfirmButton: false,
+        });
+        return;
+      }
+    },
+    async openDialogChooseCustomer() {
+      await this.getCars();
+      nextTick(() => {
+        this.dialogCustomer = true;
+      });
+    },
+    async submitChooseCustomer() {
+      if (!this.carIdForSearch) {
+        Swal.fire({
+          icon: "warning",
+          title: "Alert!",
+          text: "กรุณาเลือกรถยนต์",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+        return;
+      }
+
+      const responseCar = await serverService.getCarByCarID(
+        this.carIdForSearch
+      );
+      const payload = {
+        QuotationID: this.quotationId,
+        BrandID: responseCar.data.BrandID,
+        ModelID: responseCar.data.ModelID,
+        CarID: responseCar.data.CarID,
+        CustomerID: responseCar.data.CustomerID,
+      };
+
+      const response = await serverService.createInvoiceWithRepair(payload);
+      if (response.data.result) {
+        this.closeDialogChooseCustomer();
+        this.$router.push(
+          `/system/repairs/${response.data.createRepair.RepairID}`
+        );
+      } else {
+        Swal.fire({
+          icon: "warning",
+          title: "Alert!",
+          text: response.data.message,
+          timer: 1500,
+          showConfirmButton: false,
+        });
+        return;
+      }
+    },
+    closeDialogChooseCustomer() {
+      this.dialogCustomer = false;
+      this.carIdForSearch = null;
+    },
     closeDialogAddItems() {
       this.dialogAddItems = false;
       nextTick(() => {
@@ -344,7 +430,8 @@ export default {
       if (item.NumOfUse <= item.part.PartAmount) {
         return "";
       } else {
-        this.isNotEnoughItem = true
+        this.isNotEnoughItem = true;
+        this.isCanRepair = false;
         return "background-color:#ffcdd2;color:#000;";
       }
     },
@@ -396,16 +483,17 @@ export default {
     <v-row>
       <v-col>
         เลขที่ : {{ QuotationID }} <br />
-        วันที่สร้าง : {{ formatDateTime(quotation.createdAt) }}</v-col
-      >
+        วันที่สร้าง : {{ formatDateTime(quotation.createdAt) }} <br />
+        ยี่ห้อ/รุ่น : {{ quotation.brand.Brand }} {{ quotation.model.Model }}
+      </v-col>
       <v-col class="text-end">
         <v-btn
-          :href="`${apiUrl}/pdf/create-quotation-group/${quotationId}`"
           target="_blank"
           color="secondary"
           size="small"
           class="mr-3"
           :disabled="isNotEnoughItem"
+          @click="openDialogChooseCustomer"
         >
           ส่งซ่อม
         </v-btn>
@@ -599,6 +687,7 @@ export default {
                         <th>#</th>
                         <th>รหัสอุปกรณ์</th>
                         <th>ชื่ออุปกรณ์</th>
+                        <th class="text-end">จำนวนที่คลัง</th>
                         <th class="text-end">จำนวนที่ใช้</th>
                         <th class="text-end">ราคา/หน่วย</th>
                         <th class="text-end">ค่าบริการ</th>
@@ -616,6 +705,9 @@ export default {
                         <td>{{ part.part.PartNumber }}</td>
                         <td>
                           {{ part.part.PartName_th }}
+                        </td>
+                        <td class="text-end">
+                          {{ part.part.PartAmount }}
                         </td>
                         <td class="text-end">
                           {{ part.NumOfUse }}
@@ -648,10 +740,17 @@ export default {
           <!-- test -->
         </v-col>
       </v-row>
-      <div class="mt-5">
-        <b>หมายเหตุ</b>&nbsp;:&nbsp;
-        <v-textarea v-model="quotation.Comment" rows="1" />
+      <div class="row mt-5">
+        <div class="col">
+          <b>หมายเหตุ</b>&nbsp;:&nbsp;
+          <v-textarea v-model="quotation.Comment" rows="1" />
+        </div>
       </div>
+      <v-row>
+        <v-col class="text-end" @click="saveComment">
+          <v-btn color="primary">บันทึก</v-btn>
+        </v-col>
+      </v-row>
     </div>
   </UiParentCard>
   <!-- dialog Add Items -->
@@ -722,6 +821,55 @@ export default {
     </v-card>
   </v-dialog>
   <!-- dialog Add Items -->
+  <!-- dialog Choose Customer -->
+  <v-dialog
+    v-model="dialogCustomer"
+    class="dialog-mw"
+    max-width="400px"
+    persistent
+  >
+    <v-card>
+      <v-card-text>
+        <v-autocomplete
+          v-model="carIdForSearch"
+          :items="carsItems"
+          item-value="CarID"
+          item-title="CarNumber"
+          prepend-inner-icon="mdi-magnify"
+          label="ค้นหา"
+          hide-details
+          color="primary"
+          variant="outlined"
+          autocomplete="false"
+        >
+          <template v-slot:item="{ props, item }">
+            <v-list-item
+              v-bind="props"
+              :title="`${item.raw.CarTitle} ${item.raw.CarNumber} ${item.raw.province.name_th}`"
+            >
+            </v-list-item>
+          </template>
+          <template v-slot:selection="{ item }">
+            <span>
+              {{ item.raw.CarTitle }} {{ item.raw.CarNumber }}
+              {{ item.raw.province.name_th }}
+            </span>
+          </template>
+        </v-autocomplete>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="primary" block @click="submitChooseCustomer" flat
+          >ตกลง</v-btn
+        >
+      </v-card-actions>
+      <v-card-actions>
+        <v-btn color="secondary" block @click="closeDialogChooseCustomer" flat
+          >ยกเลิก</v-btn
+        >
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+  <!-- dialog Choose Customer -->
 </template>
 
 <style scoped>

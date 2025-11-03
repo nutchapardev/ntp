@@ -14,6 +14,10 @@ export const getCarByCarID = (id) => {
   return httpClient.get(`${server.CAR_URL}/${id}`);
 };
 
+export const getCarByModel = (id) => {
+  return httpClient.get(`${server.CAR_URL}/by-model/${id}`);
+};
+
 export const createCarWithCustomer = (data) => {
   return httpClient.post(`${server.CAR_URL}/with-customer`, data);
 };

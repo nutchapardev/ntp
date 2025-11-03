@@ -21,7 +21,7 @@ export const useInvoicestore = defineStore("invoices", {
     },
     totalCost: (state) => (part) => {
       // console.log(part);
-      const totalCost = part.PricePerUnit * part.NumOfUse
+      const totalCost = (part.PricePerUnit * part.NumOfUse) + part.ServiceFee
       return totalCost
     },
   },

@@ -78,7 +78,7 @@ export default {
         return (
           sum +
           (obj.repairParts ?? []).reduce((sum2, part) => {
-            return sum2 + (part.PricePerUnit ?? 0) * (part.NumOfUse ?? 0)
+            return sum2 + ((part.PricePerUnit ?? 0) * (part.NumOfUse ?? 0)) + part.ServiceFee
           }, 0)
         )
       }, 0)
@@ -699,8 +699,9 @@ export default {
                 <tr>
                   <th class="text-14 text-no-wrap"></th>
                   <th class="text-14 text-no-wrap">ชื่ออุปกรณ์</th>
-                  <th class="text-14 text-no-wrap text-center">ราคาต่อหน่วย</th>
                   <th class="text-14 text-no-wrap text-center">จำนวน</th>
+                  <th class="text-14 text-no-wrap text-center">ราคา/หน่วย</th>
+                  <th class="text-14 text-no-wrap text-center">ค่าบริการ</th>
                   <th class="text-14 text-no-wrap text-end">จำนวนเงิน (บาท)</th>
                   <th class="text-14 text-no-wrap text-end"></th>
                 </tr>
@@ -710,9 +711,6 @@ export default {
                   <td class="text-center">{{ index + 1 }}.</td>
                   <td width="300" class="text-no-wrap">
                     <span class="py-4">{{ part.part.PartName_th }}</span>
-                  </td>
-                  <td width="150" class="text-no-wrap text-end">
-                    {{ formatSeperateCurrency(part.PricePerUnit) }}
                   </td>
                   <td width="150" class="text-no-wrap">
                     <v-text-field
@@ -724,6 +722,12 @@ export default {
                       width="150"
                       type="number"
                     />
+                  </td>
+                  <td width="150" class="text-no-wrap text-end">
+                    {{ formatSeperateCurrency(part.PricePerUnit) }}
+                  </td>
+                  <td width="150" class="text-no-wrap text-end">
+                    {{ formatSeperateCurrency(part.ServiceFee) }}
                   </td>
                   <td width="150" class="text-14 text-no-wrap text-end">
                     {{ formatSeperateCurrency(invoiceStore.totalCost(part)) }}
@@ -756,7 +760,7 @@ export default {
                 {{ formatSeperateCurrency(subtotalNutcha) }}
               </p>
             </div>
-            <!-- <div
+            <div
               class="d-flex align-center justify-space-between text-14 font-weight-semibold mb-4"
             >
               <div class="d-flex align-center justify-space-between">
@@ -772,15 +776,15 @@ export default {
               <p class="text-16">
                 {{ formatSeperateCurrency(vatNutCha) }}
               </p>
-            </div> -->
-            <!-- <div
+            </div>
+            <div
               class="d-flex align-center justify-space-between text-14 font-weight-semibold"
             >
               <p class="text-muted">Grand Total :</p>
               <p class="text-16">
                 {{ formatSeperateCurrency(grandTotalNutCha) }}
               </p>
-            </div> -->
+            </div>
           </v-col>
         </v-row>
 

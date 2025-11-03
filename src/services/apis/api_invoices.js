@@ -14,6 +14,10 @@ export const createInvoice = (data) => {
   return httpClient.post(server.INVOICE_URL, data);
 };
 
+export const createInvoiceWithRepair = (data) => {
+  return httpClient.post(`${server.INVOICE_URL}/create-with-repair`, data);
+};
+
 export const updateInvoice = (id, data) => {
   return httpClient.put(`${server.INVOICE_URL}/${id}`, data);
 };
