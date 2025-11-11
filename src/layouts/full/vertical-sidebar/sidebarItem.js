@@ -12,6 +12,11 @@ const sidebarItem = [
     to: "/system/repairs",
   },
   {
+    title: "จัดสรรอุปกรณ์",
+    icon: "bill-list-outline",
+    to: "/system/monitoring",
+  },
+  {
     title: "ซื้อขายอะไหล่",
     icon: "add-circle-broken",
     to: "/system/repairsหห",

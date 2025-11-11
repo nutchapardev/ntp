@@ -6,6 +6,10 @@ export const getAllRepairs = () => {
   return httpClient.get(server.REPAIR_URL);
 };
 
+export const getRepairsByWorkStatusID = (id) => {
+  return httpClient.get(`${server.REPAIR_URL}/by-workStatusId/${id}`);
+};
+
 export const getRepairByID = (id) => {
   return httpClient.get(`${server.REPAIR_URL}/${id}`);
 };

@@ -240,7 +240,7 @@ function getColorByNumber(number) {
     case 4:
       return "info"; // สีเหลือง
     case 5:
-      return "lighterror"; // สีม่วง
+      return "purple"; // สีม่วง
     case 6:
       return "lightsuccess"; // สีส้ม
     case 7:

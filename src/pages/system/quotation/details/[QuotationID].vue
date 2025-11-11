@@ -747,8 +747,8 @@ export default {
         </div>
       </div>
       <v-row>
-        <v-col class="text-end" @click="saveComment">
-          <v-btn color="primary">บันทึก</v-btn>
+        <v-col class="text-end">
+          <v-btn color="primary" @click="saveComment">บันทึก</v-btn>
         </v-col>
       </v-row>
     </div>

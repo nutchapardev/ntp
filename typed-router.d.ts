@@ -30,6 +30,7 @@ declare module 'vue-router/auto-routes' {
     '/system/employees/': RouteRecordInfo<'/system/employees/', '/system/employees', Record<never, never>, Record<never, never>>,
     '/system/invoices/': RouteRecordInfo<'/system/invoices/', '/system/invoices', Record<never, never>, Record<never, never>>,
     '/system/invoices/details/[invoiceID]': RouteRecordInfo<'/system/invoices/details/[invoiceID]', '/system/invoices/details/:invoiceID', { invoiceID: ParamValue<true> }, { invoiceID: ParamValue<false> }>,
+    '/system/monitoring/': RouteRecordInfo<'/system/monitoring/', '/system/monitoring', Record<never, never>, Record<never, never>>,
     '/system/preset/': RouteRecordInfo<'/system/preset/', '/system/preset', Record<never, never>, Record<never, never>>,
     '/system/quotation/': RouteRecordInfo<'/system/quotation/', '/system/quotation', Record<never, never>, Record<never, never>>,
     '/system/quotation/details/[QuotationID]': RouteRecordInfo<'/system/quotation/details/[QuotationID]', '/system/quotation/details/:QuotationID', { QuotationID: ParamValue<true> }, { QuotationID: ParamValue<false> }>,

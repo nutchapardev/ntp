@@ -9,7 +9,7 @@ import {
 import { sum } from "lodash";
 import { useAuthStore } from "@/stores/authStore";
 import Swal from "sweetalert2";
-import { useRouter } from 'vue-router';
+import { useRouter } from "vue-router";
 export default {
   data() {
     const router = useRouter();
@@ -52,7 +52,9 @@ export default {
     sumPartsCost(parts) {
       return sum(
         (parts ?? []).map(
-          (part) => (part.PricePerUnit ?? 0) * (part.NumOfUse ?? 0)
+          (part) =>
+            (part.PricePerUnit ?? 0) * (part.NumOfUse ?? 0) +
+            (part.ServiceFee ?? 0)
         )
       );
     },
@@ -161,7 +163,8 @@ export default {
       }, 0);
     },
     vat() {
-      return this.subtotal * (this.isVat ? this.vatRate : 0);
+      // return this.subtotal * (this.isVat ? this.vatRate : 0);
+      return this.subtotal * this.vatRate;
     },
     grandTotal() {
       const total = parseFloat(this.subtotal) + parseFloat(this.vat);
@@ -298,7 +301,8 @@ export default {
                 <td>
                   <v-table class="invoice-table" density="compact">
                     <template v-slot:default>
-                      <thead v-if="i == 0">
+                      <!-- <thead v-if="i == 0"> -->
+                      <thead>
                         <tr>
                           <th class="text-14 text-no-wrap text-start">
                             <span> # รายการหลัก</span>
@@ -307,10 +311,13 @@ export default {
                             <span>รายละเอียด</span>
                           </th>
                           <th class="text-14 text-no-wrap text-end">
+                            <span>จำนวน</span>
+                          </th>
+                          <th class="text-14 text-no-wrap text-end">
                             <span>ราคาต่อหน่วย</span>
                           </th>
                           <th class="text-14 text-no-wrap text-end">
-                            <span>จำนวน</span>
+                            <span>ค่าบริการ</span>
                           </th>
                           <th class="text-14 text-no-wrap text-end">
                             <span>จำนวนเงิน</span>
@@ -322,26 +329,25 @@ export default {
                           v-for="(part, index) in item.repairParts"
                           :key="index"
                         >
-                          <td
-                            v-if="index == 0"
-                            width="20%"
-                            class="text-no-wrap"
-                          >
+                          <td v-if="index == 0" width="20%" class="text-wrap">
                             {{ i + 1 }}. {{ item.preset.Preset }}
                           </td>
-                          <td v-else width="20%"></td>
-                          <!-- <td>{{ index + 1 }}. {{ part.part.PartName_th }}</td> -->
+                          <td v-else width="20%" class="text-wrap"></td>
                           <td width="35%">{{ part.part.PartName_th }}</td>
-                          <td width="15%" class="text-end">
-                            {{ formatSeperateCurrency(part.part.PricePerUnit) }}
-                          </td>
                           <td width="15%" class="text-end">
                             {{ part.NumOfUse }}
                           </td>
-                          <td width="15%" class="text-end">
+                          <td width="10%" class="text-end">
+                            {{ formatSeperateCurrency(part.part.PricePerUnit) }}
+                          </td>
+                          <td width="10%" class="text-end">
+                            {{ formatSeperateCurrency(part.ServiceFee) }}
+                          </td>
+                          <td width="10%" class="text-end">
                             {{
                               formatSeperateCurrency(
-                                part.part.PricePerUnit * part.NumOfUse
+                                part.part.PricePerUnit * part.NumOfUse +
+                                  part.ServiceFee
                               )
                             }}
                           </td>
@@ -350,9 +356,8 @@ export default {
                           <td
                             colspan="4"
                             class="text-14 font-weight-semibold text-end"
-                          >
-                            <!-- จำนวนเงิน -->
-                          </td>
+                          ></td>
+                          <td></td>
                           <td class="text-14 font-weight-semibold text-end">
                             <u>
                               {{
@@ -384,27 +389,27 @@ export default {
               <p class="text-muted">Sub Total:</p>
               <p class="text-16">{{ formatSeperateCurrency(subtotal) }}</p>
             </div>
-            <!-- <div
+            <div
               class="d-flex align-center justify-space-between text-14 font-weight-semibold mb-4"
             >
               <div class="d-flex align-center justify-space-between">
                 <p class="text-muted">
                   Vat : {{ (vatRate * 100).toFixed(0) }} %&nbsp;&nbsp;
                 </p>
-                <v-switch
+                <!-- <v-switch
                   v-model="isVat"
                   color="orange"
                   hide-details
-                ></v-switch>
+                ></v-switch> -->
               </div>
               <p class="text-16">{{ formatSeperateCurrency(vat) }}</p>
-            </div> -->
-            <!-- <div
+            </div>
+            <div
               class="d-flex align-center justify-space-between text-14 font-weight-semibold"
             >
               <p class="text-muted">Grand Total:</p>
               <p class="text-16">{{ formatSeperateCurrency(grandTotal) }}</p>
-            </div> -->
+            </div>
           </v-col>
         </v-row>
         <div class="d-flex ga-3 justify-end mt-6">

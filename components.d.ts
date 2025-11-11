@@ -44,6 +44,7 @@ declare module 'vue' {
     InvoiceTable: typeof import('./src/components/invoices/InvoiceTable.vue')['default']
     Loading: typeof import('./src/components/Loading.vue')['default']
     LoginForm: typeof import('./src/components/auth/LoginForm.vue')['default']
+    MonitoringCard: typeof import('./src/components/monitoring/MonitoringCard.vue')['default']
     MonthlyWinner: typeof import('./src/components/dashboards/ecommerce/MonthlyWinner.vue')['default']
     MyContacts: typeof import('./src/components/dashboards/analytical/MyContacts.vue')['default']
     NewItemsCard: typeof import('./src/components/dashboards/ecommerce/NewItemsCard.vue')['default']
