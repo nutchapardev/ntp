@@ -34,9 +34,9 @@ export default {
           const response = await serverService.updateRepairByID(repairId, {
             WorkStatusID: 5,
           });
-          console.log(response.data);
+          // console.log(response.data);
 
-          if (response.result) {
+          if (response.data.result) {
             this.closeDialogAllowcateDetail();
             this.initialize();
           } else {
@@ -52,7 +52,7 @@ export default {
       const repairId = item.RepairID;
       const response = await serverService.getRepairDetailByRepairID(repairId);
       this.allowcateDetail = response.data;
-      console.log(response.data);
+      // console.log(response.data);
 
       nextTick(() => {
         this.dialogShowAllowcateDetail = true;
@@ -79,7 +79,7 @@ export default {
   </div>
   <v-row v-else>
     <v-col cols="6" md="4" v-for="(item, index) in allowcates" :key="index">
-      <v-card color="primary" variant="tonal" class="mx-auto" elevation="10">
+      <v-card color="error" variant="tonal" class="mx-auto" elevation="10">
         <v-card-item>
           <div>
             <div class="text-overline mb-1">
@@ -122,7 +122,7 @@ export default {
       </v-card-title>
       <v-card-text>
         <div v-for="(al, i) in allowcateDetail" :key="i" class="mb-2">
-          <v-card color="lightprimary">
+          <v-card color="lightsuccess">
             <v-card-text>
               <div class="mb-3">
                 <span> {{ i + 1 }}. {{ al.preset.Preset }} </span>

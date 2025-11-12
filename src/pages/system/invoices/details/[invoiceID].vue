@@ -39,6 +39,14 @@ export default {
       // fetch Data
       RepairItems: null,
       repairDetails: null,
+      // rules
+      numberRules: [
+        (v) => {
+          if (v === null || v === undefined || v === "") return true; // อนุญาตให้ค่าว่าง
+          if (v >= 0) return true; // ผ่าน ถ้าค่ามากกว่าหรือเท่ากับ 0
+          return "ไม่สามารถระบุค่าต่ำกว่า 0 ได้"; // ไม่ผ่าน
+        },
+      ],
     };
   },
   methods: {
@@ -177,7 +185,8 @@ export default {
           class="text-start text-md-end text-14 lh-normal"
         >
           <p class="font-weight-bold mb-2" style="font-size: 20px">
-            ใบเสร็จรับเงิน / ใบกำกับภาษี
+            ใบแจ้งหนี้
+            <!-- ใบเสร็จรับเงิน {{ invoice.isVat ? "/ ใบกำกับภาษี" : "" }} -->
           </p>
           <div class="d-flex">
             <div></div>
@@ -343,6 +352,8 @@ export default {
                             variant="underlined"
                             type="number"
                             step="0.00"
+                            min="0.00"
+                            :rules="numberRules"
                           ></v-text-field>
                         </td>
                         <td width="20%">
@@ -426,7 +437,9 @@ export default {
     </v-card-text>
     <v-card-actions>
       <v-spacer></v-spacer>
-      <v-btn color="primary" variant="flat">บันทึกข้อมูล</v-btn>
+      <v-btn color="primary" variant="flat" class="mb-3 mr-3"
+        >บันทึกข้อมูล</v-btn
+      >
     </v-card-actions>
   </v-card>
 </template>
