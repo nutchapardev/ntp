@@ -333,6 +333,7 @@ export default {
       this.dialogAddVendor = false;
       nextTick(() => {
         this.vendorDataSet = Object.assign({}, this.defaultItems);
+        this.vendorDataSet.address = Object.assign({}, this.defaultItems.address);
         this.districts = [];
         this.subDistricts = [];
       });
@@ -362,6 +363,7 @@ export default {
       this.dialogEditVendor = false;
       nextTick(() => {
         this.vendorDataSet = Object.assign({}, this.defaultItems);
+        this.vendorDataSet.address = Object.assign({}, this.defaultItems.address);
       });
     },
     async initialize() {

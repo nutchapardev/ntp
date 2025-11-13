@@ -40,6 +40,7 @@ declare module 'vue-router/auto-routes' {
     '/system/repairs/details/[repairID]': RouteRecordInfo<'/system/repairs/details/[repairID]', '/system/repairs/details/:repairID', { repairID: ParamValue<true> }, { repairID: ParamValue<false> }>,
     '/system/repairs/[repairID]': RouteRecordInfo<'/system/repairs/[repairID]', '/system/repairs/:repairID', { repairID: ParamValue<true> }, { repairID: ParamValue<false> }>,
     '/system/stock/': RouteRecordInfo<'/system/stock/', '/system/stock', Record<never, never>, Record<never, never>>,
+    '/system/trading/': RouteRecordInfo<'/system/trading/', '/system/trading', Record<never, never>, Record<never, never>>,
     '/system/vendors/': RouteRecordInfo<'/system/vendors/', '/system/vendors', Record<never, never>, Record<never, never>>,
   }
 }

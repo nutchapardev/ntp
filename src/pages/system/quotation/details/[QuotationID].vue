@@ -12,6 +12,7 @@ export default {
   data() {
     return {
       apiUrl,
+      isCanEdit: true,
       page: { title: "รายละเอียดใบเสนอราคา" },
       breadcrumbs: [
         {
@@ -86,6 +87,7 @@ export default {
       this.isNotEnoughItem = false;
       const response = await serverService.getQuotationByID(this.QuotationID);
       this.quotation = response.data;
+      this.isCanEdit = response.data.repairs.length == 0 ? true : false;
     },
     async getQuotationDetail() {
       // this.isNotEnoughItem = false;
@@ -308,7 +310,7 @@ export default {
         Comment,
       });
       if (response.data.result) {
-        Swal.fire("Success!", "บันทึกข้อมูลแล้ว", "success");
+        Swal.fire("Success!", "บันทึกหมายเหตุแล้ว", "success");
       } else {
         Swal.fire({
           icon: "warning",
@@ -427,6 +429,10 @@ export default {
       return subtotal + part.ServiceFee;
     },
     setRowColor(item) {
+      if(this.isCanEdit == false){
+        return ""
+      }
+      
       if (item.NumOfUse <= item.part.PartAmount) {
         return "";
       } else {
@@ -481,14 +487,23 @@ export default {
   ></BaseBreadcrumb>
   <UiParentCard Tableard title="รายละเอียดใบเสนอราคา" v-if="quotation != null">
     <v-row>
-      <v-col>
+      <v-col cols="4" md="4">
         เลขที่ : {{ QuotationID }} <br />
         วันที่สร้าง : {{ formatDateTime(quotation.createdAt) }} <br />
         ยี่ห้อ/รุ่น : {{ quotation.brand.Brand }} {{ quotation.model.Model }}
       </v-col>
       <v-col class="text-end">
         <v-btn
-          target="_blank"
+          v-if="quotation.repairs.length > 0"
+          color="warning"
+          size="small"
+          class="mr-3"
+          :to="`/system/repairs/details/${quotation.repairs[0].RepairID}`"
+        >
+          <v-icon>mdi-note-text</v-icon>&nbsp; ดูรายละเอียดการซ่อม
+        </v-btn>
+        <v-btn
+          v-else
           color="secondary"
           size="small"
           class="mr-3"
@@ -517,7 +532,7 @@ export default {
       </v-col>
     </v-row>
     <div v-if="quotation != null">
-      <v-row class="mt-2">
+      <v-row v-if="isCanEdit" class="mt-2">
         <v-col>
           <div class="text-center">
             <v-btn
@@ -648,7 +663,7 @@ export default {
                 <td>
                   <div class="mt-4 d-flex align-center">
                     {{ index + 1 }}. {{ detail.preset.Preset }}
-                    <div>
+                    <div v-show="isCanEdit">
                       <v-btn
                         flat
                         icon
@@ -664,7 +679,7 @@ export default {
                       </v-btn>
                     </div>
                     <v-spacer />
-                    <div>
+                    <div v-show="isCanEdit">
                       <v-btn
                         flat
                         icon
@@ -748,7 +763,7 @@ export default {
       </div>
       <v-row>
         <v-col class="text-end">
-          <v-btn color="primary" @click="saveComment">บันทึก</v-btn>
+          <v-btn color="primary" @click="saveComment">บันทึกหมายเหตุ</v-btn>
         </v-col>
       </v-row>
     </div>

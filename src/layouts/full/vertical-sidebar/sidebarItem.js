@@ -8,7 +8,8 @@ const sidebarItem = [
   { header: "SYSTEM" },
   {
     title: "ซ่อมรถยนต์",
-    icon: "add-circle-broken",
+    // icon: "add-circle-broken",
+    icon: "gps-line-duotone",
     to: "/system/repairs",
   },
   {
@@ -18,28 +19,44 @@ const sidebarItem = [
   },
   {
     title: "ซื้อขายอะไหล่",
-    icon: "add-circle-broken",
-    to: "/system/repairsหห",
+    // icon: "add-circle-broken",
+    icon: "dumbbell-large-minimalistic-line-duotone",
+    to: "/system/trading",
+  },
+  { header: "Invoices" },
+  {
+    title: "ใบเสนอราคา",
+    icon: "clipboard-add-outline",
+    to: "/system/quotation",
   },
   {
-    title: "Invoices",
-    icon: "bill-check-outline",
-    // to: "/system/invoices",
-    children: [
-      {
-        title: "ใบเสนอราคา",
-        to: "/system/quotation",
-      },
-      {
-        title: "ใบแจ้งหนี้",
-        to: "/system/invoices",
-      },
-      {
-        title: "ใบเสร็จ/ใบกำกับภาษี",
-        to: "/system/recieve",
-      },
-    ],
+    title: "ใบแจ้งหนี้",
+    icon: "dollar-broken",
+    to: "/system/invoices",
   },
+  {
+    title: "ใบเสร็จ/ใบกำกับภาษี",
+    icon: "bill-check-linear",
+    to: "/system/recieve",
+  },
+  // {
+  //   title: "Invoices",
+  //   icon: "bill-check-outline",
+  //   children: [
+  //     {
+  //       title: "ใบเสนอราคา",
+  //       to: "/system/quotation",
+  //     },
+  //     {
+  //       title: "ใบแจ้งหนี้",
+  //       to: "/system/invoices",
+  //     },
+  //     {
+  //       title: "ใบเสร็จ/ใบกำกับภาษี",
+  //       to: "/system/recieve",
+  //     },
+  //   ],
+  // },
   { header: "Customers and Vendors" },
   {
     title: "ข้อมูลลูกค้า",
@@ -53,7 +70,8 @@ const sidebarItem = [
   },
   {
     title: "ข้อมูลรถยนต์",
-    icon: "battery-charge-minimalistic-broken",
+    // icon: "battery-charge-minimalistic-broken",
+    icon: "wheel-angle-broken",
     to: "/system/cars",
   },
   { header: "STOCKS" },

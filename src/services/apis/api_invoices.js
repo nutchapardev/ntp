@@ -10,6 +10,10 @@ export const getInvoiceByID = (id) => {
   return httpClient.get(`${server.INVOICE_URL}/${id}`);
 };
 
+export const getInvoiceByRepairID = (id) => {
+  return httpClient.get(`${server.INVOICE_URL}/by-repair-id/${id}`);
+};
+
 export const createInvoice = (data) => {
   return httpClient.post(server.INVOICE_URL, data);
 };

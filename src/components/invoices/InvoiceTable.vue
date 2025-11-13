@@ -88,6 +88,7 @@ export default {
   <v-data-table
     class="border rounded-md"
     :headers="headers"
+    :search="search"
     :items="invoices"
     :sort-by="[{ key: 'InvoiceDate', order: 'desc' }]"
   >

@@ -1,11 +1,13 @@
 <script>
 import serverService from "@/services/serverService";
+import Swal from "sweetalert2";
 import { sum } from "lodash";
 import {
   toThaiDateString,
   formatCurrency,
   getColorByNumber,
 } from "@/utils/functions";
+import router from "@/router";
 
 export default {
   data() {
@@ -50,6 +52,9 @@ export default {
     };
   },
   methods: {
+    goBack() {
+      router.back();
+    },
     fotmatDate(date) {
       return toThaiDateString(date);
     },
@@ -105,10 +110,89 @@ export default {
       this.repairDetails = response.data;
       // console.log("repairDetails", response.data);
     },
+    async saveSubmitEdit() {
+      let payload = [];
+      this.repairDetails.forEach((e) => {
+        payload = [...payload, ...e.repairParts];
+      });
+      if (payload.length == 0) {
+        Swal.fire({
+          icon: "warning",
+          title: "Alert!",
+          text: "ไม่พบข้อมูลในรายการใบแจ้งหนี้",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+        return;
+      }
+
+      Swal.fire({
+        title: "Are you sure?",
+        text: "ท่านต้องแก้ไขข้อมูล ใช่หรือไม่?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "<span style='color:white;'>Yes, continue!</span>",
+        cancelButtonText: "<span style='color:white;'>Cancel</span>",
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          const response = await serverService.bulkUpdateRepairPart({
+            updates: payload,
+          });
+          console.log(response.data);
+
+          if (response.data.result) {
+            this.initialize();
+            Swal.fire("Success!", "แก้ไขข้อมูลแล้ว", "success");
+          } else {
+            Swal.fire({
+              icon: "warning",
+              title: "Alert!",
+              text: response.data.message,
+              timer: 1500,
+              showConfirmButton: false,
+            });
+            return;
+          }
+        }
+      });
+    },
     async switchVat() {
       const { isVat, InvoiceID } = this.invoice;
       const response = await serverService.updateInvoice(InvoiceID, { isVat });
       // console.log(response.data);
+    },
+    async changeInvoiceStatus(id) {
+      Swal.fire({
+        title: "Are you sure?",
+        text: "ยืนยันการดำเนินการ ใช่หรือไม่?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "<span style='color:white;'>Yes, continue!</span>",
+        cancelButtonText: "<span style='color:white;'>Cancel</span>",
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          const response = await serverService.updateInvoice(this.invoiceId, {
+            InvoiceStatusID: id,
+          });
+          if (response.data.result) {
+            this.initialize();
+            Swal.fire("Success!", "เปลี่ยนสถานะใบแจ้งหนี้แล้ว", "success");
+          } else {
+            Swal.fire({
+              icon: "warning",
+              title: "Alert!",
+              text: response.data.message,
+              timer: 1500,
+              showConfirmButton: false,
+            });
+            return;
+          }
+        }
+      });
     },
     async initialize() {
       await this.getInvoiceByID().then(async () => {
@@ -196,6 +280,11 @@ export default {
               <p>
                 วันที่&nbsp;&nbsp;&nbsp; {{ fotmatDate(invoice.InvoiceDate) }}
               </p>
+              <div class="text-end">
+                <v-btn class="mt-2 text-end" color="primary" variant="tonal">
+                  {{ invoice.invoiceStatus.InvoiceStatus }}
+                </v-btn>
+              </div>
             </div>
           </div>
         </v-col>
@@ -222,11 +311,11 @@ export default {
                 </tr>
                 <tr>
                   <td class="text-14">หมายเลขเครื่องยนต์</td>
-                  <td class="text-14">{{ invoice.repair.car.EC }}</td>
+                  <td class="text-14">{{ invoice.repair.car.EC ?? "-" }}</td>
                 </tr>
                 <tr>
                   <td class="text-14">หมายเลขตัวถัง</td>
-                  <td class="text-14">{{ invoice.repair.car.VIN }}</td>
+                  <td class="text-14">{{ invoice.repair.car.VIN ?? "-" }}</td>
                 </tr>
               </tbody>
             </template>
@@ -345,8 +434,10 @@ export default {
                         <td
                           width="15%"
                           style="align-items: center; justify-content: center"
+                          class="text-end"
                         >
                           <v-text-field
+                            v-if="invoice.InvoiceStatusID == 1"
                             v-model="part.Discount"
                             density="compact"
                             variant="underlined"
@@ -355,9 +446,11 @@ export default {
                             min="0.00"
                             :rules="numberRules"
                           ></v-text-field>
+                          <span v-else>{{ part.Discount === 0 ? "-" : formatSeperateCurrency(part.Discount) }}</span>
                         </td>
-                        <td width="20%">
+                        <td width="20%" class="text-center">
                           <v-select
+                          v-if="invoice.InvoiceStatusID == 1"
                             v-model="part.isDiscount"
                             :items="percent_bath"
                             variant="underlined"
@@ -365,6 +458,7 @@ export default {
                             item-title="title"
                             density="compact"
                           ></v-select>
+                          <span v-else>{{ part.isDiscount === 1 ? "บาท" : "%" }}</span>
                         </td>
                         <td class="text-end">
                           {{ formatSeperateCurrency(sumRowCost(part)) }}
@@ -436,10 +530,61 @@ export default {
       </v-row>
     </v-card-text>
     <v-card-actions>
-      <v-spacer></v-spacer>
-      <v-btn color="primary" variant="flat" class="mb-3 mr-3"
-        >บันทึกข้อมูล</v-btn
+      <v-btn @click="goBack" color="error" variant="flat" class="mb-3 ml-3"
+        >ย้อนกลับ</v-btn
       >
+      <v-spacer></v-spacer>
+      <v-btn
+        v-show="invoice.InvoiceStatusID == 2"
+        color="success"
+        variant="flat"
+        class="mb-3 mr-2"
+        @click="changeInvoiceStatus(3)"
+      >
+        <CheckIcon size="18" />
+        &nbsp;ยืนยันการชำระเงิน
+      </v-btn>
+      <v-btn
+        v-show="invoice.InvoiceStatusID == 1"
+        color="secondary"
+        variant="flat"
+        class="mb-3 mr-2"
+        @click="changeInvoiceStatus(2)"
+      >
+        <CheckIcon size="18" />
+        &nbsp;ยืนยันใบแจ้งหนี้
+      </v-btn>
+      <v-btn
+        v-show="invoice.InvoiceStatusID == 2"
+        color="black"
+        variant="outlined"
+        class="mb-3 mr-2"
+        @click="changeInvoiceStatus(1)"
+      >
+        <EditIcon size="18" />
+        &nbsp;แก้ไขใบแจ้งหนี้
+      </v-btn>
+      <v-btn
+        v-show="invoice.InvoiceStatusID == 1"
+        color="warning"
+        :to="`/system/repairs/${invoice.repair.RepairID}`"
+        variant="flat"
+        class="mb-3 mr-2"
+      >
+        <EditIcon size="18" />
+        &nbsp;แก้ไขรายการซ่อม
+      </v-btn>
+      <v-btn color="error" variant="outlined" class="mb-3 mr-2">
+        <b>PDF</b>&nbsp;แสดงใบแจ้งหนี้
+      </v-btn>
+      <v-btn
+        @click="saveSubmitEdit"
+        color="primary"
+        variant="flat"
+        class="mb-3 mr-3"
+      >
+        บันทึกข้อมูล
+      </v-btn>
     </v-card-actions>
   </v-card>
 </template>

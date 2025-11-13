@@ -173,16 +173,33 @@ export default {
       {{ formatDate(item.QuotationDate) }}
     </template>
     <template v-slot:item.model.Model="{ item }">
-      {{ item.brand.Brand }} ( {{ item.model.Model }} )
+      {{ item.brand.Brand }} ( {{ item.model.Model }} ) <br />
+
+      <div v-if="item.repairs.length > 0" style="font-size: 12px; color: gray">
+        {{
+          `${item.repairs[0].car.CarTitle} ${item.repairs[0].car.CarNumber} ${item.repairs[0].car.province.name_th}`
+        }}
+      </div>
     </template>
     <template v-slot:item.actions="{ item }">
+      
       <v-btn
         :to="`/system/quotation/details/${item.QuotationID}`"
         size="small"
         color="primary"
-        variant="tonal"
+        class="mr-2"
+        variant="flat"
         ><EditIcon size="16">mdi-paperclip</EditIcon></v-btn
       >
+      <v-btn
+        v-if="item.repairs.length > 0"
+        :to="`/system/repairs/details/${item.repairs[0].RepairID}`"
+        size="small"
+        color="warning"
+        variant="flat"
+      >
+        <v-icon>mdi-car-wrench</v-icon>
+      </v-btn>
     </template>
   </v-data-table>
   <!-- Dialog AddQuotation -->

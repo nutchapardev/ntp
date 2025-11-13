@@ -59,7 +59,7 @@ export default {
         PartID: null,
         NumOfUse: null,
         PricePerUnit: null,
-        ServiceFee:null,
+        ServiceFee: null,
         PartAmount: null, // for show
       },
       defaultItem: {
@@ -67,7 +67,7 @@ export default {
         PartID: null,
         NumOfUse: null,
         PricePerUnit: null,
-        ServiceFee:null,
+        ServiceFee: null,
         PartAmount: null, // for show
       },
     };
@@ -378,7 +378,7 @@ export default {
               PartID: e.part.PartID,
               NumOfUse: e.NumOfUse,
               PricePerUnit: e.part.PricePerUnit,
-              ServiceFee:e.part.ServiceFee
+              ServiceFee: e.part.ServiceFee,
             });
           });
 
@@ -403,7 +403,7 @@ export default {
     },
     async submitAddItem() {
       console.log(this.addItem);
-      
+
       const { PartID, PartAmount, NumOfUse, ServiceFee } = this.addItem;
       if (NumOfUse > PartAmount || NumOfUse < 0) {
         Swal.fire({
@@ -497,12 +497,12 @@ export default {
     setAddItem(partId) {
       const filter = this.parts.filter((part) => part.PartID == partId);
       const data = filter[0];
-      console.log(data);
-      
+      // console.log(data);
+
       this.addItem.PartID = data.PartID;
       this.addItem.PricePerUnit = data.PricePerUnit;
       this.addItem.PartAmount = data.PartAmount;
-      this.addItem.PartAmount = data.ServiceFee;
+      this.addItem.ServiceFee = data.ServiceFee;
     },
     closeDialogAddItems() {
       this.dialogAddItems = false;
@@ -853,6 +853,10 @@ export default {
         </v-row> -->
 
         <div class="d-flex align-center justify-end ga-3">
+          <v-btn flat color="error" @click="goBack" class="mt-6">
+            ย้อนกลับ
+          </v-btn>
+          <v-spacer></v-spacer>
           <v-btn
             flat
             color="warning"
@@ -873,9 +877,7 @@ export default {
             :disabled="repairDetails.length == 0"
             >บันทึกข้อมูล</v-btn
           >
-          <v-btn flat color="error" @click="goBack" class="mt-6"
-            >ย้อนกลับ</v-btn
-          >
+
           <!-- <v-btn flat color="error" to="/system/repairs" class="mt-6"
             >บัน</v-btn
           > -->

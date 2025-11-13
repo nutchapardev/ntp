@@ -10,6 +10,7 @@ import { sum } from "lodash";
 import { useAuthStore } from "@/stores/authStore";
 import Swal from "sweetalert2";
 import { useRouter } from "vue-router";
+import router from "@/router";
 export default {
   data() {
     const router = useRouter();
@@ -38,11 +39,15 @@ export default {
       RepairItems: null,
       repairDetails: [],
       companyData: null,
+      invoice: null,
       isVat: false,
       vatRate: 0.07,
     };
   },
   methods: {
+    goBack() {
+      router.back();
+    },
     getColor(number) {
       return getColorByNumber(number);
     },
@@ -51,16 +56,23 @@ export default {
     },
     sumPartsCost(parts) {
       return sum(
-        (parts ?? []).map(
-          (part) =>
+        (parts ?? []).map((part) => {
+          let subtotal =
             (part.PricePerUnit ?? 0) * (part.NumOfUse ?? 0) +
-            (part.ServiceFee ?? 0)
-        )
+            (part.ServiceFee ?? 0);
+
+          let discount =
+            part.isDiscount === 1
+              ? part.Discount
+              : (part.Discount / 100) * subtotal;
+          return subtotal - discount;
+        })
       );
     },
     async getRepairByID() {
       const response = await serverService.getRepairByID(this.repairID);
       this.RepairItems = response.data;
+      // console.log(response.data);
     },
     async getRepairDetail() {
       const response = await serverService.getRepairDetailByRepairID(
@@ -68,12 +80,21 @@ export default {
       );
       this.repairDetails = response.data;
     },
+    async getInvoiceData() {
+      const response = await serverService.getInvoiceByRepairID(this.repairID);
+      this.invoice = response.data;
+      if (response.data.result) {
+        this.invoice = response.data.data;
+      } else {
+        this.invoice = null;
+      }
+    },
     async getCompanyData() {
       const response = await serverService.getCompanyData();
       this.companyData = response.data[0];
     },
     async createQuotation() {
-      console.log(this.RepairItems);
+      // console.log(this.RepairItems);
       const { RepairID, WorkStatusID } = this.RepairItems;
       if (!RepairID) {
         Swal.fire({
@@ -118,6 +139,7 @@ export default {
               });
               // this.closeDialogAddCustomer()
               // this.initialize()
+              this.getInvoiceData()
             } else {
               Swal.fire({
                 icon: "warning",
@@ -142,6 +164,7 @@ export default {
       this.authStore.setLoadingOn();
       await this.getRepairByID().then(() => this.getRepairDetail());
       await this.getCompanyData();
+      await this.getInvoiceData();
       this.authStore.setLoadingOff();
     },
   },
@@ -157,7 +180,13 @@ export default {
         return (
           sum +
           (obj.repairParts ?? []).reduce((sum2, part) => {
-            return sum2 + (part.PricePerUnit ?? 0) * (part.NumOfUse ?? 0);
+            let subtotal =
+              (part.PricePerUnit ?? 0) * (part.NumOfUse ?? 0) + part.ServiceFee;
+            let discount =
+              part.isDiscount === 1
+                ? part.Discount
+                : (part.Discount / 100) * subtotal;
+            return sum2 + subtotal - discount;
           }, 0)
         );
       }, 0);
@@ -224,12 +253,10 @@ export default {
               md="6"
               class="text-start text-md-end text-14 lh-normal"
             >
-              <!-- <h6 class="text-h6">Bill To</h6> -->
               <p class="font-weight-bold mb-2" style="font-size: 20px">
-                ข้อมูลลูกค้า
+                รายละเอียดการซ่อม
               </p>
-              <!-- <div class="text-14 textSecondary lh-normal"> -->
-              <div class="text-14 lh-normal">
+              <!-- <div class="text-14 lh-normal">
                 {{ RepairItems.customer.customerTitle.CustomerTitle }}
                 {{ RepairItems.customer.CustomerName }}
                 {{ RepairItems.customer.CustomerSurname }}
@@ -242,7 +269,7 @@ export default {
                   {{ RepairItems.customer.addresses[0].subDistrict.Zipcode }}
                 </div>
                 <p>เบอร์โทรศัพท์ : 0939477141</p>
-              </div>
+              </div> -->
             </v-col>
           </v-row>
           <v-row>
@@ -267,15 +294,49 @@ export default {
                     </tr>
                     <tr>
                       <td class="text-14">หมายเลขเครื่องยนต์</td>
-                      <td class="text-14">{{ RepairItems.car.EC }}</td>
+                      <td class="text-14">{{ RepairItems.car.EC ?? "-" }}</td>
                     </tr>
                     <tr>
                       <td class="text-14">หมายเลขตัวถัง</td>
-                      <td class="text-14">{{ RepairItems.car.VIN }}</td>
+                      <td class="text-14">{{ RepairItems.car.VIN ?? "-" }}</td>
                     </tr>
                   </tbody>
                 </template>
               </v-table>
+            </v-col>
+            <v-col>
+              <v-table density="compact" class="mt-2 border rounded-md">
+            <template v-slot:default>
+              <tbody>
+                <tr>
+                  <td class="text-14 text-no-wrap">ชื่อลูกค้า</td>
+                  <td class="text-14">
+                    {{
+                      RepairItems.customer.customerTitle.CustomerTitle
+                    }}
+                    {{ RepairItems.customer.CustomerName }}
+                    {{ RepairItems.customer.CustomerSurname }}
+                  </td>
+                </tr>
+                <tr>
+                  <td class="text-14">เลขประจำตัวผู้เสียภาษี</td>
+                  <td class="text-14">
+                    {{ RepairItems.customer.IDNumber ?? "-"  }}
+                  </td>
+                </tr>
+                <tr>
+                  <td class="text-14">ที่อยู่</td>
+                  <td class="text-14">-</td>
+                </tr>
+                <tr>
+                  <td class="text-14">เบอร์โทรศัพท์</td>
+                  <td class="text-14">
+                    {{ RepairItems.customer.CustomerTel ?? "-"  }}
+                  </td>
+                </tr>
+              </tbody>
+            </template>
+          </v-table>
             </v-col>
           </v-row>
         </div>
@@ -412,14 +473,30 @@ export default {
             </div>
           </v-col>
         </v-row>
-        <div class="d-flex ga-3 justify-end mt-6">
-          <v-btn color="warning" :to="`/system/repairs/${repairID}`" flat>
+        <div class="d-flex ga-3 mt-6 justify-end">
+          <v-btn @click="goBack" color="error">ย้อนกลับ</v-btn>
+          <v-spacer></v-spacer>
+          <v-btn color="warning" :to="`/system/repairs/${repairID}`" variant="flat">
             <EditIcon size="18" />
             &nbsp;แก้ไขรายการซ่อม
           </v-btn>
-          <v-btn @click="createQuotation" color="primary" flat>
+          <v-btn
+            v-if="invoice == null"
+            @click="createQuotation"
+            color="primary"
+            flat
+          >
             <v-icon>mdi-send-variant</v-icon>
             &nbsp;สร้างใบแจ้งหนี้
+          </v-btn>
+          <v-btn
+            v-else
+            :to="`/system/invoices/details/${invoice.InvoiceID}`"
+            color="primary"
+            flat
+          >
+            <v-icon>mdi-note-text</v-icon>
+            &nbsp;ดูรายละเอียดใบแจ้งหนี้
           </v-btn>
         </div>
       </div>
