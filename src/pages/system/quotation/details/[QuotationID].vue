@@ -518,6 +518,7 @@ export default {
           color="success"
           size="small"
           class="mr-3"
+          :disabled="quotationDetail.length == 0"
         >
           แสดงใบเสนอราคาแบบจัดกลุ่ม
         </v-btn>
@@ -526,6 +527,7 @@ export default {
           target="_blank"
           color="primary"
           size="small"
+          :disabled="quotationDetail.length == 0"
         >
           แสดงใบเสนอราคาแบบรายการ
         </v-btn>

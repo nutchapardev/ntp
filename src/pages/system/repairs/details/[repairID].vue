@@ -72,7 +72,7 @@ export default {
     async getRepairByID() {
       const response = await serverService.getRepairByID(this.repairID);
       this.RepairItems = response.data;
-      // console.log(response.data);
+      console.log(response.data);
     },
     async getRepairDetail() {
       const response = await serverService.getRepairDetailByRepairID(
@@ -88,6 +88,14 @@ export default {
       } else {
         this.invoice = null;
       }
+    },
+    customerAddress() {
+      const { addresses } = this.RepairItems.customer;
+      this.RepairItems.customer.address;
+      if (addresses.length == 0) return null;
+      const data = addresses.filter((address) => address.IsDefault == true)[0];
+      let customerDefaultAddress = `${data.Line1} ${data.Line2} ${data.subDistrict.name_th}, ${data.district.name_th}, ${data.province.name_th} ${data.subDistrict.Zipcode}`;
+      return customerDefaultAddress;
     },
     async getCompanyData() {
       const response = await serverService.getCompanyData();
@@ -139,7 +147,7 @@ export default {
               });
               // this.closeDialogAddCustomer()
               // this.initialize()
-              this.getInvoiceData()
+              this.getInvoiceData();
             } else {
               Swal.fire({
                 icon: "warning",
@@ -156,6 +164,38 @@ export default {
               title: "Error!",
               text: "ไม่สามารถสร้างใบแจ้งหนี้ได้ กรุณาลองใหม่อีกครั้ง",
             });
+          }
+        }
+      });
+    },
+    async changeWorkStatus(statusId) {
+      const { RepairID } = this.RepairItems;
+      Swal.fire({
+        title: "Are you sure?",
+        text: "ยืนยันการดำเนินการ ใช่หรือไม่?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "<span style='color:white;'>Yes, continue!</span>",
+        cancelButtonText: "<span style='color:white;'>Cancel</span>",
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          const response = await serverService.updateRepairByID(RepairID, {
+            WorkStatusID: statusId,
+          });
+          if (response.data.result) {
+            this.initialize();
+            Swal.fire("Success!", "เปลี่ยนสถานะการซ่อมแล้ว", "success");
+          } else {
+            Swal.fire({
+              icon: "warning",
+              title: "Alert!",
+              text: response.data.message,
+              timer: 1500,
+              showConfirmButton: false,
+            });
+            return;
           }
         }
       });
@@ -256,6 +296,11 @@ export default {
               <p class="font-weight-bold mb-2" style="font-size: 20px">
                 รายละเอียดการซ่อม
               </p>
+              <div class="text-end mt-3">
+                <v-btn color="primary" variant="tonal">{{
+                  RepairItems.workStatus.WorkStatus_th
+                }}</v-btn>
+              </div>
               <!-- <div class="text-14 lh-normal">
                 {{ RepairItems.customer.customerTitle.CustomerTitle }}
                 {{ RepairItems.customer.CustomerName }}
@@ -306,37 +351,45 @@ export default {
             </v-col>
             <v-col>
               <v-table density="compact" class="mt-2 border rounded-md">
-            <template v-slot:default>
-              <tbody>
-                <tr>
-                  <td class="text-14 text-no-wrap">ชื่อลูกค้า</td>
-                  <td class="text-14">
-                    {{
-                      RepairItems.customer.customerTitle.CustomerTitle
-                    }}
-                    {{ RepairItems.customer.CustomerName }}
-                    {{ RepairItems.customer.CustomerSurname }}
-                  </td>
-                </tr>
-                <tr>
-                  <td class="text-14">เลขประจำตัวผู้เสียภาษี</td>
-                  <td class="text-14">
-                    {{ RepairItems.customer.IDNumber ?? "-"  }}
-                  </td>
-                </tr>
-                <tr>
-                  <td class="text-14">ที่อยู่</td>
-                  <td class="text-14">-</td>
-                </tr>
-                <tr>
-                  <td class="text-14">เบอร์โทรศัพท์</td>
-                  <td class="text-14">
-                    {{ RepairItems.customer.CustomerTel ?? "-"  }}
-                  </td>
-                </tr>
-              </tbody>
-            </template>
-          </v-table>
+                <template v-slot:default>
+                  <tbody>
+                    <tr>
+                      <td width="40%" class="text-14 text-no-wrap">
+                        ชื่อลูกค้า
+                      </td>
+                      <td class="text-14">
+                        {{ RepairItems.customer.customerTitle.CustomerTitle }}
+                        {{ RepairItems.customer.CustomerName }}
+                        {{ RepairItems.customer.CustomerSurname }}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="text-14">เลขประจำตัวผู้เสียภาษี</td>
+                      <td class="text-14">
+                        {{ RepairItems.customer.IDNumber ?? "-" }}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="text-14">ที่อยู่</td>
+                      <td
+                        class="text-14 text-truncate"
+                        style="max-width: 200px"
+                      >
+                        {{ customerAddress() ?? "-" }}
+                        <v-tooltip activator="parent" location="top">
+                          {{ customerAddress() }}
+                        </v-tooltip>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="text-14">เบอร์โทรศัพท์</td>
+                      <td class="text-14">
+                        {{ RepairItems.customer.CustomerTel ?? "-" }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </template>
+              </v-table>
             </v-col>
           </v-row>
         </div>
@@ -476,7 +529,21 @@ export default {
         <div class="d-flex ga-3 mt-6 justify-end">
           <v-btn @click="goBack" color="error">ย้อนกลับ</v-btn>
           <v-spacer></v-spacer>
-          <v-btn color="warning" :to="`/system/repairs/${repairID}`" variant="flat">
+          <v-btn
+            v-show="RepairItems.WorkStatusID == 5"
+            color="success"
+            variant="flat"
+            @click="changeWorkStatus(6)"
+          >
+            <CheckIcon size="18" />
+            &nbsp;ยืนยันการซ่อมแล้วเสร็จ
+          </v-btn>
+          <v-btn
+            v-show="RepairItems.WorkStatusID < 6"
+            color="warning"
+            :to="`/system/repairs/${repairID}`"
+            variant="flat"
+          >
             <EditIcon size="18" />
             &nbsp;แก้ไขรายการซ่อม
           </v-btn>

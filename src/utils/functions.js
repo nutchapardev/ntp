@@ -242,7 +242,7 @@ function getColorByNumber(number) {
     case 5:
       return "purple"; // สีม่วง
     case 6:
-      return "lightsuccess"; // สีส้ม
+      return "success"; // สีส้ม
     case 7:
       return "success"; // สีชมพู
     case 8:

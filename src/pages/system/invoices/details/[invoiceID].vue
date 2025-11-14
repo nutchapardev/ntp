@@ -2,11 +2,7 @@
 import serverService from "@/services/serverService";
 import Swal from "sweetalert2";
 import { sum } from "lodash";
-import {
-  toThaiDateString,
-  formatCurrency,
-  getColorByNumber,
-} from "@/utils/functions";
+import { toThaiDateString, formatCurrency, getColorByNumber } from "@/utils/functions";
 import router from "@/router";
 
 export default {
@@ -66,49 +62,40 @@ export default {
     },
     sumRowCost(part) {
       let subtotal = part.part.PricePerUnit * part.NumOfUse + part.ServiceFee;
-      let discount =
-        part.isDiscount === 1
-          ? part.Discount
-          : (part.Discount / 100) * subtotal;
+      let discount = part.isDiscount === 1 ? part.Discount : (part.Discount / 100) * subtotal;
       return subtotal - discount;
     },
     sumPartsCost(parts) {
       return sum(
         (parts ?? []).map((part) => {
-          let subtotal =
-            (part.PricePerUnit ?? 0) * (part.NumOfUse ?? 0) +
-            (part.ServiceFee ?? 0);
-
-          let discount =
-            part.isDiscount === 1
-              ? part.Discount
-              : (part.Discount / 100) * subtotal;
+          let subtotal = (part.PricePerUnit ?? 0) * (part.NumOfUse ?? 0) + (part.ServiceFee ?? 0);
+          let discount = part.isDiscount === 1 ? part.Discount : (part.Discount / 100) * subtotal;
           return subtotal - discount;
         })
       );
     },
+    customerAddress() {
+      const { addresses } = this.invoice.repair.car.customer;
+      if (addresses.length == 0) return null;
+      const data = addresses.filter((address) => address.IsDefault == true)[0];
+      let customerDefaultAddress = `${data.Line1} ${data.Line2} ${data.subDistrict.name_th}, ${data.district.name_th}, ${data.province.name_th} ${data.subDistrict.Zipcode}`;
+      return customerDefaultAddress;
+    },
     async getInvoiceByID() {
-      const response = await serverService.getInvoiceByID(this.invoiceId);
-      // console.log("invoice", response.data);
-      this.invoice = response.data;
+      this.invoice = (await serverService.getInvoiceByID(this.invoiceId)).data;
       this.customerId = this.invoice.repair.car.customer.CustomerID || null;
       this.invoice.isVat = this.invoice.isVat === 1 ? true : false;
     },
     async getCompanyData() {
-      const response = await serverService.getCompanyData();
-      this.companyData = response.data[0];
+      this.companyData = (await serverService.getCompanyData()).data[0];
     },
     async getRepairByID() {
-      const response = await serverService.getRepairByID(this.invoice.RepairID);
-      this.RepairItems = response.data;
-      // console.log("RepairItems", response.data);
+      const repairId = this.invoice.RepairID;
+      this.RepairItems = (await serverService.getRepairByID(repairId)).data;
     },
     async getRepairDetail() {
-      const response = await serverService.getRepairDetailByRepairID(
-        this.invoice.RepairID
-      );
-      this.repairDetails = response.data;
-      // console.log("repairDetails", response.data);
+      const repairId = this.invoice.RepairID;
+      this.repairDetails = (await serverService.getRepairDetailByRepairID(repairId)).data;
     },
     async saveSubmitEdit() {
       let payload = [];
@@ -160,10 +147,9 @@ export default {
     },
     async switchVat() {
       const { isVat, InvoiceID } = this.invoice;
-      const response = await serverService.updateInvoice(InvoiceID, { isVat });
-      // console.log(response.data);
+      await serverService.updateInvoice(InvoiceID, { isVat });
     },
-    async changeInvoiceStatus(id) {
+    async changeInvoiceStatus(statusId) {
       Swal.fire({
         title: "Are you sure?",
         text: "ยืนยันการดำเนินการ ใช่หรือไม่?",
@@ -175,9 +161,7 @@ export default {
         cancelButtonText: "<span style='color:white;'>Cancel</span>",
       }).then(async (result) => {
         if (result.isConfirmed) {
-          const response = await serverService.updateInvoice(this.invoiceId, {
-            InvoiceStatusID: id,
-          });
+          const response = await serverService.updateInvoice(this.invoiceId, { InvoiceStatusID: statusId });
           if (response.data.result) {
             this.initialize();
             Swal.fire("Success!", "เปลี่ยนสถานะใบแจ้งหนี้แล้ว", "success");
@@ -214,12 +198,8 @@ export default {
         return (
           sum +
           (obj.repairParts ?? []).reduce((sum2, part) => {
-            let subtotal =
-              (part.PricePerUnit ?? 0) * (part.NumOfUse ?? 0) + part.ServiceFee;
-            let discount =
-              part.isDiscount === 1
-                ? part.Discount
-                : (part.Discount / 100) * subtotal;
+            let subtotal = (part.PricePerUnit ?? 0) * (part.NumOfUse ?? 0) + part.ServiceFee;
+            let discount = part.isDiscount === 1 ? part.Discount : (part.Discount / 100) * subtotal;
             return sum2 + subtotal - discount;
           }, 0)
         );
@@ -227,20 +207,15 @@ export default {
     },
     vat() {
       return this.subtotal * (this.invoice.isVat ? this.vatRate : 0);
-      // return this.subtotal * this.vatRate;
     },
     grandTotal() {
-      const total = parseFloat(this.subtotal) + parseFloat(this.vat);
-      return total;
+      return parseFloat(this.subtotal) + parseFloat(this.vat);
     },
   },
 };
 </script>
 <template>
-  <BaseBreadcrumb
-    :title="page.title"
-    :breadcrumbs="breadcrumbs"
-  ></BaseBreadcrumb>
+  <BaseBreadcrumb :title="page.title" :breadcrumbs="breadcrumbs"></BaseBreadcrumb>
   <v-card v-if="invoice != null">
     <v-card-text>
       <v-row>
@@ -254,8 +229,7 @@ export default {
               <p class="font-weight-bold mb-2" style="font-size: 20px">
                 {{ companyData?.CompanyName }}
               </p>
-              {{ companyData?.AddressLine1 }}
-              {{ companyData?.AddressLine2 }}<br />
+              {{ companyData?.AddressLine1 }} {{ companyData?.AddressLine2 }}<br />
               {{ companyData?.AddressLine3 }}
               <br />
               <p>เลขประจำตัวผู้เสียภาษี : {{ companyData?.IDNumber }}</p>
@@ -263,23 +237,14 @@ export default {
             </div>
           </div>
         </v-col>
-        <v-col
-          cols="12"
-          md="6"
-          class="text-start text-md-end text-14 lh-normal"
-        >
-          <p class="font-weight-bold mb-2" style="font-size: 20px">
-            ใบแจ้งหนี้
-            <!-- ใบเสร็จรับเงิน {{ invoice.isVat ? "/ ใบกำกับภาษี" : "" }} -->
-          </p>
+        <v-col cols="12" md="6" class="text-start text-md-end text-14 lh-normal">
+          <p class="font-weight-bold mb-2" style="font-size: 20px">ใบแจ้งหนี้</p>
           <div class="d-flex">
             <div></div>
             <v-spacer></v-spacer>
             <div class="text-start">
               <p>เลขที่&nbsp;&nbsp; {{ invoiceId }}</p>
-              <p>
-                วันที่&nbsp;&nbsp;&nbsp; {{ fotmatDate(invoice.InvoiceDate) }}
-              </p>
+              <p>วันที่&nbsp;&nbsp;&nbsp; {{ fotmatDate(invoice.InvoiceDate) }}</p>
               <div class="text-end">
                 <v-btn class="mt-2 text-end" color="primary" variant="tonal">
                   {{ invoice.invoiceStatus.InvoiceStatus }}
@@ -297,17 +262,12 @@ export default {
                 <tr>
                   <td class="text-14 text-no-wrap">รถยนต์หมายเลขทะเบียน</td>
                   <td class="text-14">
-                    {{ invoice.repair.car.CarTitle }}
-                    {{ invoice.repair.car.CarNumber }}
-                    {{ invoice.repair.car.province.name_th }}
+                    {{ invoice.repair.car.CarTitle }} {{ invoice.repair.car.CarNumber }} {{ invoice.repair.car.province.name_th }}
                   </td>
                 </tr>
                 <tr>
                   <td class="text-14">ยี่ห้อ / รุ่น</td>
-                  <td class="text-14">
-                    {{ invoice.repair.car.brand.Brand }}
-                    ( {{ invoice.repair.car.model.Model }} )
-                  </td>
+                  <td class="text-14">{{ invoice.repair.car.brand.Brand }} ( {{ invoice.repair.car.model.Model }} )</td>
                 </tr>
                 <tr>
                   <td class="text-14">หมายเลขเครื่องยนต์</td>
@@ -322,24 +282,13 @@ export default {
           </v-table>
         </v-col>
         <v-col cols="12" md="6" class="text-start text-14 lh-normal">
-          <!-- <p class="font-weight-bold mb-2" style="font-size: 20px">
-            ข้อมูลลูกค้า
-          </p>
-          <div class="text-14 lh-normal">
-            {{ invoice.repair.car.customer.customerTitle.CustomerTitle }}
-            {{ invoice.repair.car.customer.CustomerName }}
-            {{ invoice.repair.car.customer.CustomerSurname }}
-            <p>เบอร์โทรศัพท์ : 0939477141</p>
-          </div> -->
           <v-table density="compact" class="mt-2 border rounded-md">
             <template v-slot:default>
               <tbody>
                 <tr>
                   <td class="text-14 text-no-wrap">ชื่อลูกค้า</td>
                   <td class="text-14">
-                    {{
-                      invoice.repair.car.customer.customerTitle.CustomerTitle
-                    }}
+                    {{ invoice.repair.car.customer.customerTitle.CustomerTitle }}
                     {{ invoice.repair.car.customer.CustomerName }}
                     {{ invoice.repair.car.customer.CustomerSurname }}
                   </td>
@@ -352,7 +301,12 @@ export default {
                 </tr>
                 <tr>
                   <td class="text-14">ที่อยู่</td>
-                  <td class="text-14">-</td>
+                  <td class="text-14 text-truncate" style="max-width: 200px">
+                    {{ customerAddress() ?? "-" }}
+                    <v-tooltip activator="parent" location="top">
+                      {{ customerAddress() }}
+                    </v-tooltip>
+                  </td>
                 </tr>
                 <tr>
                   <td class="text-14">เบอร์โทรศัพท์</td>
@@ -367,17 +321,6 @@ export default {
       </v-row>
       <v-table class="border rounded-md mt-5 mb-2" density="compact">
         <template v-slot:default>
-          <!-- <thead>
-            <tr>
-              <th class="text-14 text-no-wrap text-center">ลำดับ</th>
-                <th class="text-14 text-no-wrap">รายการ</th>
-                <th class="text-14 text-no-wrap">รายละเอียด</th>
-
-              <th class="text-14 text-no-wrap">ราคาต่อหน่วย</th>
-                <th class="text-14 text-no-wrap">จำนวน</th>
-                <th class="text-14 text-no-wrap text-end">จำนวนเงิน</th>
-            </tr>
-          </thead> -->
           <tbody>
             <tr v-for="(item, i) in repairDetails" :key="i">
               <td>
@@ -386,56 +329,25 @@ export default {
                     <!-- <thead v-if="i == 0"> -->
                     <thead>
                       <tr>
-                        <th class="text-14 text-no-wrap text-start">
-                          <span> # รายการหลัก</span>
-                        </th>
-                        <th class="text-14 text-no-wrap text-center">
-                          <span>รายละเอียด</span>
-                        </th>
-                        <th class="text-14 text-no-wrap text-end">
-                          <span>จำนวน</span>
-                        </th>
-                        <th class="text-14 text-no-wrap text-end">
-                          <span>ราคาต่อหน่วย</span>
-                        </th>
-                        <th class="text-14 text-no-wrap text-end">
-                          <span>ค่าบริการ</span>
-                        </th>
-                        <th class="text-14 text-no-wrap text-end">
-                          <span>ส่วนลด</span>
-                        </th>
-                        <th class="text-14 text-no-wrap text-center">
-                          % / บาท
-                        </th>
-                        <th class="text-14 text-no-wrap text-end">
-                          <span>จำนวนเงิน</span>
-                        </th>
+                        <th class="text-14 text-no-wrap text-start"><span> # รายการหลัก</span></th>
+                        <th class="text-14 text-no-wrap text-center"><span>รายละเอียด</span></th>
+                        <th class="text-14 text-no-wrap text-end"><span>จำนวน</span></th>
+                        <th class="text-14 text-no-wrap text-end"><span>ราคาต่อหน่วย</span></th>
+                        <th class="text-14 text-no-wrap text-end"><span>ค่าบริการ</span></th>
+                        <th class="text-14 text-no-wrap text-end"><span>ส่วนลด</span></th>
+                        <th class="text-14 text-no-wrap text-center">% / บาท</th>
+                        <th class="text-14 text-no-wrap text-end"><span>จำนวนเงิน</span></th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr
-                        v-for="(part, index) in item.repairParts"
-                        :key="index"
-                      >
-                        <td v-if="index == 0" width="30%" class="text-wrap">
-                          {{ i + 1 }}. {{ item.preset.Preset }}
-                        </td>
+                      <tr v-for="(part, index) in item.repairParts" :key="index">
+                        <td v-if="index == 0" width="30%" class="text-wrap">{{ i + 1 }}. {{ item.preset.Preset }}</td>
                         <td v-else width="30%" class="text-wrap"></td>
                         <td width="35%">{{ part.part.PartName_th }}</td>
-                        <td class="text-end">
-                          {{ part.NumOfUse }}
-                        </td>
-                        <td class="text-end">
-                          {{ formatSeperateCurrency(part.part.PricePerUnit) }}
-                        </td>
-                        <td class="text-end">
-                          {{ formatSeperateCurrency(part.ServiceFee) }}
-                        </td>
-                        <td
-                          width="15%"
-                          style="align-items: center; justify-content: center"
-                          class="text-end"
-                        >
+                        <td class="text-end">{{ part.NumOfUse }}</td>
+                        <td class="text-end">{{ formatSeperateCurrency(part.part.PricePerUnit) }}</td>
+                        <td class="text-end">{{ formatSeperateCurrency(part.ServiceFee) }}</td>
+                        <td width="15%" style="align-items: center; justify-content: center" class="text-end">
                           <v-text-field
                             v-if="invoice.InvoiceStatusID == 1"
                             v-model="part.Discount"
@@ -450,7 +362,7 @@ export default {
                         </td>
                         <td width="20%" class="text-center">
                           <v-select
-                          v-if="invoice.InvoiceStatusID == 1"
+                            v-if="invoice.InvoiceStatusID == 1"
                             v-model="part.isDiscount"
                             :items="percent_bath"
                             variant="underlined"
@@ -465,20 +377,13 @@ export default {
                         </td>
                       </tr>
                       <tr>
-                        <td
-                          colspan="4"
-                          class="text-14 font-weight-semibold text-end"
-                        ></td>
+                        <td colspan="4" class="text-14 font-weight-semibold text-end"></td>
                         <td></td>
                         <td></td>
                         <td></td>
                         <td class="text-14 font-weight-semibold text-end">
                           <u>
-                            {{
-                              formatSeperateCurrency(
-                                sumPartsCost(item.repairParts)
-                              )
-                            }}
+                            {{ formatSeperateCurrency(sumPartsCost(item.repairParts)) }}
                           </u>
                         </td>
                       </tr>
@@ -497,32 +402,21 @@ export default {
       </v-table>
       <v-row class="d-flex justify-end border-t mt-1">
         <v-col cols="12" md="3" class="mt-3">
-          <div
-            class="d-flex align-center justify-space-between text-14 font-weight-semibold mb-4"
-          >
+          <div class="d-flex align-center justify-space-between text-14 font-weight-semibold mb-4">
             <p class="text-muted">Sub Total:</p>
             <p class="text-16">{{ formatSeperateCurrency(subtotal) }}</p>
           </div>
-          <div
-            class="d-flex align-center justify-space-between text-14 font-weight-semibold mb-4"
-          >
+          <div class="d-flex align-center justify-space-between text-14 font-weight-semibold mb-4">
             <div class="d-flex align-center justify-space-between">
               <p class="text-muted">
                 Vat : {{ (vatRate * 100).toFixed(0) }}
                 %&nbsp;&nbsp;
               </p>
-              <v-switch
-                v-model="invoice.isVat"
-                @change="switchVat"
-                color="orange"
-                hide-details
-              ></v-switch>
+              <v-switch v-model="invoice.isVat" @change="switchVat" color="orange" hide-details></v-switch>
             </div>
             <p class="text-16">{{ formatSeperateCurrency(vat) }}</p>
           </div>
-          <div
-            class="d-flex align-center justify-space-between text-14 font-weight-semibold"
-          >
+          <div class="d-flex align-center justify-space-between text-14 font-weight-semibold">
             <p class="text-muted">Grand Total:</p>
             <p class="text-16">{{ formatSeperateCurrency(grandTotal) }}</p>
           </div>
@@ -530,59 +424,22 @@ export default {
       </v-row>
     </v-card-text>
     <v-card-actions>
-      <v-btn @click="goBack" color="error" variant="flat" class="mb-3 ml-3"
-        >ย้อนกลับ</v-btn
-      >
+      <v-btn @click="goBack" color="error" variant="flat" class="mb-3 ml-3">ย้อนกลับ</v-btn>
       <v-spacer></v-spacer>
-      <v-btn
-        v-show="invoice.InvoiceStatusID == 2"
-        color="success"
-        variant="flat"
-        class="mb-3 mr-2"
-        @click="changeInvoiceStatus(3)"
-      >
-        <CheckIcon size="18" />
-        &nbsp;ยืนยันการชำระเงิน
+      <v-btn v-show="invoice.InvoiceStatusID == 2" color="success" variant="flat" class="mb-3 mr-2" @click="changeInvoiceStatus(3)">
+        <CheckIcon size="18" /> &nbsp;ยืนยันการชำระเงิน
       </v-btn>
-      <v-btn
-        v-show="invoice.InvoiceStatusID == 1"
-        color="secondary"
-        variant="flat"
-        class="mb-3 mr-2"
-        @click="changeInvoiceStatus(2)"
-      >
-        <CheckIcon size="18" />
-        &nbsp;ยืนยันใบแจ้งหนี้
+      <v-btn v-show="invoice.InvoiceStatusID == 1" color="secondary" variant="flat" class="mb-3 mr-2" @click="changeInvoiceStatus(2)">
+        <CheckIcon size="18" /> &nbsp;ยืนยันใบแจ้งหนี้
       </v-btn>
-      <v-btn
-        v-show="invoice.InvoiceStatusID == 2"
-        color="black"
-        variant="outlined"
-        class="mb-3 mr-2"
-        @click="changeInvoiceStatus(1)"
-      >
-        <EditIcon size="18" />
-        &nbsp;แก้ไขใบแจ้งหนี้
+      <v-btn v-show="invoice.InvoiceStatusID == 2" color="black" variant="outlined" class="mb-3 mr-2" @click="changeInvoiceStatus(1)">
+        <EditIcon size="18" /> &nbsp;แก้ไขใบแจ้งหนี้
       </v-btn>
-      <v-btn
-        v-show="invoice.InvoiceStatusID == 1"
-        color="warning"
-        :to="`/system/repairs/${invoice.repair.RepairID}`"
-        variant="flat"
-        class="mb-3 mr-2"
-      >
-        <EditIcon size="18" />
-        &nbsp;แก้ไขรายการซ่อม
+      <v-btn color="warning" :to="`/system/repairs/details/${invoice.repair.RepairID}`" variant="flat" class="mb-3 mr-2">
+        <EyeIcon size="18" /> &nbsp;ดูรายละเอียดการซ่อม
       </v-btn>
-      <v-btn color="error" variant="outlined" class="mb-3 mr-2">
-        <b>PDF</b>&nbsp;แสดงใบแจ้งหนี้
-      </v-btn>
-      <v-btn
-        @click="saveSubmitEdit"
-        color="primary"
-        variant="flat"
-        class="mb-3 mr-3"
-      >
+      <v-btn color="error" variant="outlined" class="mb-3 mr-2"> <b>PDF</b>&nbsp;แสดงใบแจ้งหนี้ </v-btn>
+      <v-btn v-show="invoice.InvoiceStatusID == 1" @click="saveSubmitEdit" color="primary" variant="flat" class="mb-3 mr-3">
         บันทึกข้อมูล
       </v-btn>
     </v-card-actions>
