@@ -57,14 +57,9 @@ export default {
     sumPartsCost(parts) {
       return sum(
         (parts ?? []).map((part) => {
-          let subtotal =
-            (part.PricePerUnit ?? 0) * (part.NumOfUse ?? 0) +
-            (part.ServiceFee ?? 0);
+          let subtotal = (part.PricePerUnit ?? 0) * (part.NumOfUse ?? 0) + (part.ServiceFee ?? 0);
 
-          let discount =
-            part.isDiscount === 1
-              ? part.Discount
-              : (part.Discount / 100) * subtotal;
+          let discount = part.isDiscount === 1 ? part.Discount : (part.Discount / 100) * subtotal;
           return subtotal - discount;
         })
       );
@@ -75,9 +70,7 @@ export default {
       console.log(response.data);
     },
     async getRepairDetail() {
-      const response = await serverService.getRepairDetailByRepairID(
-        this.repairID
-      );
+      const response = await serverService.getRepairDetailByRepairID(this.repairID);
       this.repairDetails = response.data;
     },
     async getInvoiceData() {
@@ -220,12 +213,8 @@ export default {
         return (
           sum +
           (obj.repairParts ?? []).reduce((sum2, part) => {
-            let subtotal =
-              (part.PricePerUnit ?? 0) * (part.NumOfUse ?? 0) + part.ServiceFee;
-            let discount =
-              part.isDiscount === 1
-                ? part.Discount
-                : (part.Discount / 100) * subtotal;
+            let subtotal = (part.PricePerUnit ?? 0) * (part.NumOfUse ?? 0) + part.ServiceFee;
+            let discount = part.isDiscount === 1 ? part.Discount : (part.Discount / 100) * subtotal;
             return sum2 + subtotal - discount;
           }, 0)
         );
@@ -243,10 +232,7 @@ export default {
 };
 </script>
 <template>
-  <BaseBreadcrumb
-    :title="page.title"
-    :breadcrumbs="breadcrumbs"
-  ></BaseBreadcrumb>
+  <BaseBreadcrumb :title="page.title" :breadcrumbs="breadcrumbs"></BaseBreadcrumb>
   <!-- <UiParentCard Tableard title="รายละเอียด"> -->
   <v-card elevation="10">
     <v-card-item>
@@ -288,18 +274,10 @@ export default {
                 </div>
               </div>
             </v-col>
-            <v-col
-              cols="12"
-              md="6"
-              class="text-start text-md-end text-14 lh-normal"
-            >
-              <p class="font-weight-bold mb-2" style="font-size: 20px">
-                รายละเอียดการซ่อม
-              </p>
+            <v-col cols="12" md="6" class="text-start text-md-end text-14 lh-normal">
+              <p class="font-weight-bold mb-2" style="font-size: 20px">รายละเอียดการซ่อม</p>
               <div class="text-end mt-3">
-                <v-btn color="primary" variant="tonal">{{
-                  RepairItems.workStatus.WorkStatus_th
-                }}</v-btn>
+                <v-btn color="primary" variant="tonal">{{ RepairItems.workStatus.WorkStatus_th }}</v-btn>
               </div>
               <!-- <div class="text-14 lh-normal">
                 {{ RepairItems.customer.customerTitle.CustomerTitle }}
@@ -354,9 +332,7 @@ export default {
                 <template v-slot:default>
                   <tbody>
                     <tr>
-                      <td width="40%" class="text-14 text-no-wrap">
-                        ชื่อลูกค้า
-                      </td>
+                      <td width="40%" class="text-14 text-no-wrap">ชื่อลูกค้า</td>
                       <td class="text-14">
                         {{ RepairItems.customer.customerTitle.CustomerTitle }}
                         {{ RepairItems.customer.CustomerName }}
@@ -371,10 +347,7 @@ export default {
                     </tr>
                     <tr>
                       <td class="text-14">ที่อยู่</td>
-                      <td
-                        class="text-14 text-truncate"
-                        style="max-width: 200px"
-                      >
+                      <td class="text-14 text-truncate" style="max-width: 200px">
                         {{ customerAddress() ?? "-" }}
                         <v-tooltip activator="parent" location="top">
                           {{ customerAddress() }}
@@ -439,13 +412,8 @@ export default {
                         </tr>
                       </thead>
                       <tbody>
-                        <tr
-                          v-for="(part, index) in item.repairParts"
-                          :key="index"
-                        >
-                          <td v-if="index == 0" width="20%" class="text-wrap">
-                            {{ i + 1 }}. {{ item.preset.Preset }}
-                          </td>
+                        <tr v-for="(part, index) in item.repairParts" :key="index">
+                          <td v-if="index == 0" width="20%" class="text-wrap">{{ i + 1 }}. {{ item.preset.Preset }}</td>
                           <td v-else width="20%" class="text-wrap"></td>
                           <td width="35%">{{ part.part.PartName_th }}</td>
                           <td width="15%" class="text-end">
@@ -458,27 +426,15 @@ export default {
                             {{ formatSeperateCurrency(part.ServiceFee) }}
                           </td>
                           <td width="10%" class="text-end">
-                            {{
-                              formatSeperateCurrency(
-                                part.part.PricePerUnit * part.NumOfUse +
-                                  part.ServiceFee
-                              )
-                            }}
+                            {{ formatSeperateCurrency(part.part.PricePerUnit * part.NumOfUse + part.ServiceFee) }}
                           </td>
                         </tr>
                         <tr>
-                          <td
-                            colspan="4"
-                            class="text-14 font-weight-semibold text-end"
-                          ></td>
+                          <td colspan="4" class="text-14 font-weight-semibold text-end"></td>
                           <td></td>
                           <td class="text-14 font-weight-semibold text-end">
                             <u>
-                              {{
-                                formatSeperateCurrency(
-                                  sumPartsCost(item.repairParts)
-                                )
-                              }}
+                              {{ formatSeperateCurrency(sumPartsCost(item.repairParts)) }}
                             </u>
                           </td>
                         </tr>
@@ -497,71 +453,43 @@ export default {
         </v-table>
         <v-row class="d-flex justify-end border-t mt-1">
           <v-col cols="12" md="3" class="mt-3">
-            <div
-              class="d-flex align-center justify-space-between text-14 font-weight-semibold mb-4"
-            >
+            <div class="d-flex align-center justify-space-between text-14 font-weight-semibold mb-4">
               <p class="text-muted">Sub Total:</p>
               <p class="text-16">{{ formatSeperateCurrency(subtotal) }}</p>
             </div>
-            <div
-              class="d-flex align-center justify-space-between text-14 font-weight-semibold mb-4"
-            >
+            <!-- <div class="d-flex align-center justify-space-between text-14 font-weight-semibold mb-4">
               <div class="d-flex align-center justify-space-between">
-                <p class="text-muted">
-                  Vat : {{ (vatRate * 100).toFixed(0) }} %&nbsp;&nbsp;
-                </p>
-                <!-- <v-switch
+                <p class="text-muted">Vat : {{ (vatRate * 100).toFixed(0) }} %&nbsp;&nbsp;</p>
+                <v-switch
                   v-model="isVat"
                   color="orange"
                   hide-details
-                ></v-switch> -->
+                ></v-switch>
               </div>
               <p class="text-16">{{ formatSeperateCurrency(vat) }}</p>
             </div>
-            <div
-              class="d-flex align-center justify-space-between text-14 font-weight-semibold"
-            >
+            <div class="d-flex align-center justify-space-between text-14 font-weight-semibold">
               <p class="text-muted">Grand Total:</p>
               <p class="text-16">{{ formatSeperateCurrency(grandTotal) }}</p>
-            </div>
+            </div> -->
           </v-col>
         </v-row>
         <div class="d-flex ga-3 mt-6 justify-end">
           <v-btn @click="goBack" color="error">ย้อนกลับ</v-btn>
           <v-spacer></v-spacer>
-          <v-btn
-            v-show="RepairItems.WorkStatusID == 5"
-            color="success"
-            variant="flat"
-            @click="changeWorkStatus(6)"
-          >
+          <v-btn v-show="RepairItems.WorkStatusID == 5" color="success" variant="flat" @click="changeWorkStatus(6)">
             <CheckIcon size="18" />
             &nbsp;ยืนยันการซ่อมแล้วเสร็จ
           </v-btn>
-          <v-btn
-            v-show="RepairItems.WorkStatusID < 6"
-            color="warning"
-            :to="`/system/repairs/${repairID}`"
-            variant="flat"
-          >
+          <v-btn v-show="RepairItems.WorkStatusID < 6" color="warning" :to="`/system/repairs/${repairID}`" variant="flat">
             <EditIcon size="18" />
             &nbsp;แก้ไขรายการซ่อม
           </v-btn>
-          <v-btn
-            v-if="invoice == null"
-            @click="createQuotation"
-            color="primary"
-            flat
-          >
+          <v-btn v-if="invoice == null" @click="createQuotation" color="primary" flat>
             <v-icon>mdi-send-variant</v-icon>
             &nbsp;สร้างใบแจ้งหนี้
           </v-btn>
-          <v-btn
-            v-else
-            :to="`/system/invoices/details/${invoice.InvoiceID}`"
-            color="primary"
-            flat
-          >
+          <v-btn v-else :to="`/system/invoices/details/${invoice.InvoiceID}`" color="primary" flat>
             <v-icon>mdi-note-text</v-icon>
             &nbsp;ดูรายละเอียดใบแจ้งหนี้
           </v-btn>

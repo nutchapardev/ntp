@@ -4,10 +4,12 @@ import Swal from "sweetalert2";
 import { sum } from "lodash";
 import { toThaiDateString, formatCurrency, getColorByNumber } from "@/utils/functions";
 import router from "@/router";
+import { apiUrl } from "@/services/constants";
 
 export default {
   data() {
     return {
+      apiUrl,
       page: { title: "รายละเอียดใบแจ้งหนี้" },
       breadcrumbs: [
         {
@@ -30,6 +32,7 @@ export default {
       companyData: null,
       customerId: null,
       vatRate: 0.07,
+      isEdit: false, // ถ้ามีการแก้ไขตัวเลขส่วนลด จะไม่สามารถกดยืนยันใบแจ้งหนี้ได้
       percent_bath: [
         { id: 1, title: "บาท" },
         { id: 2, title: "%" },
@@ -59,6 +62,9 @@ export default {
     },
     formatSeperateCurrency(total) {
       return formatCurrency(total);
+    },
+    editDoing() {
+      this.isEdit = true;
     },
     sumRowCost(part) {
       let subtotal = part.part.PricePerUnit * part.NumOfUse + part.ServiceFee;
@@ -184,6 +190,7 @@ export default {
         await this.getRepairDetail();
       });
       await this.getCompanyData();
+      this.isEdit = false;
     },
   },
   created() {
@@ -357,6 +364,7 @@ export default {
                             step="0.00"
                             min="0.00"
                             :rules="numberRules"
+                            @change="editDoing"
                           ></v-text-field>
                           <span v-else>{{ part.Discount === 0 ? "-" : formatSeperateCurrency(part.Discount) }}</span>
                         </td>
@@ -369,6 +377,7 @@ export default {
                             item-value="id"
                             item-title="title"
                             density="compact"
+                            @update:model-value="editDoing"
                           ></v-select>
                           <span v-else>{{ part.isDiscount === 1 ? "บาท" : "%" }}</span>
                         </td>
@@ -412,7 +421,13 @@ export default {
                 Vat : {{ (vatRate * 100).toFixed(0) }}
                 %&nbsp;&nbsp;
               </p>
-              <v-switch v-model="invoice.isVat" @change="switchVat" color="orange" hide-details></v-switch>
+              <v-switch
+                v-show="invoice.InvoiceStatusID == 1"
+                v-model="invoice.isVat"
+                @change="switchVat"
+                color="orange"
+                hide-details
+              ></v-switch>
             </div>
             <p class="text-16">{{ formatSeperateCurrency(vat) }}</p>
           </div>
@@ -429,7 +444,14 @@ export default {
       <v-btn v-show="invoice.InvoiceStatusID == 2" color="success" variant="flat" class="mb-3 mr-2" @click="changeInvoiceStatus(3)">
         <CheckIcon size="18" /> &nbsp;ยืนยันการชำระเงิน
       </v-btn>
-      <v-btn v-show="invoice.InvoiceStatusID == 1" color="secondary" variant="flat" class="mb-3 mr-2" @click="changeInvoiceStatus(2)">
+      <v-btn
+        v-show="invoice.InvoiceStatusID == 1"
+        color="secondary"
+        variant="flat"
+        class="mb-3 mr-2"
+        @click="changeInvoiceStatus(2)"
+        :disabled="isEdit"
+      >
         <CheckIcon size="18" /> &nbsp;ยืนยันใบแจ้งหนี้
       </v-btn>
       <v-btn v-show="invoice.InvoiceStatusID == 2" color="black" variant="outlined" class="mb-3 mr-2" @click="changeInvoiceStatus(1)">
@@ -438,7 +460,9 @@ export default {
       <v-btn color="warning" :to="`/system/repairs/details/${invoice.repair.RepairID}`" variant="flat" class="mb-3 mr-2">
         <EyeIcon size="18" /> &nbsp;ดูรายละเอียดการซ่อม
       </v-btn>
-      <v-btn color="error" variant="outlined" class="mb-3 mr-2"> <b>PDF</b>&nbsp;แสดงใบแจ้งหนี้ </v-btn>
+      <v-btn :href="`${apiUrl}/pdf/create-invoice/${invoiceId}`" target="_blank" color="error" variant="outlined" class="mb-3 mr-2">
+        <b>PDF</b>&nbsp;แสดงใบแจ้งหนี้
+      </v-btn>
       <v-btn v-show="invoice.InvoiceStatusID == 1" @click="saveSubmitEdit" color="primary" variant="flat" class="mb-3 mr-3">
         บันทึกข้อมูล
       </v-btn>
