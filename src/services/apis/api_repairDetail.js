@@ -9,3 +9,7 @@ export const addRepairDetailWithPart = (data) => {
 export const getRepairDetailByRepairID = (id) => {
   return httpClient.get(`${server.REPAIR_DETAIL_URL}/by-repair-id/${id}`);
 };
+
+export const deleteRepairDetailsWithParts = async (id, data) => {
+  return httpClient.delete(`${server.REPAIR_DETAIL_URL}/delete-with-parts/${id}`, data);
+};

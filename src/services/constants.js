@@ -53,6 +53,7 @@ export const server = {
   QUOTATION_URL: `quotation`,
   QUOTATION_DETAIL_URL: `quotation-detail`,
   QUOTATION_PART_URL: `quotation-part`,
+  CASH_PLEDGE_URL: `cash-pledge`,
 }
 
 export const message = {

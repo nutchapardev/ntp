@@ -5,12 +5,7 @@ import serverService from "@/services/serverService";
 import Swal from "sweetalert2";
 import { useAuthStore } from "@/stores/authStore";
 // import { useRouter } from 'vue-router'
-import {
-  toThaiDateString,
-  toThaiDateTimeString,
-  formatCurrency,
-  getColorByNumber,
-} from "@/utils/functions";
+import { toThaiDateString, toThaiDateTimeString, formatCurrency, getColorByNumber } from "@/utils/functions";
 import ImageUploader from "../cars/ImageUploader.vue";
 import router from "@/router";
 
@@ -32,12 +27,13 @@ export default {
       invoiceStore,
       valid: false,
       isVat: false,
+      isCanEdit: false,
       // statuses: ["Pending", "Shipped", "Delivered"],
       rules: [(v) => !!v || "This field is required"],
       vatRate: 0.07,
       selectedItems: [],
       parts: [],
-      RepairItems: {},
+      RepairItems: null,
       newRepairItems: {},
       refItems: [],
       repairDetails: [],
@@ -80,11 +76,7 @@ export default {
         return (
           sum +
           (obj.repairParts ?? []).reduce((sum2, part) => {
-            return (
-              sum2 +
-              (part.PricePerUnit ?? 0) * (part.NumOfUse ?? 0) +
-              part.ServiceFee
-            );
+            return sum2 + (part.PricePerUnit ?? 0) * (part.NumOfUse ?? 0) + part.ServiceFee;
           }, 0)
         );
       }, 0);
@@ -93,8 +85,7 @@ export default {
       return this.subtotalNutcha * (this.isVat ? this.vatRate : 0);
     },
     grandTotalNutCha() {
-      const total =
-        parseFloat(this.subtotalNutcha) + parseFloat(this.vatNutCha);
+      const total = parseFloat(this.subtotalNutcha) + parseFloat(this.vatNutCha);
       return total;
     },
     repairID() {
@@ -106,35 +97,22 @@ export default {
         return [];
       }
       // ถ้ามีค่า ถึงจะทำการ filter
-      return this.showPresetDetail.presetDetails.filter(
-        (item) => item.NumOfUse <= item.part.PartAmount
-      );
+      return this.showPresetDetail.presetDetails.filter((item) => item.NumOfUse <= item.part.PartAmount);
     },
     isAllSelectableSelected() {
-      return (
-        this.selectableItems.length > 0 &&
-        this.selectedItems.length === this.selectableItems.length
-      );
+      return this.selectableItems.length > 0 && this.selectedItems.length === this.selectableItems.length;
     },
     isSomeSelectableSelected() {
       return this.selectedItems.length > 0 && !this.isAllSelectableSelected;
     },
     checkNotEnoughItems() {
-      return (
-        this.showPresetDetail.presetDetails.filter(
-          (item) => item.NumOfUse > item.part.PartAmount
-        ).length > 0
-      );
+      return this.showPresetDetail.presetDetails.filter((item) => item.NumOfUse > item.part.PartAmount).length > 0;
     },
     notEnoughItems() {
-      return this.showPresetDetail.presetDetails.filter(
-        (item) => item.NumOfUse > item.part.PartAmount
-      );
+      return this.showPresetDetail.presetDetails.filter((item) => item.NumOfUse > item.part.PartAmount);
     },
     aviableItems() {
-      return this.showPresetDetail.presetDetails.filter(
-        (item) => item.NumOfUse <= item.part.PartAmount
-      );
+      return this.showPresetDetail.presetDetails.filter((item) => item.NumOfUse <= item.part.PartAmount);
     },
   },
 
@@ -167,7 +145,9 @@ export default {
       this.showPresetDetail = null;
       this.selectedItems = [];
     },
-
+    editDoing() {
+      this.isCanEdit = true;
+    },
     async submitSave() {
       let updates = [];
       this.repairDetails.forEach((item) => {
@@ -279,6 +259,46 @@ export default {
         }
       });
     },
+    async cancleAllowCate() {
+      Swal.fire({
+        title: "Are you sure?",
+        text: "ยกเลิกการจัดสรรอุปกรณ์ ใช่หรือไม่?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "<span style='color:white;'>Yes, continue!</span>",
+        cancelButtonText: "<span style='color:white;'>Cancel</span>",
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          const { WorkStatusID } = this.RepairItems.workStatus;
+          if (WorkStatusID == 4) {
+            // update สถานะในกรณีที่อยู่ในสถานะจัดสรรอุปกรณ์
+            await serverService.updateRepairByID(this.repairID, {
+              WorkStatusID: 2,
+            });
+            // update สถานะ
+          } else {
+            Swal.fire({
+              icon: "success",
+              title: "สำเร็จ",
+              text: "ไม่สามารถยกเลิกได้เนื่องจากปัจจุบันไม่ใช่สถานะการจัดสรรอุปกรณ์",
+              timer: 1500,
+              showConfirmButton: false,
+            });
+            return;
+          }
+          this.initialize();
+          Swal.fire({
+            icon: "success",
+            title: "สำเร็จ",
+            text: "ยกเลิกการจัดสรรอุปกรณ์แล้ว",
+            timer: 1500,
+            showConfirmButton: false,
+          });
+        }
+      });
+    },
     async deletePart(item) {
       if (!item.RepairPartID) {
         Swal.fire({
@@ -300,9 +320,7 @@ export default {
         cancelButtonText: "<span style='color:white;'>Cancel</span>",
       }).then(async (result) => {
         if (result.isConfirmed) {
-          const response = await serverService.deleteRepairPartByID(
-            item.RepairPartID
-          );
+          const response = await serverService.deleteRepairPartByID(item.RepairPartID);
           if (response.data.result) {
             this.getRefModelCategoryPartByBrandID();
             this.getRepairDetail();
@@ -318,24 +336,16 @@ export default {
       });
     },
     async getRepairByID() {
-      const response = await serverService.getRepairByID(this.repairID);
-      this.RepairItems = response.data;
+      this.RepairItems = (await serverService.getRepairByID(this.repairID)).data;
     },
     async getRefModelCategoryPartByBrandID() {
-      const response = await serverService.getRefModelCategoryPartByModelID(
-        this.RepairItems.ModelID
-      );
-      this.refItems = response.data;
+      this.refItems = (await serverService.getRefModelCategoryPartByModelID(this.RepairItems.ModelID)).data;
     },
     async getRepairDetail() {
-      const response = await serverService.getRepairDetailByRepairID(
-        this.repairID
-      );
-      this.repairDetails = response.data;
+      this.repairDetails = (await serverService.getRepairDetailByRepairID(this.repairID)).data;
     },
     async getParts() {
-      const response = await serverService.getAllParts();
-      this.parts = response.data;
+      this.parts = (await serverService.getAllParts()).data;
     },
     setRowClass({ item }) {
       if (item.NumOfUse > item.part.PartAmount) {
@@ -367,8 +377,7 @@ export default {
         if (result.isConfirmed) {
           let payload = {
             RepairID: this.repairID,
-            RepairCategoryID:
-              this.showPresetDetail.repairCategory.RepairCategoryID,
+            RepairCategoryID: this.showPresetDetail.repairCategory.RepairCategoryID,
             PresetID: this.showPresetDetail.PresetID,
             repairParts: [],
           };
@@ -402,7 +411,7 @@ export default {
       });
     },
     async submitAddItem() {
-      console.log(this.addItem);
+      // console.log(this.addItem);
 
       const { PartID, PartAmount, NumOfUse, ServiceFee } = this.addItem;
       if (NumOfUse > PartAmount || NumOfUse < 0) {
@@ -445,6 +454,36 @@ export default {
             this.closeDialogAddItems();
             this.initialize();
             Swal.fire("Success!", "เพิ่มข้อมูลแล้ว", "success");
+          } else {
+            Swal.fire({
+              icon: "warning",
+              title: "Alert!",
+              text: response.data.message,
+              timer: 1500,
+              showConfirmButton: false,
+            });
+            return;
+          }
+        }
+      });
+    },
+    async deletePreset(item) {
+      Swal.fire({
+        title: "Are you sure?",
+        text: "ท่านต้องการลบข้อมูล ใช่หรือไม่?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "<span style='color:white;'>Yes, continue!</span>",
+        cancelButtonText: "<span style='color:white;'>Cancel</span>",
+      }).then(async (result) => {
+        // console.log(item);
+        if (result.isConfirmed) {
+          const response = await serverService.deleteRepairDetailsWithParts(item.RepairDetailID);
+          if (response.data.result) {
+            this.initialize();
+            Swal.fire("Success!", "ลบข้อมูลแล้ว", "success");
           } else {
             Swal.fire({
               icon: "warning",
@@ -514,6 +553,7 @@ export default {
       this.authStore.setLoadingOn();
       this.getRepairByID();
       this.getRepairDetail();
+      this.isCanEdit = false;
       this.authStore.setLoadingOff();
     },
   },
@@ -529,7 +569,7 @@ export default {
 </script>
 
 <template>
-  <v-card v-if="RepairItems.RepairID" elevation="10">
+  <v-card v-if="RepairItems" elevation="10">
     <v-card-item>
       <v-row>
         <v-col cols="12" sm="6">
@@ -592,12 +632,7 @@ export default {
           <v-icon size="20">mdi-plus-circle-outline</v-icon>
           <span class="hidden-sm-and-down"> &nbsp;เพิ่มรายการ </span>
         </v-btn>
-        <v-dialog
-          v-model="dialogAddPart"
-          class="dialog-mw"
-          style="max-width: 1000px"
-          persistent
-        >
+        <v-dialog v-model="dialogAddPart" class="dialog-mw" style="max-width: 1000px" persistent>
           <v-card>
             <v-card-text>
               <v-row>
@@ -605,16 +640,8 @@ export default {
                   <div class="overflow-y-auto" style="max-height: 250px">
                     <!-- Popout -->
                     <v-expansion-panels variant="popout">
-                      <v-expansion-panel
-                        v-for="(category, index) in refItems"
-                        :key="category.PartCategoryID"
-                        elevation="10"
-                      >
-                        <v-expansion-panel-title
-                          class="text-h6"
-                          color="info"
-                          @click="removeSelectedItem"
-                        >
+                      <v-expansion-panel v-for="(category, index) in refItems" :key="category.PartCategoryID" elevation="10">
+                        <v-expansion-panel-title class="text-h6" color="info" @click="removeSelectedItem">
                           {{ index + 1 }}. {{ category.PartCategoryName }}
                         </v-expansion-panel-title>
                         <v-expansion-panel-text>
@@ -645,17 +672,9 @@ export default {
                     {{ showPresetDetail.Preset }}
                   </div>
                   <div v-if="checkNotEnoughItems">
-                    <v-alert
-                      density="compact"
-                      type="error"
-                      class="mb-4"
-                      variant="tonal"
-                    >
+                    <v-alert density="compact" type="error" class="mb-4" variant="tonal">
                       <span>อุปกรณ์ไม่เพียงพอ</span> <br />
-                      <v-table
-                        class="border rounded-md mt-2 mb-2"
-                        density="compact"
-                      >
+                      <v-table class="border rounded-md mt-2 mb-2" density="compact">
                         <thead>
                           <tr>
                             <th class="text-start">รหัสอุปกรณ์</th>
@@ -665,10 +684,7 @@ export default {
                           </tr>
                         </thead>
                         <tbody>
-                          <tr
-                            v-for="(notItem, index) in notEnoughItems"
-                            :key="index"
-                          >
+                          <tr v-for="(notItem, index) in notEnoughItems" :key="index">
                             <td class="text-start">
                               {{ notItem.part.PartNumber }}
                             </td>
@@ -707,19 +723,10 @@ export default {
             </v-card-text>
             <hr />
             <v-card-actions v-if="selectedItems.length > 0">
-              <v-btn
-                color="primary"
-                block
-                @click="submitAddRepairItem"
-                flat
-                variant="tonal"
-                >เพิ่มอุปกรณ์</v-btn
-              >
+              <v-btn color="primary" block @click="submitAddRepairItem" flat variant="tonal">เพิ่มอุปกรณ์</v-btn>
             </v-card-actions>
             <v-card-actions>
-              <v-btn color="error" block @click="closeDialogAddPart" flat
-                >ปิดหน้าต่าง</v-btn
-              >
+              <v-btn color="error" block @click="closeDialogAddPart" flat>ปิดหน้าต่าง</v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
@@ -729,7 +736,8 @@ export default {
 
   <v-card class="mt-5">
     <v-card-item>
-      <v-form ref="formRef" v-model="valid" lazy-validation>
+      <!-- <v-form ref="formRef" v-model="valid" lazy-validation> -->
+      <v-form>
         <!--  -->
         <div
           v-for="(detail, index) in repairDetails"
@@ -743,18 +751,14 @@ export default {
           <div class="mt-10 font-weight-bold d-flex align-center">
             #{{ index + 1 }}.&nbsp;&nbsp;&nbsp;&nbsp;
             {{ detail.preset.Preset }}
-            <v-btn
-              flat
-              icon
-              color="lightprimary"
-              size="x-small"
-              class="ms-3"
-              @click="openDialogAddItems(detail)"
-            >
+            <v-btn flat icon color="lightprimary" size="x-small" class="ms-3" @click="openDialogAddItems(detail)">
               <CirclePlusIcon class="text-primary" size="18" />
-              <v-tooltip activator="parent" location="bottom"
-                >เพิ่มอุปกรณ์</v-tooltip
-              >
+              <v-tooltip activator="parent" location="bottom">เพิ่มอุปกรณ์</v-tooltip>
+            </v-btn>
+            <v-spacer></v-spacer>
+            <v-btn flat icon color="lighterror" size="x-small" class="ms-3" @click="deletePreset(detail)">
+              <CircleMinusIcon class="text-error" size="18" />
+              <v-tooltip activator="parent" location="bottom">ลบอุปกรณ์</v-tooltip>
             </v-btn>
           </div>
           <v-table class="invoice-table mt-6" density="compact">
@@ -781,6 +785,7 @@ export default {
                       v-model="part.NumOfUse"
                       :label="`จำนวน (${part.part.unit.Unit})`"
                       :rules="rules"
+                      @change="editDoing"
                       required
                       hide-details
                       width="150"
@@ -797,16 +802,10 @@ export default {
                     {{ formatSeperateCurrency(invoiceStore.totalCost(part)) }}
                   </td>
                   <td class="text-end text-no-wrap">
-                    <v-avatar
-                      color="lighterror"
-                      size="32"
-                      @click="deletePart(part)"
-                    >
+                    <v-avatar color="lighterror" size="32" @click="deletePart(part)">
                       <TrashIcon class="text-error" size="18" />
                     </v-avatar>
-                    <v-tooltip activator="parent" location="bottom"
-                      >Delete Invoice</v-tooltip
-                    >
+                    <v-tooltip activator="parent" location="bottom">Delete Invoice</v-tooltip>
                   </td>
                 </tr>
               </tbody>
@@ -851,47 +850,41 @@ export default {
             </div>
           </v-col>
         </v-row> -->
+        <!-- {{ RepairItems.workStatus }} -->
 
-        <div class="d-flex align-center justify-end ga-3">
-          <v-btn flat color="error" @click="goBack" class="mt-6">
-            ย้อนกลับ
-          </v-btn>
+        <div v-if="RepairItems" class="d-flex align-center justify-end ga-3">
+          <v-btn flat color="error" @click="goBack" class="mt-6"> ย้อนกลับ </v-btn>
           <v-spacer></v-spacer>
+
           <v-btn
-            flat
+            v-if="RepairItems.workStatus.WorkStatusID == 4"
+            variant="tonal"
+            color="error"
+            @click="cancleAllowCate"
+            class="mt-6"
+            :disabled="RepairItems.workStatus.WorkStatusID == 2"
+          >
+            ยกเลิกการจัดสรรอุปกรณ์
+          </v-btn>
+
+          <v-btn
+            v-if="RepairItems.workStatus.WorkStatusID == 2"
+            variant="flat"
             color="warning"
             @click="allowcateEquipment"
             class="mt-6"
-            :disabled="
-              repairDetails.length == 0 ||
-              RepairItems.workStatus.WorkStatusID != 2
-            "
+            :disabled="repairDetails.length == 0 || isCanEdit"
           >
             จัดสรรอุปกรณ์
           </v-btn>
-          <v-btn
-            flat
-            color="primary"
-            @click="submitSave"
-            class="mt-6"
-            :disabled="repairDetails.length == 0"
-            >บันทึกข้อมูล</v-btn
-          >
 
-          <!-- <v-btn flat color="error" to="/system/repairs" class="mt-6"
-            >บัน</v-btn
-          > -->
+          <v-btn variant="flat" color="primary" @click="submitSave" class="mt-6" :disabled="repairDetails.length == 0">บันทึกข้อมูล</v-btn>
         </div>
       </v-form>
     </v-card-item>
   </v-card>
   <!-- dialog Add Images -->
-  <v-dialog
-    v-model="dialogAddImages"
-    class="dialog-mw"
-    style="max-width: 900px"
-    persistent
-  >
+  <v-dialog v-model="dialogAddImages" class="dialog-mw" style="max-width: 900px" persistent>
     <v-card>
       <v-card-title class="pa-4 bg-secondary">
         <span class="text-h5">เพิ่มรูปภาพ</span>
@@ -900,20 +893,13 @@ export default {
         <ImageUploader :repairId="repairID" />
       </v-card-text>
       <v-card-actions>
-        <v-btn color="error" block flat @click="closeDialogAddImages"
-          >ปิดหน้าต่าง</v-btn
-        >
+        <v-btn color="error" block flat @click="closeDialogAddImages">ปิดหน้าต่าง</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
   <!-- dialog Add Images -->
   <!-- dialog Show Images -->
-  <v-dialog
-    v-model="dialogShowImages"
-    class="dialog-mw"
-    style="max-width: 900px"
-    persistent
-  >
+  <v-dialog v-model="dialogShowImages" class="dialog-mw" style="max-width: 900px" persistent>
     <v-card>
       <v-card-title class="pa-4 bg-secondary">
         <span class="text-h5">รูปรถยนต์</span>
@@ -922,20 +908,13 @@ export default {
         <CarImages :repairId="repairID" />
       </v-card-text>
       <v-card-actions>
-        <v-btn color="error" block flat @click="closeDialogShowImages"
-          >ปิดหน้าต่าง</v-btn
-        >
+        <v-btn color="error" block flat @click="closeDialogShowImages">ปิดหน้าต่าง</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
   <!-- dialog Show Images -->
   <!-- dialog Add Items -->
-  <v-dialog
-    v-model="dialogAddItems"
-    class="dialog-mw"
-    style="max-width: 900px"
-    persistent
-  >
+  <v-dialog v-model="dialogAddItems" class="dialog-mw" style="max-width: 900px" persistent>
     <v-card>
       <v-card-title class="pa-4 bg-secondary">
         <span class="text-h5">Items</span>
@@ -957,42 +936,23 @@ export default {
               @update:modelValue="setAddItem"
             >
               <template v-slot:item="{ props, item }">
-                <v-list-item
-                  v-bind="props"
-                  :title="`รหัส : ${item.raw.PartNumber} || ${item.raw.PartName_th}`"
-                >
-                </v-list-item>
+                <v-list-item v-bind="props" :title="`รหัส : ${item.raw.PartNumber} || ${item.raw.PartName_th}`"> </v-list-item>
               </template>
             </v-autocomplete>
           </v-col>
           <v-col cols="12" md="2">
-            <v-text-field
-              v-model="addItem.NumOfUse"
-              type="number"
-              label="จำนวนที่ใช้"
-              hide-details
-            />
+            <v-text-field v-model="addItem.NumOfUse" type="number" label="จำนวนที่ใช้" hide-details />
           </v-col>
           <v-col cols="12" md="2">
-            <v-text-field
-              v-model="addItem.PartAmount"
-              type="number"
-              label="จำนวนในคลัง"
-              readonly
-              hide-details
-            />
+            <v-text-field v-model="addItem.PartAmount" type="number" label="จำนวนในคลัง" readonly hide-details />
           </v-col>
         </v-row>
       </v-card-text>
       <v-card-actions>
-        <v-btn color="primary" block flat @click="submitAddItem"
-          >เพิ่มอุปกรณ์</v-btn
-        >
+        <v-btn color="primary" block flat @click="submitAddItem">เพิ่มอุปกรณ์</v-btn>
       </v-card-actions>
       <v-card-actions>
-        <v-btn color="error" block flat @click="closeDialogAddItems"
-          >ปิดหน้าต่าง</v-btn
-        >
+        <v-btn color="error" block flat @click="closeDialogAddItems">ปิดหน้าต่าง</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

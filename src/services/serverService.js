@@ -34,6 +34,7 @@ import * as invoiceApis from "@/services/apis/api_invoices";
 import * as quotationApis from "@/services/apis/api_quotation";
 import * as quotationDetailApis from "@/services/apis/api_quotationDetail";
 import * as quotationPartApis from "@/services/apis/api_quotationParts";
+import * as cashPledgeApis from "@/services/apis/api_cashPledge";
 
 const login = async (values) => {
   const resultLogin = await httpClient.post(server.LOGIN_URL, values);
@@ -87,4 +88,5 @@ export default {
   ...quotationApis,
   ...quotationDetailApis,
   ...quotationPartApis,
+  ...cashPledgeApis,
 };

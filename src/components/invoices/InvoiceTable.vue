@@ -45,8 +45,7 @@ export default {
       return toThaiDateString(date);
     },
     async getInvoices() {
-      const response = await serverService.getInvoices();
-      this.invoices = response.data;
+      this.invoices = (await serverService.getInvoices()).data;
     },
     openDialogCreateInvoice() {
       this.dialogCreateInvoice = true;
@@ -66,20 +65,10 @@ export default {
 <template>
   <v-row>
     <v-col cols="12" md="9">
-      <v-text-field
-        v-model="search"
-        label="ค้นหา"
-        prepend-inner-icon="mdi-magnify"
-      />
+      <v-text-field v-model="search" label="ค้นหา" prepend-inner-icon="mdi-magnify" />
     </v-col>
     <v-col cols="12" md="3">
-      <v-btn
-        height="48"
-        block
-        color="secondary"
-        variant="flat"
-        dark
-        @click="openDialogCreateInvoice"
+      <v-btn height="48" block color="secondary" variant="flat" dark @click="openDialogCreateInvoice"
         ><v-icon size="20">mdi-plus-circle-outline</v-icon>
         <span class="hidden-sm-and-down">&nbsp;สร้างใบแจ้งหนี้</span>
       </v-btn>
@@ -115,10 +104,7 @@ export default {
     <template v-slot:item.actions="{ item }">
       <div class="d-flex">
         <div>
-          <v-btn
-            color="lightprimary"
-            :to="`/system/invoices/details/${item.InvoiceID}`"
-          >
+          <v-btn color="lightprimary" :to="`/system/invoices/details/${item.InvoiceID}`">
             <v-icon class="text-primary" size="20">mdi-send-variant</v-icon>
           </v-btn>
           <!-- <v-tooltip activator="parent" location="top">แก้ไข</v-tooltip> -->

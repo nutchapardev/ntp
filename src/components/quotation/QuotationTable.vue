@@ -2,7 +2,7 @@
 import serverService from "@/services/serverService";
 import { toThaiDateString, getColorByNumber } from "@/utils/functions";
 import Swal from "sweetalert2";
-import router from "@/router";
+// import router from "@/router";
 export default {
   data() {
     return {
@@ -47,25 +47,21 @@ export default {
       return toThaiDateString(date);
     },
     async getQuotation() {
-      const response = await serverService.getQuotation();
-      this.quotations = response.data;
+      this.quotations = (await serverService.getQuotation()).data;
     },
     async getBrands() {
-      const response = await serverService.getBrands();
-      this.brands = response.data;
+      this.brands = (await serverService.getBrands()).data;
     },
     async getCarModel(brandId) {
-      const response = await serverService.getCarModelByBrandID(brandId);
-      this.models = response.data;
+      this.models = (await serverService.getCarModelByBrandID(brandId)).data;
     },
     async submitAddQuotation() {
-      console.log("add quotation");
       const { BrandID, ModelID } = this.quotationDataSet;
       if (!BrandID || !ModelID) {
         Swal.fire({
           icon: "warning",
           title: "Alert!",
-          text: "brandId or modelid is required.",
+          text: "โปรดเลือก ยี่ห้อ/รุ่น ของรถยนต์",
           timer: 1500,
           showConfirmButton: false,
         });
@@ -83,9 +79,7 @@ export default {
       }).then(async (result) => {
         if (result.isConfirmed) {
           try {
-            const response = await serverService.createQuotation(
-              this.quotationDataSet
-            );
+            const response = await serverService.createQuotation(this.quotationDataSet);
             if (response.data.result) {
               Swal.fire({
                 icon: "success",
@@ -96,9 +90,7 @@ export default {
               });
               this.closeDialogAddQuotation();
               this.getQuotation();
-              this.$router.push(
-                `/system/quotation/details/${response.data.data.QuotationID}`
-              );
+              this.$router.push(`/system/quotation/details/${response.data.data.QuotationID}`);
             } else {
               Swal.fire({
                 icon: "warning",
@@ -143,20 +135,10 @@ export default {
 <template>
   <v-row>
     <v-col cols="12" md="9">
-      <v-text-field
-        v-model="search"
-        label="ค้นหา"
-        prepend-inner-icon="mdi-magnify"
-      />
+      <v-text-field v-model="search" label="ค้นหา" prepend-inner-icon="mdi-magnify" />
     </v-col>
     <v-col cols="12" md="3">
-      <v-btn
-        height="48"
-        block
-        color="secondary"
-        variant="flat"
-        dark
-        @click="openDialogAddQuotation"
+      <v-btn height="48" block color="secondary" variant="flat" dark @click="openDialogAddQuotation"
         ><v-icon size="20">mdi-plus-circle-outline</v-icon>
         <span class="hidden-sm-and-down">&nbsp;สร้างใบเสนอราคา</span>
       </v-btn>
@@ -176,19 +158,11 @@ export default {
       {{ item.brand.Brand }} ( {{ item.model.Model }} ) <br />
 
       <div v-if="item.repairs.length > 0" style="font-size: 12px; color: gray">
-        {{
-          `${item.repairs[0].car.CarTitle} ${item.repairs[0].car.CarNumber} ${item.repairs[0].car.province.name_th}`
-        }}
+        {{ `${item.repairs[0].car.CarTitle} ${item.repairs[0].car.CarNumber} ${item.repairs[0].car.province.name_th}` }}
       </div>
     </template>
     <template v-slot:item.actions="{ item }">
-      
-      <v-btn
-        :to="`/system/quotation/details/${item.QuotationID}`"
-        size="small"
-        color="primary"
-        class="mr-2"
-        variant="flat"
+      <v-btn :to="`/system/quotation/details/${item.QuotationID}`" size="small" color="primary" class="mr-2" variant="flat"
         ><EditIcon size="16">mdi-paperclip</EditIcon></v-btn
       >
       <v-btn
@@ -203,12 +177,7 @@ export default {
     </template>
   </v-data-table>
   <!-- Dialog AddQuotation -->
-  <v-dialog
-    v-model="dialogAddQuotation"
-    class="dialog-mw"
-    style="max-width: 500px"
-    persistent
-  >
+  <v-dialog v-model="dialogAddQuotation" class="dialog-mw" style="max-width: 500px" persistent>
     <v-card>
       <v-card-text>
         <!-- <v-text-field
@@ -224,35 +193,18 @@ export default {
           label="ยี่ห้อ"
           @update:modelValue="getCarModel"
         />
-        <v-select
-          class="mt-2"
-          v-model="quotationDataSet.ModelID"
-          :items="models"
-          item-value="ModelID"
-          item-title="Model"
-          label="รุ่น"
-        />
-        <v-textarea
-          label="หมายเหตุ"
-          v-model="quotationDataSet.Comment"
-        ></v-textarea>
+        <v-select class="mt-2" v-model="quotationDataSet.ModelID" :items="models" item-value="ModelID" item-title="Model" label="รุ่น" />
+        <v-textarea label="หมายเหตุ" v-model="quotationDataSet.Comment"></v-textarea>
       </v-card-text>
-      <hr />
+      <!-- <hr /> -->
       <v-card-actions>
-        <v-btn
-          color="primary"
-          @click="submitAddQuotation"
-          block
-          flat
-          variant="tonal"
-          >บันทึกข้อมูล</v-btn
-        >
+        <v-btn class="mb-3 ml-3" color="error" @click="closeDialogAddQuotation"  >ปิดหน้าต่าง</v-btn>
+        <v-spacer></v-spacer>
+        <v-btn class="mb-3 mr-3" color="primary" @click="submitAddQuotation"   variant="tonal">บันทึกข้อมูล</v-btn>
       </v-card-actions>
-      <v-card-actions>
-        <v-btn color="error" @click="closeDialogAddQuotation" block flat
-          >ปิดหน้าต่าง</v-btn
-        >
-      </v-card-actions>
+      <!-- <v-card-actions>
+        <v-btn color="error" @click="closeDialogAddQuotation" block flat>ปิดหน้าต่าง</v-btn>
+      </v-card-actions> -->
     </v-card>
   </v-dialog>
   <!-- Dialog AddQuotation -->

@@ -114,68 +114,25 @@ export default {
       return toShortThaiDateString(date);
     },
     filterOnlyCapsText(value, query, item) {
-      return (
-        value != null &&
-        query != null &&
-        typeof value === "string" &&
-        value.toString().toLocaleUpperCase().indexOf(query) !== -1
-      );
+      return value != null && query != null && typeof value === "string" && value.toString().toLocaleUpperCase().indexOf(query) !== -1;
     },
     async getRepairs() {
-      try {
-        const response = await serverService.getAllRepairs();
-        // console.log("Repairs data:", response.data);
-        this.RepairsData = response.data;
-      } catch (error) {
-        console.error("Error fetching repairs:", error);
-      }
+      this.RepairsData = (await serverService.getAllRepairs()).data;
     },
     async getBrands() {
-      try {
-        const response = await serverService.getBrands();
-        // console.log("Brands data:", response.data)
-        this.brandItems = response.data;
-      } catch (error) {
-        console.error("Error fetching brands:", error);
-      }
+      this.brandItems = (await serverService.getBrands()).data;
     },
     async getCarModel(BrandID) {
-      // console.log("Selected BrandID:", BrandID)
-      try {
-        const response = await serverService.getCarModelByBrandID(BrandID);
-        this.modelItems = response.data;
-        // console.log("Model data:", response.data)
-      } catch (error) {
-        console.error("Error fetching brands:", error);
-      }
+      this.modelItems = (await serverService.getCarModelByBrandID(BrandID)).data;
     },
     async getCars() {
-      try {
-        const response = await serverService.getCars();
-        // console.log("Cars data naja:", response.data)
-        this.carsItems = response.data;
-        // console.log("carsItems :", this.carsItems)
-      } catch (error) {
-        console.error("Error fetching cars:", error);
-      }
+      this.carsItems = (await serverService.getCars()).data;
     },
     async getProvinces() {
-      try {
-        const response = await serverService.getProvinces();
-        // console.log("Provinces data:", response.data)
-        this.provinceItems = response.data;
-      } catch (error) {
-        console.error("Error fetching provinces:", error);
-      }
+      this.provinceItems = (await serverService.getProvinces()).data;
     },
     async getCustomerTitle() {
-      try {
-        const response = await serverService.getCustomerTitle();
-        // console.log("CustomerTitle data:", response.data)
-        this.customerTitleItems = response.data;
-      } catch (error) {
-        console.error("Error fetching customer titles:", error);
-      }
+      this.customerTitleItems = (await serverService.getCustomerTitle()).data;
     },
     async deleteItem(id) {
       Swal.fire({
@@ -199,12 +156,11 @@ export default {
       });
     },
     chooseNewCustomer() {
+      this.dialogCustomer = false;
       this.dialogChoose = false;
       this.dialogAddRepair = true;
     },
     chooseExistingCustomer() {
-      // console.log("chooseExistingCustomer")
-      // this.getCars()
       this.dialogChoose = false;
       this.dialogCustomer = true;
     },
@@ -224,14 +180,8 @@ export default {
       });
     },
     async save() {
-      // console.log("save : ", this.addItem)
       let { customer, car } = this.addItem;
-      if (
-        customer.CustomerTitleID == null ||
-        customer.CustomerName == null ||
-        customer.CustomerName == "" ||
-        customer.CustomerSurname == null
-      ) {
+      if (customer.CustomerTitleID == null || customer.CustomerName == null || customer.CustomerName == "" || customer.CustomerSurname == null) {
         Swal.fire("Alert!", "กรุณากรอกข้อมูลลูกค้าให้ครบถ้วน", "warning");
         return;
       }
@@ -259,9 +209,7 @@ export default {
         cancelButtonText: "<span style='color:white;'>Cancel</span>",
       }).then(async (result) => {
         if (result.isConfirmed) {
-          const response = await serverService.createCarWithCustomer(
-            this.addItem
-          );
+          const response = await serverService.createCarWithCustomer(this.addItem);
           if (response.data.result) {
             const { BrandID, ModelID, CarID, CustomerID } = response.data.data;
             const newRepair = {
@@ -303,9 +251,7 @@ export default {
         cancelButtonText: "<span style='color:white;'>Cancel</span>",
       }).then(async (result) => {
         if (result.isConfirmed) {
-          const response = await serverService.getCarByCarID(
-            this.carIdForSearch
-          );
+          const response = await serverService.getCarByCarID(this.carIdForSearch);
           if (!response.data.CarID) {
             Swal.fire("Error!", "เกิดข้อผิดพลาด", "error");
             return;
@@ -346,65 +292,33 @@ export default {
 </script>
 
 <template>
-  <BaseBreadcrumb
-    :title="page.title"
-    :breadcrumbs="breadcrumbs"
-  ></BaseBreadcrumb>
+  <BaseBreadcrumb :title="page.title" :breadcrumbs="breadcrumbs"></BaseBreadcrumb>
   <v-row>
     <v-col cols="12">
       <UiParentCard title="รายการซ่อมรถยนต์">
         <v-row>
-          <v-col cols="10">
-            <v-text-field
-              v-model="search"
-              append-inner-icon="mdi-magnify"
-              label="Search"
-              single-line
-              hide-details
-              class="mb-5"
-            />
+          <v-col cols="12">
+            <v-text-field v-model="search" append-inner-icon="mdi-magnify" label="Search" single-line hide-details class="mb-5" />
           </v-col>
-          <v-col cols="2" class="text-right">
-            <!-- dialog Choose -->
-            <v-dialog
-              v-model="dialogChoose"
-              class="dialog-mw"
-              max-width="400px"
-            >
+          <!-- dialog Choose -->
+          <!-- <v-col cols="2" class="text-right">
+            <v-dialog v-model="dialogChoose" class="dialog-mw" max-width="400px">
               <template v-slot:activator="{ props }">
-                <v-btn
-                  height="48"
-                  block
-                  color="secondary"
-                  variant="flat"
-                  dark
-                  v-bind="props"
-                  @click="dialogChoose = true"
-                  ><v-icon size="20">mdi-plus-circle-outline</v-icon>
-                  <span class="hidden-sm-and-down"
-                    >&nbsp;เพิ่มรายการ</span
-                  ></v-btn
-                >
+                <v-btn height="48" block color="secondary" variant="flat" dark v-bind="props" @click="chooseExistingCustomer">
+                  <v-icon size="20">mdi-plus-circle-outline</v-icon> <span class="hidden-sm-and-down">&nbsp;เพิ่มรายการ</span>
+                </v-btn>
               </template>
               <v-card>
                 <v-card-actions>
-                  <v-btn color="secondary" block @click="chooseNewCustomer" flat
-                    >ลูกค้าใหม่</v-btn
-                  >
+                  <v-btn color="secondary" block @click="chooseNewCustomer" flat>ลูกค้าใหม่</v-btn>
                 </v-card-actions>
                 <v-card-actions>
-                  <v-btn
-                    color="primary"
-                    block
-                    @click="chooseExistingCustomer"
-                    flat
-                    >ลูกค้าเก่า</v-btn
-                  >
+                  <v-btn color="primary" block @click="chooseExistingCustomer" flat>ลูกค้าเก่า</v-btn>
                 </v-card-actions>
               </v-card>
             </v-dialog>
-            <!-- dialog Choose -->
-          </v-col>
+          </v-col> -->
+          <!-- dialog Choose -->
         </v-row>
 
         <v-data-table
@@ -415,53 +329,34 @@ export default {
           :sort-by="[{ key: 'RepairID', order: 'desc' }]"
           class="border rounded-md"
         >
-          <template v-slot:item.RepairID="{ item }">
-            #{{ item.RepairID }}
-          </template>
+          <template v-slot:item.RepairID="{ item }"> #{{ item.RepairID }} </template>
 
           <template v-slot:item.RepairDate="{ item }">
             {{ formatDateString(item.RepairDate) }}
           </template>
 
-          <template v-slot:item.car.CarNumber="{ item }">
-            {{ item.car.CarTitle }} {{ item.car.CarNumber }}
-          </template>
+          <template v-slot:item.car.CarNumber="{ item }"> {{ item.car.CarTitle }} {{ item.car.CarNumber }} </template>
 
-          <template v-slot:item.car.brand.Brand="{ item }">
-            {{ item.car.brand.Brand }} ( {{ item.car.model.Model }} )
-          </template>
+          <template v-slot:item.car.brand.Brand="{ item }"> {{ item.car.brand.Brand }} ( {{ item.car.model.Model }} ) </template>
 
           <template v-slot:item.workStatus.WorkStatus_th="{ item }">
-            <v-chip
-              :color="getColor(item.workStatus.WorkStatusID)"
-              :text="item.workStatus.WorkStatus_th"
-              class="text-uppercase"
-              label
-              size="small"
-            ></v-chip>
+            <v-chip :color="getColor(item.workStatus.WorkStatusID)" :text="item.workStatus.WorkStatus_th" class="text-uppercase" label size="small"></v-chip>
           </template>
 
           <template v-slot:item.actions="{ item }">
             <div class="d-flex ga-3 align-center justify-end">
-              <RouterLink
-                :to="`/system/repairs/details/${item.RepairID}`"
-                v-if="item.workStatus.WorkStatusID != 1"
-              >
+              <RouterLink :to="`/system/repairs/details/${item.RepairID}`" v-if="item.workStatus.WorkStatusID != 1">
                 <v-avatar color="lightprimary" size="32">
                   <EyeIcon class="text-primary" size="18" />
                 </v-avatar>
-                <v-tooltip activator="parent" location="bottom"
-                  >View Repair</v-tooltip
-                >
+                <v-tooltip activator="parent" location="bottom">View Repair</v-tooltip>
               </RouterLink>
 
               <RouterLink :to="`/system/repairs/${item.RepairID}`">
                 <v-avatar color="lightsuccess" size="32">
                   <EditIcon class="text-success" size="18" />
                 </v-avatar>
-                <v-tooltip activator="parent" location="bottom"
-                  >Edit Repair</v-tooltip
-                >
+                <v-tooltip activator="parent" location="bottom">Edit Repair</v-tooltip>
               </RouterLink>
 
               <!-- <RouterLink
@@ -507,28 +402,13 @@ export default {
               ></v-select>
             </v-col>
             <v-col cols="12" sm="6" md="6">
-              <v-select
-                :items="modelItems"
-                item-value="ModelID"
-                item-title="Model"
-                v-model="addItem.car.ModelID"
-                label="Model"
-                hide-details
-              ></v-select>
+              <v-select :items="modelItems" item-value="ModelID" item-title="Model" v-model="addItem.car.ModelID" label="Model" hide-details></v-select>
             </v-col>
             <v-col cols="12" sm="6" md="4">
-              <v-text-field
-                v-model.trim="addItem.car.CarTitle"
-                label="หมวดอักษรรถยนต์"
-                hide-details
-              ></v-text-field>
+              <v-text-field v-model.trim="addItem.car.CarTitle" label="หมวดอักษรรถยนต์" hide-details></v-text-field>
             </v-col>
             <v-col cols="12" sm="6" md="4">
-              <v-text-field
-                v-model.trim="addItem.car.CarNumber"
-                label="หมายเลขทะเบียน"
-                hide-details
-              ></v-text-field>
+              <v-text-field v-model.trim="addItem.car.CarNumber" label="หมายเลขทะเบียน" hide-details></v-text-field>
             </v-col>
             <v-col cols="12" sm="6" md="4">
               <v-autocomplete
@@ -545,18 +425,10 @@ export default {
               />
             </v-col>
             <v-col cols="12" sm="6" md="4">
-              <v-text-field
-                v-model.trim="addItem.car.VIN"
-                label="หมายเลขตัวถัง"
-                hide-details
-              ></v-text-field>
+              <v-text-field v-model.trim="addItem.car.VIN" label="หมายเลขตัวถัง" hide-details></v-text-field>
             </v-col>
             <v-col cols="12" sm="6" md="4">
-              <v-text-field
-                v-model.trim="addItem.car.EC"
-                label="หมายเลขเครื่องยนต์"
-                hide-details
-              ></v-text-field>
+              <v-text-field v-model.trim="addItem.car.EC" label="หมายเลขเครื่องยนต์" hide-details></v-text-field>
             </v-col>
           </v-row>
           <hr class="mb-5 mt-5" />
@@ -572,63 +444,32 @@ export default {
               ></v-select>
             </v-col>
             <v-col cols="12" sm="6" md="4">
-              <v-text-field
-                v-model.trim="addItem.customer.CustomerName"
-                label="ชื่อจริง"
-                hide-details
-              ></v-text-field>
+              <v-text-field v-model.trim="addItem.customer.CustomerName" label="ชื่อจริง" hide-details></v-text-field>
             </v-col>
             <v-col cols="12" sm="6" md="4">
-              <v-text-field
-                v-model.trim="addItem.customer.CustomerSurname"
-                label="นามสกุล"
-                hide-details
-              ></v-text-field>
+              <v-text-field v-model.trim="addItem.customer.CustomerSurname" label="นามสกุล" hide-details></v-text-field>
             </v-col>
             <v-col cols="12" sm="6" md="4">
-              <v-text-field
-                v-model.trim="addItem.customer.IDNumber"
-                label="รหัสประจำตัวประชาชน"
-                hide-details
-              ></v-text-field>
+              <v-text-field v-model.trim="addItem.customer.IDNumber" label="รหัสประจำตัวประชาชน" hide-details></v-text-field>
             </v-col>
             <v-col cols="12" sm="6" md="4">
-              <v-text-field
-                v-model.trim="addItem.customer.CustomerTel"
-                label="เบอร์โทรศัพท์"
-                hide-details
-              ></v-text-field>
+              <v-text-field v-model.trim="addItem.customer.CustomerTel" label="เบอร์โทรศัพท์" hide-details></v-text-field>
             </v-col>
           </v-row>
         </v-container>
       </v-card-text>
 
       <v-card-actions class="mb-3">
-        <v-btn color="error" variant="outlined" dark @click="close">
-          ยกเลิก
-        </v-btn>
+        <v-btn color="error" variant="outlined" dark @click="close"> ยกเลิก </v-btn>
         <!-- <v-spacer></v-spacer> -->
 
-        <v-btn
-          color="primary"
-          class="ml-3 mr-3"
-          variant="outlined"
-          dark
-          @click="save"
-        >
-          บันทึก
-        </v-btn>
+        <v-btn color="primary" class="ml-3 mr-3" variant="outlined" dark @click="save"> บันทึก </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
   <!-- dialog Add Repair -->
   <!-- dialog Choose Customer -->
-  <v-dialog
-    v-model="dialogCustomer"
-    class="dialog-mw"
-    max-width="400px"
-    persistent
-  >
+  <v-dialog v-model="dialogCustomer" class="dialog-mw" max-width="400px" persistent>
     <v-card>
       <v-card-text>
         <v-autocomplete
@@ -644,11 +485,7 @@ export default {
           autocomplete="false"
         >
           <template v-slot:item="{ props, item }">
-            <v-list-item
-              v-bind="props"
-              :title="`${item.raw.CarTitle} ${item.raw.CarNumber} ${item.raw.province.name_th}`"
-            >
-            </v-list-item>
+            <v-list-item v-bind="props" :title="`${item.raw.CarTitle} ${item.raw.CarNumber} ${item.raw.province.name_th}`"> </v-list-item>
           </template>
           <template v-slot:selection="{ item }">
             <span>
@@ -659,15 +496,16 @@ export default {
         </v-autocomplete>
       </v-card-text>
       <v-card-actions>
-        <v-btn color="primary" block @click="submitChooseCustomer" flat
-          >ตกลง</v-btn
-        >
+        <v-btn color="error" @click="closeChooseCustomerDialog">ยกเลิก</v-btn>
+        <v-spacer></v-spacer>
+        <v-btn color="primary" @click="submitChooseCustomer">เลือกรถยนต์</v-btn>
       </v-card-actions>
       <v-card-actions>
-        <v-btn color="secondary" block @click="closeChooseCustomerDialog" flat
-          >ยกเลิก</v-btn
-        >
+        <v-btn color="secondary" block @click="chooseNewCustomer" variant="tonal">ลูกค้าใหม่</v-btn>
       </v-card-actions>
+      <!-- <v-card-actions>
+        <v-btn color="secondary" block @click="closeChooseCustomerDialog" flat>ยกเลิก</v-btn>
+      </v-card-actions> -->
     </v-card>
   </v-dialog>
   <!-- dialog Choose Customer -->

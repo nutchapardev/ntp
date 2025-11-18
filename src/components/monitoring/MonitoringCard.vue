@@ -1,10 +1,12 @@
 <script>
 import serverService from "@/services/serverService";
 import Swal from "sweetalert2";
+import { toThaiDateString, toThaiDateTimeString } from "@/utils/functions";
 import { nextTick } from "vue";
 export default {
   data() {
     return {
+      timer: null,
       allowcates: [],
       allowcateDetail: [],
       selectedItem: null,
@@ -13,10 +15,11 @@ export default {
     };
   },
   methods: {
+    formatDateTime(date) {
+      return date ? toThaiDateTimeString(new Date(date)) : "N/A";
+    },
     async getAllowcateData() {
-      const response = await serverService.getRepairsByWorkStatusID(4); // 4 คือ อยู่สถานะรอจัดสรรอุปกรณ์
-      this.allowcates = response.data;
-      console.log(response.data);
+      this.allowcates = (await serverService.getRepairsByWorkStatusID(4)).data;
     },
     async saveSubmitAllowcate() {
       Swal.fire({
@@ -34,7 +37,6 @@ export default {
           const response = await serverService.updateRepairByID(repairId, {
             WorkStatusID: 5,
           });
-          // console.log(response.data);
 
           if (response.data.result) {
             this.closeDialogAllowcateDetail();
@@ -52,7 +54,6 @@ export default {
       const repairId = item.RepairID;
       const response = await serverService.getRepairDetailByRepairID(repairId);
       this.allowcateDetail = response.data;
-      // console.log(response.data);
 
       nextTick(() => {
         this.dialogShowAllowcateDetail = true;
@@ -67,6 +68,19 @@ export default {
       await this.getAllowcateData();
     },
   },
+  mounted() {
+    // this.timer = setInterval(async () => {
+    //   await this.getAllowcateData().then(() => {
+    //     console.log("refresh Allowcate Data");
+    //   });
+    // }, 5000);
+  },
+  beforeUnmount() {
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
+  },
   created() {
     this.initialize();
   },
@@ -79,43 +93,33 @@ export default {
   </div>
   <v-row v-else>
     <v-col cols="6" md="4" v-for="(item, index) in allowcates" :key="index">
-      <v-card color="error" variant="tonal" class="mx-auto" elevation="10">
+      <v-card color="primary" variant="tonal" class="mx-auto" elevation="10">
         <v-card-item>
           <div>
             <div class="text-overline mb-1">
               {{ item.car.CarTitle }}{{ item.car.CarNumber }}
               {{ item.car.province.name_th }}
             </div>
-            <div class="text-h6 mb-1">
-              {{ item.car.brand.Brand }} {{ item.car.model.Model }}
-            </div>
+            <div class="text-h6 mb-1">{{ item.car.brand.Brand }} {{ item.car.model.Model }}</div>
             <div class="text-caption">
               {{ item.customer.customerTitle.CustomerTitle }}
               {{ item.customer.CustomerName }}
               {{ item.customer.CustomerSurname }}
             </div>
           </div>
-          <!-- <v-row class="mt-3">
-            <v-col>test</v-col>
-            <v-col class="text-end">test</v-col>
-          </v-row> -->
         </v-card-item>
 
         <v-card-actions>
           <!-- <v-btn> Button </v-btn> -->
+          <span class="ml-3" style="font-size: 12px">{{ formatDateTime(item.updatedAt) }}</span>
           <v-spacer />
-          <v-btn @click="showDialogAllowcateDetail(item)"> รายละเอียด </v-btn>
+          <v-btn class="mr-2" @click="showDialogAllowcateDetail(item)"> รายละเอียด </v-btn>
         </v-card-actions>
       </v-card>
     </v-col>
   </v-row>
   <!-- Dialog Show Allocate Section -->
-  <v-dialog
-    v-model="dialogShowAllowcateDetail"
-    class="dialog-mw"
-    style="max-width: 900px"
-    persistent
-  >
+  <v-dialog v-model="dialogShowAllowcateDetail" class="dialog-mw" style="max-width: 900px" persistent>
     <v-card>
       <v-card-title class="pa-4 bg-secondary">
         <span class="text-h5">อุปกรณ์ที่ต้องจัดสรร</span>
@@ -142,9 +146,7 @@ export default {
                       <td class="text-center">{{ index + 1 }}.</td>
                       <td>{{ p.part.PartNumber }}</td>
                       <td>{{ p.part.PartName_th }}</td>
-                      <td class="text-end">
-                        {{ p.NumOfUse }} {{ p.part.unit.Unit }}
-                      </td>
+                      <td class="text-end">{{ p.NumOfUse }} {{ p.part.unit.Unit }}</td>
                       <!-- <td class="text-end">{{ item.part.PartAmount }}</td> -->
                     </tr>
                   </tbody>
@@ -164,13 +166,9 @@ export default {
       </v-card-text>
       <!-- <hr /> -->
       <v-card-actions>
-        <v-btn color="error" @click="closeDialogAllowcateDetail" flat
-          >ปิดหน้าต่าง</v-btn
-        >
+        <v-btn color="error" @click="closeDialogAllowcateDetail" flat>ปิดหน้าต่าง</v-btn>
         <v-spacer></v-spacer>
-        <v-btn color="primary" @click="saveSubmitAllowcate" flat variant="tonal"
-          >จัดสรรอุปกรณ์แล้ว</v-btn
-        >
+        <v-btn color="primary" @click="saveSubmitAllowcate" flat variant="tonal">จัดสรรอุปกรณ์แล้ว</v-btn>
       </v-card-actions>
       <!-- <v-card-actions>
         <v-btn color="error" @click="closeDialogAllowcateDetail" block flat

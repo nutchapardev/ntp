@@ -444,6 +444,7 @@ export default {
       <v-btn v-show="invoice.InvoiceStatusID == 2" color="success" variant="flat" class="mb-3 mr-2" @click="changeInvoiceStatus(3)">
         <CheckIcon size="18" /> &nbsp;ยืนยันการชำระเงิน
       </v-btn>
+      
       <v-btn
         v-show="invoice.InvoiceStatusID == 1"
         color="secondary"

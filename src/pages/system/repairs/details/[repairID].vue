@@ -9,14 +9,11 @@ import {
 import { sum } from "lodash";
 import { useAuthStore } from "@/stores/authStore";
 import Swal from "sweetalert2";
-import { useRouter } from "vue-router";
 import router from "@/router";
 export default {
   data() {
-    const router = useRouter();
     const authStore = useAuthStore();
     return {
-      router,
       authStore,
       page: { title: "ค่าใช้จ่ายโดยประมาณ" },
       breadcrumbs: [
@@ -67,7 +64,7 @@ export default {
     async getRepairByID() {
       const response = await serverService.getRepairByID(this.repairID);
       this.RepairItems = response.data;
-      console.log(response.data);
+      // console.log(response.data);
     },
     async getRepairDetail() {
       const response = await serverService.getRepairDetailByRepairID(this.repairID);
@@ -121,7 +118,7 @@ export default {
         if (result.isConfirmed) {
           try {
             const response = await serverService.createInvoice({ RepairID });
-            console.log(response.data);
+            // console.log(response.data);
 
             if (response.data.result) {
               // เปลี่ยนสถานเป็น สร้างใบแจ้งหนี้
