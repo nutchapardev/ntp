@@ -3,19 +3,9 @@ import { nextTick } from "vue";
 import BaseBreadcrumb from "@/components/shared/BaseBreadcrumb.vue";
 import UiParentCard from "@/components/shared/UiParentCard.vue";
 import serverService from "@/services/serverService";
-import {
-  CirclePlusIcon,
-  TrashIcon,
-  CircleMinusIcon,
-  CircleXIcon,
-  EditIcon,
-} from "vue-tabler-icons";
+import { CirclePlusIcon, TrashIcon, CircleMinusIcon, CircleXIcon, EditIcon } from "vue-tabler-icons";
 import Swal from "sweetalert2";
-import {
-  checkPresetAvailability,
-  checkStockAvailability,
-  formatCurrency,
-} from "@/utils/functions";
+import { checkPresetAvailability, checkStockAvailability, formatCurrency } from "@/utils/functions";
 
 export default {
   name: "Ref",
@@ -138,11 +128,7 @@ export default {
     },
     removePresetFromRepairCategory(showPreset) {
       if (this.showPresetRepairCategory.ref_model_category_parts.length == 1) {
-        Swal.fire(
-          "Alert!",
-          "ไม่สามารถลบได้ เนื่องจากต้องมีอย่างน้อย 1 รายการในกลุ่มงาน",
-          "warning"
-        );
+        Swal.fire("Alert!", "ไม่สามารถลบได้ เนื่องจากต้องมีอย่างน้อย 1 รายการในกลุ่มงาน", "warning");
         return;
       }
 
@@ -157,14 +143,11 @@ export default {
         cancelButtonText: "<span style='color:white;'>Cancel</span>",
       }).then(async (result) => {
         if (result.isConfirmed) {
-          const response = await serverService.deleteRefModelCategoryPartByID(
-            showPreset.RefID
-          );
+          const response = await serverService.deleteRefModelCategoryPartByID(showPreset.RefID);
           if (response.data.result) {
-            this.showPresetRepairCategory.ref_model_category_parts =
-              this.showPresetRepairCategory.ref_model_category_parts.filter(
-                (e) => e.preset.PresetID != showPreset.PresetID
-              );
+            this.showPresetRepairCategory.ref_model_category_parts = this.showPresetRepairCategory.ref_model_category_parts.filter(
+              (e) => e.preset.PresetID != showPreset.PresetID
+            );
 
             nextTick(() => {
               this.showSinglePreset = null;
@@ -188,9 +171,7 @@ export default {
         cancelButtonText: "<span style='color:white;'>Cancel</span>",
       }).then(async (result) => {
         if (result.isConfirmed) {
-          const response = await serverService.deleteRefModelCategoryPartByID(
-            showPreset.ref_model_category_parts[0].RefID
-          );
+          const response = await serverService.deleteRefModelCategoryPartByID(showPreset.ref_model_category_parts[0].RefID);
           if (response.data.result) {
             nextTick(() => {
               this.closeDialogShowPreset();
@@ -215,11 +196,7 @@ export default {
     async chooseCategory(category) {
       this.PartCategoryName = category.PartCategoryName;
       this.PartCategoryID = category.PartCategoryID;
-      const response =
-        await serverService.getRepairCategoryByModelAndPartCategory(
-          this.ModelID,
-          category.PartCategoryID
-        );
+      const response = await serverService.getRepairCategoryByModelAndPartCategory(this.ModelID, category.PartCategoryID);
       this.repairCategories = response.data;
       this.showRepairCategoryColumn = true;
     },
@@ -294,10 +271,7 @@ export default {
       });
     },
     async submitAddRepairCategory() {
-      if (
-        this.addRepairCategory.RepairCategory == "" ||
-        this.addRepairCategory.PresetID.length == 0
-      ) {
+      if (this.addRepairCategory.RepairCategory == "" || this.addRepairCategory.PresetID.length == 0) {
         Swal.fire("Alert!", "กรุณากรอกข้อมูลให้ครบถ้วน", "warning");
         return;
       }
@@ -322,9 +296,7 @@ export default {
             PresetID,
           };
 
-          const response = await serverService.addRepairCategoryWithRefs(
-            payload
-          );
+          const response = await serverService.addRepairCategoryWithRefs(payload);
 
           if (response.data.result) {
             this.chooseCategory({
@@ -360,17 +332,12 @@ export default {
           const payload = {
             BrandID: this.BrandID,
             ModelID: this.ModelID,
-            PartCategoryID:
-              this.showPresetRepairCategory.ref_model_category_parts[0]
-                .PartCategoryID,
+            PartCategoryID: this.showPresetRepairCategory.ref_model_category_parts[0].PartCategoryID,
             RepairCategoryID: this.showPresetRepairCategory.RepairCategoryID,
             PresetID: this.addPreset.PresetID,
           };
 
-          const response =
-            await serverService.createMultipleRefModelCategoryPartByModelID(
-              payload
-            );
+          const response = await serverService.createMultipleRefModelCategoryPartByModelID(payload);
 
           if (response.data.result) {
             this.chooseCategory({
@@ -401,10 +368,7 @@ export default {
       }).then(async (result) => {
         const { PartCategoryID, PartCategoryName } = this.editPartCategory;
         if (result.isConfirmed) {
-          const response = await serverService.editPartCategoryByID(
-            PartCategoryID,
-            { PartCategoryName }
-          );
+          const response = await serverService.editPartCategoryByID(PartCategoryID, { PartCategoryName });
           if (response.data.result) {
             nextTick(() => {
               this.getPartCategory();
@@ -458,12 +422,9 @@ export default {
       }).then(async (result) => {
         const { RepairCategoryID, RepairCategory } = this.editRepairCategory;
         if (result.isConfirmed) {
-          const response = await serverService.editRepairCategoryByID(
-            RepairCategoryID,
-            {
-              RepairCategory,
-            }
-          );
+          const response = await serverService.editRepairCategoryByID(RepairCategoryID, {
+            RepairCategory,
+          });
           if (response.data.result) {
             nextTick(() => {
               this.closeEditRepairCategoryDialog();
@@ -500,10 +461,7 @@ export default {
     },
     openDialogaddPreset() {
       this.dialogAddPreset = true;
-      this.presetsForAdd = this.findMissingPresets(
-        this.presets,
-        this.showPresetRepairCategory.ref_model_category_parts
-      );
+      this.presetsForAdd = this.findMissingPresets(this.presets, this.showPresetRepairCategory.ref_model_category_parts);
     },
     closeEditModelDialog() {
       this.dialogEditModel = false;
@@ -568,648 +526,406 @@ export default {
 };
 </script>
 <template>
-  <BaseBreadcrumb
-    :title="page.title"
-    :breadcrumbs="breadcrumbs"
-  ></BaseBreadcrumb>
-  <!-- <UiParentCard Tableard title="ข้อมูลชุดอุปกรณ์">
+  <div>
+    <BaseBreadcrumb :title="page.title" :breadcrumbs="breadcrumbs"></BaseBreadcrumb>
+    <!-- <UiParentCard Tableard title="ข้อมูลชุดอุปกรณ์">
     <HelloWorld />
   </UiParentCard> -->
 
-  <div v-if="brandData != null">
-    <v-row>
-      <!-- Models Section -->
-      <v-col cols="12" md="4">
-        <UiParentCard v-if="brandData != null" Tableard :title="`รุ่นรถยนต์`">
-          <template v-slot:action>
-            <v-spacer></v-spacer>
-            <div class="mr-1">
-              <v-avatar
-                :color="!editModelColumn ? `lightsuccess` : `lighterror`"
-                size="32"
-                @click="toggleShowEditModelColumn"
-              >
-                <EditIcon
-                  v-if="!editModelColumn"
-                  class="text-success"
-                  size="18"
-                />
-                <CircleXIcon v-else class="text-error" size="18" />
-              </v-avatar>
-              <v-tooltip activator="parent" location="top">แก้ไข</v-tooltip>
-            </div>
-
-            <div>
-              <v-avatar
-                color="lightprimary"
-                size="32"
-                @click="dialogAddModel = true"
-              >
-                <CirclePlusIcon class="text-primary" size="18" />
-              </v-avatar>
-              <v-tooltip activator="parent" location="top"
-                >เพิ่มรุ่นรถยนต์</v-tooltip
-              >
-            </div>
-          </template>
-          <template v-slot:default>
-            <div class="overflow-y-auto" style="height: 500px">
-              <v-card
-                v-for="(model, index) in brandData.models"
-                :key="index"
-                class="mb-3"
-                max-width="344"
-                link
-                :color="
-                  editModelColumn
-                    ? 'warning'
-                    : model.Model == ModelName
-                    ? 'primary'
-                    : 'lightprimary'
-                "
-              >
-                <v-list-item
-                  append-icon="mdi-chevron-right"
-                  lines="two"
-                  :title="model.Model"
-                  link
-                  @click="
-                    editModelColumn
-                      ? showEditModelDialog(model)
-                      : chooseModel(model)
-                  "
-                ></v-list-item>
-              </v-card>
-            </div>
-          </template>
-        </UiParentCard>
-      </v-col>
-      <!-- Models Section -->
-      <!-- PartCategory Section -->
-      <v-col cols="12" md="4">
-        <UiParentCard v-if="ModelID != null" Tableard :title="`ประเภทการซ่อม`">
-          <template v-slot:action>
-            <v-spacer></v-spacer>
-            <div class="mr-1">
-              <v-avatar
-                :color="!editPartCategoryColumn ? `lightsuccess` : `lighterror`"
-                size="32"
-                @click="toggleShowEditPartCategoryColumn"
-              >
-                <EditIcon
-                  v-if="!editPartCategoryColumn"
-                  class="text-success"
-                  size="18"
-                />
-                <CircleXIcon v-else class="text-error" size="18" />
-              </v-avatar>
-              <v-tooltip activator="parent" location="top">แก้ไข</v-tooltip>
-            </div>
-            <div>
-              <v-avatar
-                color="lightprimary"
-                size="32"
-                @click="dialogAddPartCategory = true"
-              >
-                <CirclePlusIcon class="text-primary" size="18" />
-              </v-avatar>
-              <v-tooltip activator="parent" location="top"
-                >เพิ่มประเภทการซ่อม
-              </v-tooltip>
-            </div>
-          </template>
-          <template v-slot:default>
-            <div class="overflow-y-auto" style="height: 500px">
-              <v-card
-                v-for="(category, index) in partCategories"
-                :key="index"
-                class="mb-3"
-                max-width="344"
-                link
-                :color="
-                  editPartCategoryColumn
-                    ? 'warning'
-                    : category.PartCategoryName == PartCategoryName
-                    ? 'primary'
-                    : 'lightinfo'
-                "
-              >
-                <v-list-item
-                  append-icon="mdi-chevron-right"
-                  lines="two"
-                  :title="`${index + 1}. ${category.PartCategoryName}`"
-                  link
-                  @click="
-                    editPartCategoryColumn
-                      ? showEditPartCategoryDialog(category)
-                      : chooseCategory(category)
-                  "
-                ></v-list-item>
-              </v-card>
-            </div>
-          </template>
-        </UiParentCard>
-      </v-col>
-      <!-- PartCategory Section -->
-      <!-- RepairCategory Section -->
-      <v-col cols="12" md="4">
-        <UiParentCard
-          v-if="showRepairCategoryColumn"
-          Tableard
-          :title="PartCategoryName"
-        >
-          <template v-slot:action>
-            <v-spacer></v-spacer>
-            <div class="mr-1">
-              <v-avatar
-                :color="
-                  !editRepairCategoryColumn ? `lightsuccess` : `lighterror`
-                "
-                size="32"
-                @click="toggleShowEditRepairCategoryColumn"
-              >
-                <EditIcon
-                  v-if="!editRepairCategoryColumn"
-                  class="text-success"
-                  size="18"
-                />
-                <CircleXIcon v-else class="text-error" size="18" />
-              </v-avatar>
-              <v-tooltip activator="parent" location="top">แก้ไข</v-tooltip>
-            </div>
-            <div>
-              <v-avatar
-                color="lightprimary"
-                size="32"
-                @click="dialogAddRepairCategory = true"
-              >
-                <CirclePlusIcon class="text-primary" size="18" />
-              </v-avatar>
-              <v-tooltip activator="parent" location="top"
-                >เพิ่มกลุ่มงาม</v-tooltip
-              >
-            </div>
-          </template>
-          <template v-slot:default>
-            <div v-if="repairCategories.length == 0" class="text-center">
-              <span>ไม่พบข้อมูล</span>
-            </div>
-            <div v-else class="overflow-y-auto" style="max-height: 500px">
-              <v-card
-                v-for="(repairCate, index) in repairCategories"
-                :key="index"
-                class="mb-3"
-                max-width="344"
-                link
-                :color="`${
-                  editRepairCategoryColumn ? 'warning' : 'lightsuccess'
-                }`"
-              >
-                <v-card-text
-                  link
-                  @click="
-                    editRepairCategoryColumn
-                      ? showEditRapairCategoryDialog(repairCate)
-                      : chooseRepairCategory(repairCate)
-                  "
-                >
-                  <v-row>
-                    <v-col cols="8">
-                      {{ index + 1 }}. {{ repairCate.RepairCategory }}
-                    </v-col>
-                    <v-col>
-                      <div
-                        v-if="checkPreset(repairCate).sufficientCount > 0"
-                        class="mb-1"
-                      >
-                        <v-btn size="sm" block color="success">
-                          <span style="font-size: 13px">
-                            {{ checkPreset(repairCate).sufficientCount }}
-                          </span>
-                        </v-btn>
-                        <v-tooltip activator="parent" location="top"
-                          >พร้อมใช้งาน</v-tooltip
-                        >
-                      </div>
-
-                      <div v-if="checkPreset(repairCate).insufficientCount > 0">
-                        <v-btn size="sm" block color="error">
-                          <span style="font-size: 13px" class="text-center">
-                            {{ checkPreset(repairCate).insufficientCount }}
-                          </span>
-                        </v-btn>
-                        <v-tooltip activator="parent" location="top"
-                          >ไม่พร้อมใช้งาน</v-tooltip
-                        >
-                      </div>
-                    </v-col>
-                  </v-row>
-                </v-card-text>
-              </v-card>
-            </div>
-          </template>
-        </UiParentCard>
-      </v-col>
-      <!-- RepairCategory Section -->
-    </v-row>
-    <!-- Dialog Add Model Section -->
-    <v-dialog
-      v-model="dialogAddModel"
-      class="dialog-mw"
-      style="max-width: 500px"
-      persistent
-    >
-      <v-card>
-        <v-card-text>
-          <v-text-field
-            label="ยี่ห้อ"
-            v-model="brandData.Brand"
-            readonly
-          ></v-text-field>
-          <v-text-field
-            label="รุ่น"
-            v-model.trim="addModel.Model"
-            :rules="rules"
-          ></v-text-field>
-        </v-card-text>
-        <hr />
-        <v-card-actions>
-          <v-btn
-            color="primary"
-            @click="submitAddModel"
-            block
-            flat
-            variant="tonal"
-            >บันทึกข้อมูล</v-btn
-          >
-        </v-card-actions>
-        <v-card-actions>
-          <v-btn color="error" @click="closeDialogAddModel" block flat
-            >ปิดหน้าต่าง</v-btn
-          >
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-    <!-- Dialog Add Model Section -->
-    <!-- Dialog Add Part Category Section -->
-    <v-dialog
-      v-model="dialogAddPartCategory"
-      class="dialog-mw"
-      style="max-width: 500px"
-      persistent
-    >
-      <v-card>
-        <v-card-text>
-          <v-text-field
-            label="ประเภทการซ่อม"
-            v-model.trim="addPartCategory.PartCategoryName"
-            :rules="rules"
-          ></v-text-field>
-        </v-card-text>
-        <hr />
-        <v-card-actions>
-          <v-btn
-            color="primary"
-            @click="submitAddPartCategory"
-            block
-            flat
-            variant="tonal"
-            >บันทึกข้อมูล</v-btn
-          >
-        </v-card-actions>
-        <v-card-actions>
-          <v-btn color="error" @click="closeDialogAddPartCategory" block flat
-            >ปิดหน้าต่าง</v-btn
-          >
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-    <!-- Dialog Add Part Category Section -->
-    <!-- Dialog Add Repair Category Section -->
-    <v-dialog
-      v-model="dialogAddRepairCategory"
-      class="dialog-mw"
-      style="max-width: 500px"
-      persistent
-    >
-      <v-card>
-        <v-card-text>
-          <v-text-field
-            label="ชื่อกลุ่มงาน"
-            v-model.trim="addRepairCategory.RepairCategory"
-            :rules="rules"
-          ></v-text-field>
-          <v-select
-            class="mt-2"
-            v-model="addRepairCategory.PresetID"
-            :items="presets"
-            item-value="PresetID"
-            item-title="Preset"
-            label="พรีเซ็ตข้อมูล"
-            chips
-            multiple
-          >
-            <template v-slot:item="{ props, item }">
-              <v-list-item
-                v-bind="props"
-                :title="`#${item.raw.PresetID} - ${item.raw.Preset}`"
-              >
-              </v-list-item>
-            </template>
-            <template v-slot:selection="{ item }">
-              <span> #{{ item.raw.PresetID }} - {{ item.raw.Preset }} </span>
-            </template>
-          </v-select>
-        </v-card-text>
-        <hr />
-        <v-card-actions>
-          <v-btn
-            color="primary"
-            @click="submitAddRepairCategory"
-            block
-            flat
-            variant="tonal"
-            >บันทึกข้อมูล</v-btn
-          >
-        </v-card-actions>
-        <v-card-actions>
-          <v-btn color="error" @click="closeDialogAddRepairCategory" block flat
-            >ปิดหน้าต่าง</v-btn
-          >
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-    <!-- Dialog Add Repair Category Section -->
-    <!-- Dialog Add Preset Section Category Section -->
-    <v-dialog
-      v-model="dialogAddPreset"
-      class="dialog-mw"
-      style="max-width: 500px"
-      persistent
-    >
-      <v-card>
-        <v-card-text>
-          <v-select
-            class="mt-2"
-            v-model="addPreset.PresetID"
-            :items="presetsForAdd"
-            item-value="PresetID"
-            item-title="Preset"
-            label="พรีเซ็ตข้อมูล"
-            chips
-            multiple
-          >
-            <template v-slot:item="{ props, item }">
-              <v-list-item
-                v-bind="props"
-                :title="`#${item.raw.PresetID} - ${item.raw.Preset}`"
-              >
-              </v-list-item>
-            </template>
-            <template v-slot:selection="{ item }">
-              <span> #{{ item.raw.PresetID }} - {{ item.raw.Preset }} </span>
-            </template>
-          </v-select>
-        </v-card-text>
-        <hr />
-        <v-card-actions>
-          <v-btn
-            color="primary"
-            @click="submitAddPreset"
-            block
-            flat
-            variant="tonal"
-            >บันทึกข้อมูล</v-btn
-          >
-        </v-card-actions>
-        <v-card-actions>
-          <v-btn color="error" @click="closeDialogAddPreset()" block flat
-            >ปิดหน้าต่าง</v-btn
-          >
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-    <!-- Dialog Add Preset Section Category Section -->
-    <!-- Dialog Show Preset Section -->
-    <v-dialog
-      v-model="dialogShowPreset"
-      class="dialog-mw"
-      style="max-width: 1200px"
-      persistent
-    >
-      <v-card class="pa-3" v-if="showPresetRepairCategory != null">
-        <v-card-title>
-          <v-row>
-            <v-col cols="12" md="6">
-              <div class="text-wrap">
-                #{{ showPresetRepairCategory.RepairCategoryID }}.
-                {{ showPresetRepairCategory.RepairCategory }}
+    <div v-if="brandData != null">
+      <v-row>
+        <!-- Models Section -->
+        <v-col cols="12" md="4">
+          <UiParentCard v-if="brandData != null" Tableard :title="`รุ่นรถยนต์`">
+            <template v-slot:action>
+              <v-spacer></v-spacer>
+              <div class="mr-1">
+                <v-avatar :color="!editModelColumn ? `lightsuccess` : `lighterror`" size="32" @click="toggleShowEditModelColumn">
+                  <EditIcon v-if="!editModelColumn" class="text-success" size="18" />
+                  <CircleXIcon v-else class="text-error" size="18" />
+                </v-avatar>
+                <v-tooltip activator="parent" location="top">แก้ไข</v-tooltip>
               </div>
-            </v-col>
-            <v-col cols="12" md="6">
-              <v-row>
-                <v-col cols="6" class="text-center">
-                  <v-btn
-                    color="error"
-                    variant="outlined"
-                    block
-                    :disabled="
-                      showPresetRepairCategory.ref_model_category_parts.length >
-                      1
-                    "
-                    @click="
-                      deleteRefByRepairCategoryIDWithModelID(
-                        showPresetRepairCategory
-                      )
-                    "
-                  >
-                    <CircleMinusIcon size="18" />
-                    &nbsp; ลบกลุ่มงาน
-                  </v-btn>
-                </v-col>
-                <v-col cols="6" class="text-center">
-                  <v-btn color="info" block @click="openDialogaddPreset">
-                    <CirclePlusIcon size="18" />
-                    &nbsp; เพิ่มพรีเซ็ต
-                  </v-btn>
-                </v-col>
-              </v-row>
-            </v-col>
-          </v-row>
-        </v-card-title>
-        <v-card-text>
-          <v-row>
-            <v-col cols="12" md="3">
-              <v-card
-                v-for="(
-                  ref, index
-                ) in showPresetRepairCategory.ref_model_category_parts"
-                :key="index"
-                class="mb-3 pa-0"
-                link
-                :color="
-                  checkStockInPreset(ref.preset.presetDetails)
-                    ? `success`
-                    : `error`
-                "
-              >
-                <v-card-text
-                  class="text-center"
+
+              <div>
+                <v-avatar color="lightprimary" size="32" @click="dialogAddModel = true">
+                  <CirclePlusIcon class="text-primary" size="18" />
+                </v-avatar>
+                <v-tooltip activator="parent" location="top">เพิ่มรุ่นรถยนต์</v-tooltip>
+              </div>
+            </template>
+            <template v-slot:default>
+              <div class="overflow-y-auto" style="height: 500px">
+                <v-card
+                  v-for="(model, index) in brandData.models"
+                  :key="index"
+                  class="mb-3"
+                  max-width="344"
                   link
-                  @click="chooseSinglePreset(ref)"
+                  :color="editModelColumn ? 'warning' : model.Model == ModelName ? 'primary' : 'lightprimary'"
                 >
-                  #{{ ref.preset.PresetID }}. {{ ref.preset.Preset }}
-                </v-card-text>
-              </v-card>
-            </v-col>
-            <v-col cols="12" md="9" class="text-center">
-              <div v-if="showSinglePreset != null">
-                <h3 class="mt-0 mb-2">
-                  #{{ showSinglePreset.preset.PresetID }}.
-                  {{ showSinglePreset.preset.Preset }}
-                </h3>
-                <v-table class="border rounded-md" density="compact">
-                  <template v-slot:default>
-                    <thead>
-                      <tr>
-                        <th class="text-center">ลำดับ</th>
-                        <th class="text-center">รหัสอุปกรณ์</th>
-                        <th class="text-center">ชื่ออุปกรณ์</th>
-                        <th class="text-end">ราคาต่อหน่วย (บาท)</th>
-                        <th class="text-end">จำนวนที่ใช้</th>
-                        <th class="text-end">จำนวนในคลัง</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr
-                        v-for="(item, index) in showSinglePreset.preset
-                          .presetDetails"
-                        :key="index"
-                        :style="`${
-                          item.NumOfUse <= item.part.PartAmount
-                            ? ''
-                            : 'background-color: #ffcdd2; color: #000'
-                        }`"
-                      >
-                        <td class="text-center">{{ index + 1 }}.</td>
-                        <td>{{ item.part.PartNumber }}</td>
-                        <td>{{ item.part.PartName_th }}</td>
-                        <td class="text-end">
-                          {{ formatSeperateCurrency(item.part.PricePerUnit) }}
-                        </td>
-                        <td class="text-end">{{ item.NumOfUse }}</td>
-                        <td class="text-end">{{ item.part.PartAmount }}</td>
-                      </tr>
-                    </tbody>
-                  </template>
-                </v-table>
-                <div class="mt-3">
-                  <v-btn
-                    color="error"
-                    variant="outlined"
-                    @click="removePresetFromRepairCategory(showSinglePreset)"
-                    >นำพรีเซ็ตนี้ออกจากกลุ่มงาน</v-btn
-                  >
+                  <v-list-item
+                    append-icon="mdi-chevron-right"
+                    lines="two"
+                    :title="model.Model"
+                    link
+                    @click="editModelColumn ? showEditModelDialog(model) : chooseModel(model)"
+                  ></v-list-item>
+                </v-card>
+              </div>
+            </template>
+          </UiParentCard>
+        </v-col>
+        <!-- Models Section -->
+        <!-- PartCategory Section -->
+        <v-col cols="12" md="4">
+          <UiParentCard v-if="ModelID != null" Tableard :title="`ประเภทการซ่อม`">
+            <template v-slot:action>
+              <v-spacer></v-spacer>
+              <div class="mr-1">
+                <v-avatar :color="!editPartCategoryColumn ? `lightsuccess` : `lighterror`" size="32" @click="toggleShowEditPartCategoryColumn">
+                  <EditIcon v-if="!editPartCategoryColumn" class="text-success" size="18" />
+                  <CircleXIcon v-else class="text-error" size="18" />
+                </v-avatar>
+                <v-tooltip activator="parent" location="top">แก้ไข</v-tooltip>
+              </div>
+              <div>
+                <v-avatar color="lightprimary" size="32" @click="dialogAddPartCategory = true">
+                  <CirclePlusIcon class="text-primary" size="18" />
+                </v-avatar>
+                <v-tooltip activator="parent" location="top">เพิ่มประเภทการซ่อม </v-tooltip>
+              </div>
+            </template>
+            <template v-slot:default>
+              <div class="overflow-y-auto" style="height: 500px">
+                <v-card
+                  v-for="(category, index) in partCategories"
+                  :key="index"
+                  class="mb-3"
+                  max-width="344"
+                  link
+                  :color="editPartCategoryColumn ? 'warning' : category.PartCategoryName == PartCategoryName ? 'primary' : 'lightinfo'"
+                >
+                  <v-list-item
+                    append-icon="mdi-chevron-right"
+                    lines="two"
+                    :title="`${index + 1}. ${category.PartCategoryName}`"
+                    link
+                    @click="editPartCategoryColumn ? showEditPartCategoryDialog(category) : chooseCategory(category)"
+                  ></v-list-item>
+                </v-card>
+              </div>
+            </template>
+          </UiParentCard>
+        </v-col>
+        <!-- PartCategory Section -->
+        <!-- RepairCategory Section -->
+        <v-col cols="12" md="4">
+          <UiParentCard v-if="showRepairCategoryColumn" Tableard :title="PartCategoryName">
+            <template v-slot:action>
+              <v-spacer></v-spacer>
+              <div class="mr-1">
+                <v-avatar :color="!editRepairCategoryColumn ? `lightsuccess` : `lighterror`" size="32" @click="toggleShowEditRepairCategoryColumn">
+                  <EditIcon v-if="!editRepairCategoryColumn" class="text-success" size="18" />
+                  <CircleXIcon v-else class="text-error" size="18" />
+                </v-avatar>
+                <v-tooltip activator="parent" location="top">แก้ไข</v-tooltip>
+              </div>
+              <div>
+                <v-avatar color="lightprimary" size="32" @click="dialogAddRepairCategory = true">
+                  <CirclePlusIcon class="text-primary" size="18" />
+                </v-avatar>
+                <v-tooltip activator="parent" location="top">เพิ่มกลุ่มงาม</v-tooltip>
+              </div>
+            </template>
+            <template v-slot:default>
+              <div v-if="repairCategories.length == 0" class="text-center">
+                <span>ไม่พบข้อมูล</span>
+              </div>
+              <div v-else class="overflow-y-auto" style="max-height: 500px">
+                <v-card
+                  v-for="(repairCate, index) in repairCategories"
+                  :key="index"
+                  class="mb-3"
+                  max-width="344"
+                  link
+                  :color="`${editRepairCategoryColumn ? 'warning' : 'lightsuccess'}`"
+                >
+                  <v-card-text link @click="editRepairCategoryColumn ? showEditRapairCategoryDialog(repairCate) : chooseRepairCategory(repairCate)">
+                    <v-row>
+                      <v-col cols="8"> {{ index + 1 }}. {{ repairCate.RepairCategory }} </v-col>
+                      <v-col>
+                        <div v-if="checkPreset(repairCate).sufficientCount > 0" class="mb-1">
+                          <v-btn size="sm" block color="success">
+                            <span style="font-size: 13px">
+                              {{ checkPreset(repairCate).sufficientCount }}
+                            </span>
+                          </v-btn>
+                          <v-tooltip activator="parent" location="top">พร้อมใช้งาน</v-tooltip>
+                        </div>
+
+                        <div v-if="checkPreset(repairCate).insufficientCount > 0">
+                          <v-btn size="sm" block color="error">
+                            <span style="font-size: 13px" class="text-center">
+                              {{ checkPreset(repairCate).insufficientCount }}
+                            </span>
+                          </v-btn>
+                          <v-tooltip activator="parent" location="top">ไม่พร้อมใช้งาน</v-tooltip>
+                        </div>
+                      </v-col>
+                    </v-row>
+                  </v-card-text>
+                </v-card>
+              </div>
+            </template>
+          </UiParentCard>
+        </v-col>
+        <!-- RepairCategory Section -->
+      </v-row>
+      <!-- Dialog Add Model Section -->
+      <v-dialog v-model="dialogAddModel" class="dialog-mw" style="max-width: 500px" persistent>
+        <v-card>
+          <v-card-text>
+            <v-text-field label="ยี่ห้อ" v-model="brandData.Brand" readonly></v-text-field>
+            <v-text-field label="รุ่น" v-model.trim="addModel.Model" :rules="rules"></v-text-field>
+          </v-card-text>
+          <hr />
+          <v-card-actions>
+            <v-btn color="primary" @click="submitAddModel" block flat variant="tonal">บันทึกข้อมูล</v-btn>
+          </v-card-actions>
+          <v-card-actions>
+            <v-btn color="error" @click="closeDialogAddModel" block flat>ปิดหน้าต่าง</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+      <!-- Dialog Add Model Section -->
+      <!-- Dialog Add Part Category Section -->
+      <v-dialog v-model="dialogAddPartCategory" class="dialog-mw" style="max-width: 500px" persistent>
+        <v-card>
+          <v-card-text>
+            <v-text-field label="ประเภทการซ่อม" v-model.trim="addPartCategory.PartCategoryName" :rules="rules"></v-text-field>
+          </v-card-text>
+          <hr />
+          <v-card-actions>
+            <v-btn color="primary" @click="submitAddPartCategory" block flat variant="tonal">บันทึกข้อมูล</v-btn>
+          </v-card-actions>
+          <v-card-actions>
+            <v-btn color="error" @click="closeDialogAddPartCategory" block flat>ปิดหน้าต่าง</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+      <!-- Dialog Add Part Category Section -->
+      <!-- Dialog Add Repair Category Section -->
+      <v-dialog v-model="dialogAddRepairCategory" class="dialog-mw" style="max-width: 500px" persistent>
+        <v-card>
+          <v-card-text>
+            <v-text-field label="ชื่อกลุ่มงาน" v-model.trim="addRepairCategory.RepairCategory" :rules="rules"></v-text-field>
+            <v-select
+              class="mt-2"
+              v-model="addRepairCategory.PresetID"
+              :items="presets"
+              item-value="PresetID"
+              item-title="Preset"
+              label="พรีเซ็ตข้อมูล"
+              chips
+              multiple
+            >
+              <template v-slot:item="{ props, item }">
+                <v-list-item v-bind="props" :title="`#${item.raw.PresetID} - ${item.raw.Preset}`"> </v-list-item>
+              </template>
+              <template v-slot:selection="{ item }">
+                <span> #{{ item.raw.PresetID }} - {{ item.raw.Preset }} </span>
+              </template>
+            </v-select>
+          </v-card-text>
+          <hr />
+          <v-card-actions>
+            <v-btn color="primary" @click="submitAddRepairCategory" block flat variant="tonal">บันทึกข้อมูล</v-btn>
+          </v-card-actions>
+          <v-card-actions>
+            <v-btn color="error" @click="closeDialogAddRepairCategory" block flat>ปิดหน้าต่าง</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+      <!-- Dialog Add Repair Category Section -->
+      <!-- Dialog Add Preset Section Category Section -->
+      <v-dialog v-model="dialogAddPreset" class="dialog-mw" style="max-width: 500px" persistent>
+        <v-card>
+          <v-card-text>
+            <v-select
+              class="mt-2"
+              v-model="addPreset.PresetID"
+              :items="presetsForAdd"
+              item-value="PresetID"
+              item-title="Preset"
+              label="พรีเซ็ตข้อมูล"
+              chips
+              multiple
+            >
+              <template v-slot:item="{ props, item }">
+                <v-list-item v-bind="props" :title="`#${item.raw.PresetID} - ${item.raw.Preset}`"> </v-list-item>
+              </template>
+              <template v-slot:selection="{ item }">
+                <span> #{{ item.raw.PresetID }} - {{ item.raw.Preset }} </span>
+              </template>
+            </v-select>
+          </v-card-text>
+          <hr />
+          <v-card-actions>
+            <v-btn color="primary" @click="submitAddPreset" block flat variant="tonal">บันทึกข้อมูล</v-btn>
+          </v-card-actions>
+          <v-card-actions>
+            <v-btn color="error" @click="closeDialogAddPreset()" block flat>ปิดหน้าต่าง</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+      <!-- Dialog Add Preset Section Category Section -->
+      <!-- Dialog Show Preset Section -->
+      <v-dialog v-model="dialogShowPreset" class="dialog-mw" style="max-width: 1200px" persistent>
+        <v-card class="pa-3" v-if="showPresetRepairCategory != null">
+          <v-card-title>
+            <v-row>
+              <v-col cols="12" md="6">
+                <div class="text-wrap">
+                  #{{ showPresetRepairCategory.RepairCategoryID }}.
+                  {{ showPresetRepairCategory.RepairCategory }}
                 </div>
-              </div>
-            </v-col>
-          </v-row>
-        </v-card-text>
-        <hr />
-        <!-- <v-card-actions>
+              </v-col>
+              <v-col cols="12" md="6">
+                <v-row>
+                  <v-col cols="6" class="text-center">
+                    <v-btn
+                      color="error"
+                      variant="outlined"
+                      block
+                      :disabled="showPresetRepairCategory.ref_model_category_parts.length > 1"
+                      @click="deleteRefByRepairCategoryIDWithModelID(showPresetRepairCategory)"
+                    >
+                      <CircleMinusIcon size="18" />
+                      &nbsp; ลบกลุ่มงาน
+                    </v-btn>
+                  </v-col>
+                  <v-col cols="6" class="text-center">
+                    <v-btn color="info" block @click="openDialogaddPreset">
+                      <CirclePlusIcon size="18" />
+                      &nbsp; เพิ่มพรีเซ็ต
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-col>
+            </v-row>
+          </v-card-title>
+          <v-card-text>
+            <v-row>
+              <v-col cols="12" md="3">
+                <v-card
+                  v-for="(ref, index) in showPresetRepairCategory.ref_model_category_parts"
+                  :key="index"
+                  class="mb-3 pa-0"
+                  link
+                  :color="checkStockInPreset(ref.preset.presetDetails) ? `success` : `error`"
+                >
+                  <v-card-text class="text-center" link @click="chooseSinglePreset(ref)"> #{{ ref.preset.PresetID }}. {{ ref.preset.Preset }} </v-card-text>
+                </v-card>
+              </v-col>
+              <v-col cols="12" md="9" class="text-center">
+                <div v-if="showSinglePreset != null">
+                  <h3 class="mt-0 mb-2">
+                    #{{ showSinglePreset.preset.PresetID }}.
+                    {{ showSinglePreset.preset.Preset }}
+                  </h3>
+                  <v-table class="border rounded-md" density="compact">
+                    <template v-slot:default>
+                      <thead>
+                        <tr>
+                          <th class="text-center">ลำดับ</th>
+                          <th class="text-center">รหัสอุปกรณ์</th>
+                          <th class="text-center">ชื่ออุปกรณ์</th>
+                          <th class="text-end">ราคาต่อหน่วย (บาท)</th>
+                          <th class="text-end">จำนวนที่ใช้</th>
+                          <th class="text-end">จำนวนในคลัง</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr
+                          v-for="(item, index) in showSinglePreset.preset.presetDetails"
+                          :key="index"
+                          :style="`${item.NumOfUse <= item.part.PartAmount ? '' : 'background-color: #ffcdd2; color: #000'}`"
+                        >
+                          <td class="text-center">{{ index + 1 }}.</td>
+                          <td>{{ item.part.PartNumber }}</td>
+                          <td>{{ item.part.PartName_th }}</td>
+                          <td class="text-end">
+                            {{ formatSeperateCurrency(item.part.PricePerUnit) }}
+                          </td>
+                          <td class="text-end">{{ item.NumOfUse }}</td>
+                          <td class="text-end">{{ item.part.PartAmount }}</td>
+                        </tr>
+                      </tbody>
+                    </template>
+                  </v-table>
+                  <div class="mt-3">
+                    <v-btn color="error" variant="outlined" @click="removePresetFromRepairCategory(showSinglePreset)">นำพรีเซ็ตนี้ออกจากกลุ่มงาน</v-btn>
+                  </div>
+                </div>
+              </v-col>
+            </v-row>
+          </v-card-text>
+          <hr />
+          <!-- <v-card-actions>
           <v-btn color="primary" block flat variant="tonal">บันทึกข้อมูล</v-btn>
         </v-card-actions> -->
-        <v-card-actions>
-          <v-btn color="error" @click="closeDialogShowPreset" block flat
-            >ปิดหน้าต่าง</v-btn
-          >
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-    <!-- Dialog Show Preset Section -->
-    <!-- Dialog Edit Part Category -->
-    <v-dialog
-      v-model="dialogEditPartCategory"
-      class="dialog-mw"
-      style="max-width: 500px"
-      persistent
-    >
-      <v-card class="pa-3" v-if="editPartCategory != null">
-        <v-card-text>
-          <v-text-field
-            label="ประเภทการซ่อม"
-            v-model.trim="editPartCategory.PartCategoryName"
-            :rules="rules"
-          ></v-text-field>
-        </v-card-text>
-        <v-card-actions>
-          <v-btn color="info" block flat @click="submitEditPartCategory"
-            >บันทึกข้อมูล</v-btn
-          >
-        </v-card-actions>
-        <v-card-actions>
-          <v-btn color="error" @click="closeEditPartCategoryDialog" block flat
-            >ปิดหน้าต่าง</v-btn
-          >
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-    <!-- Dialog Edit Part Category -->
-    <!-- Dialog Edit Model -->
-    <v-dialog
-      v-model="dialogEditModel"
-      class="dialog-mw"
-      style="max-width: 500px"
-      persistent
-    >
-      <v-card class="pa-3" v-if="editModel != null">
-        <v-card-text>
-          <v-text-field
-            label="รุ่น"
-            v-model.trim="editModel.Model"
-            :rules="rules"
-          ></v-text-field>
-        </v-card-text>
-        <v-card-actions>
-          <v-btn color="info" block flat @click="submitEditModel"
-            >บันทึกข้อมูล</v-btn
-          >
-        </v-card-actions>
-        <v-card-actions>
-          <v-btn color="error" @click="closeEditModelDialog" block flat
-            >ปิดหน้าต่าง</v-btn
-          >
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-    <!-- Dialog Edit Model -->
-    <!-- Dialog Edit Repair Category -->
-    <v-dialog
-      v-model="dialogEditRepairCategory"
-      class="dialog-mw"
-      style="max-width: 500px"
-      persistent
-    >
-      <v-card class="pa-3" v-if="editRepairCategory != null">
-        <v-card-text>
-          <v-text-field
-            label="ชื่อกลุ่มงาน"
-            v-model.trim="editRepairCategory.RepairCategory"
-            :rules="rules"
-          ></v-text-field>
-        </v-card-text>
-        <v-card-actions>
-          <v-btn color="info" block flat @click="submitEditRepairCategory"
-            >บันทึกข้อมูล</v-btn
-          >
-        </v-card-actions>
-        <v-card-actions>
-          <v-btn color="error" @click="closeEditRepairCategoryDialog" block flat
-            >ปิดหน้าต่าง</v-btn
-          >
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-    <!-- Dialog Edit Repair Category -->
+          <v-card-actions>
+            <v-btn color="error" @click="closeDialogShowPreset" block flat>ปิดหน้าต่าง</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+      <!-- Dialog Show Preset Section -->
+      <!-- Dialog Edit Part Category -->
+      <v-dialog v-model="dialogEditPartCategory" class="dialog-mw" style="max-width: 500px" persistent>
+        <v-card class="pa-3" v-if="editPartCategory != null">
+          <v-card-text>
+            <v-text-field label="ประเภทการซ่อม" v-model.trim="editPartCategory.PartCategoryName" :rules="rules"></v-text-field>
+          </v-card-text>
+          <v-card-actions>
+            <v-btn color="info" block flat @click="submitEditPartCategory">บันทึกข้อมูล</v-btn>
+          </v-card-actions>
+          <v-card-actions>
+            <v-btn color="error" @click="closeEditPartCategoryDialog" block flat>ปิดหน้าต่าง</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+      <!-- Dialog Edit Part Category -->
+      <!-- Dialog Edit Model -->
+      <v-dialog v-model="dialogEditModel" class="dialog-mw" style="max-width: 500px" persistent>
+        <v-card class="pa-3" v-if="editModel != null">
+          <v-card-text>
+            <v-text-field label="รุ่น" v-model.trim="editModel.Model" :rules="rules"></v-text-field>
+          </v-card-text>
+          <v-card-actions>
+            <v-btn color="info" block flat @click="submitEditModel">บันทึกข้อมูล</v-btn>
+          </v-card-actions>
+          <v-card-actions>
+            <v-btn color="error" @click="closeEditModelDialog" block flat>ปิดหน้าต่าง</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+      <!-- Dialog Edit Model -->
+      <!-- Dialog Edit Repair Category -->
+      <v-dialog v-model="dialogEditRepairCategory" class="dialog-mw" style="max-width: 500px" persistent>
+        <v-card class="pa-3" v-if="editRepairCategory != null">
+          <v-card-text>
+            <v-text-field label="ชื่อกลุ่มงาน" v-model.trim="editRepairCategory.RepairCategory" :rules="rules"></v-text-field>
+          </v-card-text>
+          <v-card-actions>
+            <v-btn color="info" block flat @click="submitEditRepairCategory">บันทึกข้อมูล</v-btn>
+          </v-card-actions>
+          <v-card-actions>
+            <v-btn color="error" @click="closeEditRepairCategoryDialog" block flat>ปิดหน้าต่าง</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+      <!-- Dialog Edit Repair Category -->
+    </div>
   </div>
 </template>

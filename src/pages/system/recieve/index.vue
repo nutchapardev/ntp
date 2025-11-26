@@ -24,11 +24,10 @@ export default {
 };
 </script>
 <template>
-  <BaseBreadcrumb
-    :title="page.title"
-    :breadcrumbs="breadcrumbs"
-  ></BaseBreadcrumb>
-  <UiParentCard Tableard title="Recieve">
-    <HelloWorld />
-  </UiParentCard>
+  <div>
+    <BaseBreadcrumb :title="page.title" :breadcrumbs="breadcrumbs"></BaseBreadcrumb>
+    <UiParentCard Tableard title="Recieve">
+      <HelloWorld />
+    </UiParentCard>
+  </div>
 </template>

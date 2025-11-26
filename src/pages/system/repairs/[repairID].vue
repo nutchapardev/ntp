@@ -1,6 +1,6 @@
 <script>
-import BaseBreadcrumb from "@/components/shared/BaseBreadcrumb.vue"
-import CreateRepairDetail from "@/components/repair/CreateRepairDetail.vue"
+import BaseBreadcrumb from "@/components/shared/BaseBreadcrumb.vue";
+import CreateRepairDetail from "@/components/repair/CreateRepairDetail.vue";
 
 export default {
   name: "RepairDetails",
@@ -30,15 +30,14 @@ export default {
           href: "#",
         },
       ],
-    }
+    };
   },
-}
+};
 </script>
 
 <template>
-  <BaseBreadcrumb
-    :title="page.title"
-    :breadcrumbs="breadcrumbs"
-  ></BaseBreadcrumb>
-  <CreateRepairDetail />
+  <div>
+    <BaseBreadcrumb :title="page.title" :breadcrumbs="breadcrumbs"></BaseBreadcrumb>
+    <CreateRepairDetail />
+  </div>
 </template>

@@ -22,11 +22,10 @@ export default {
 </script>
 
 <template>
-  <BaseBreadcrumb
-    :title="page.title"
-    :breadcrumbs="breadcrumbs"
-  ></BaseBreadcrumb>
-  <UiParentCard Tableard title="รอจัดสรรอุปกรณ์">
-    <MonitoringCard />
-  </UiParentCard>
+  <div>
+    <BaseBreadcrumb :title="page.title" :breadcrumbs="breadcrumbs"></BaseBreadcrumb>
+    <UiParentCard Tableard title="รอจัดสรรอุปกรณ์">
+      <MonitoringCard />
+    </UiParentCard>
+  </div>
 </template>

@@ -569,251 +569,252 @@ export default {
 </script>
 
 <template>
-  <v-card v-if="RepairItems" elevation="10">
-    <v-card-item>
-      <v-row>
-        <v-col cols="12" sm="6">
-          <p class="textSecondary text-14">#ID : {{ repairID }}</p>
-          <p class="textSecondary text-14">
-            วันที่ :
-            {{ formatDate(RepairItems?.RepairDate) }}
-          </p>
-          <p class="textSecondary text-14">
-            ยี่ห้อ/รุ่น :
-            {{ RepairItems.car.brand.Brand }}
-            ( {{ RepairItems.car.model.Model }} )
-          </p>
-          <p class="textSecondary text-14">
-            ทะเบียน :
-            {{ RepairItems.car.CarTitle }}
-            {{ RepairItems.car.CarNumber }}
-            {{ RepairItems.car.province.name_th }}
-          </p>
-          <p class="textSecondary text-14">
-            ลูกค้า :
-            {{ RepairItems.customer.customerTitle.CustomerTitle }}
-            {{ RepairItems.customer.CustomerName }}
-            {{ RepairItems.customer.CustomerSurname }}
-          </p>
-        </v-col>
-        <v-col cols="12" sm="6" class="text-end">
-          <p class="textSecondary text-14">
-            สร้างเมื่อ :
-            {{ formatDateTime(RepairItems.createdAt) }}
-          </p>
-          <p class="textSecondary text-14">
-            สร้างโดย :
-            {{ RepairItems.employee.FirstName }}
-            {{ RepairItems.employee.LastName }}
-          </p>
-          <br />
-          <v-btn @click="openDialogShowImages">
-            <v-icon>mdi-file-image</v-icon>
-          </v-btn>
-          <v-btn @click="openDialogAddImages">
-            <v-icon>mdi-file-image-plus-outline</v-icon>
-          </v-btn>
-          <br />
-          <p class="textSecondary text-14 mt-2 d-flex justify-end align-center">
-            สถานะ : &nbsp;&nbsp;
-            <v-chip :color="getColor(RepairItems.workStatus.WorkStatusID)">
-              {{ RepairItems.workStatus.WorkStatus_th }}
-            </v-chip>
-          </p>
-        </v-col>
-      </v-row>
-    </v-card-item>
-  </v-card>
-
-  <v-row class="mt-2">
-    <v-col>
-      <div class="text-center">
-        <v-btn color="secondary" class="w-100" @click="openDialogAddPart" flat>
-          <v-icon size="20">mdi-plus-circle-outline</v-icon>
-          <span class="hidden-sm-and-down"> &nbsp;เพิ่มรายการ </span>
-        </v-btn>
-        <v-dialog v-model="dialogAddPart" class="dialog-mw" style="max-width: 1000px" persistent>
-          <v-card>
-            <v-card-text>
-              <v-row>
-                <v-col>
-                  <div class="overflow-y-auto" style="max-height: 250px">
-                    <!-- Popout -->
-                    <v-expansion-panels variant="popout">
-                      <v-expansion-panel v-for="(category, index) in refItems" :key="category.PartCategoryID" elevation="10">
-                        <v-expansion-panel-title class="text-h6" color="info" @click="removeSelectedItem">
-                          {{ index + 1 }}. {{ category.PartCategoryName }}
-                        </v-expansion-panel-title>
-                        <v-expansion-panel-text>
-                          <v-btn
-                            v-for="preset in category.presets"
-                            :key="preset.PresetID"
-                            rounded="0"
-                            block
-                            variant="outlined"
-                            color=""
-                            class="mb-2"
-                            @click="choosePreset(preset, category)"
-                          >
-                            รหัส Preset #{{ preset.PresetID }} -
-                            {{ preset.Preset }}
-                          </v-btn>
-                        </v-expansion-panel-text>
-                        <v-divider></v-divider>
-                      </v-expansion-panel>
-                    </v-expansion-panels>
-                    <!-- Popout -->
-                  </div>
-                </v-col>
-                <v-col v-if="showPresetDetail" cols="12">
-                  <hr />
-                  <hr />
-                  <div class="text-center mt-4 mb-3 font-weight-bold">
-                    {{ showPresetDetail.Preset }}
-                  </div>
-                  <div v-if="checkNotEnoughItems">
-                    <v-alert density="compact" type="error" class="mb-4" variant="tonal">
-                      <span>อุปกรณ์ไม่เพียงพอ</span> <br />
-                      <v-table class="border rounded-md mt-2 mb-2" density="compact">
-                        <thead>
-                          <tr>
-                            <th class="text-start">รหัสอุปกรณ์</th>
-                            <th class="text-start">ชื่ออุปกรณ์</th>
-                            <th class="text-start">จำนวนที่ต้องใช้</th>
-                            <th class="text-start">จำนวนที่มี</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr v-for="(notItem, index) in notEnoughItems" :key="index">
-                            <td class="text-start">
-                              {{ notItem.part.PartNumber }}
-                            </td>
-                            <td class="text-start">
-                              {{ notItem.part.PartName_th }}
-                            </td>
-                            <td class="text-end">
-                              {{ notItem.NumOfUse }}
-                              {{ notItem.part.unit.Unit }}
-                            </td>
-                            <td class="text-end">
-                              {{ notItem.part.PartAmount }}
-                              {{ notItem.part.unit.Unit }}
-                            </td>
-                          </tr>
-                        </tbody>
-                      </v-table>
-                      <!-- </div> -->
-                    </v-alert>
-                  </div>
-                  <v-data-table
-                    items-per-page="10"
-                    :row-props="setRowClass"
-                    :headers="headers"
-                    :items="aviableItems"
-                    v-model="selectedItems"
-                    item-value="PresetDetailID"
-                    show-select
-                    return-object
-                    class="border rounded-md"
-                    density="compact"
-                  >
-                  </v-data-table>
-                </v-col>
-              </v-row>
-            </v-card-text>
-            <hr />
-            <v-card-actions v-if="selectedItems.length > 0">
-              <v-btn color="primary" block @click="submitAddRepairItem" flat variant="tonal">เพิ่มอุปกรณ์</v-btn>
-            </v-card-actions>
-            <v-card-actions>
-              <v-btn color="error" block @click="closeDialogAddPart" flat>ปิดหน้าต่าง</v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-      </div>
-    </v-col>
-  </v-row>
-
-  <v-card class="mt-5">
-    <v-card-item>
-      <!-- <v-form ref="formRef" v-model="valid" lazy-validation> -->
-      <v-form>
-        <!--  -->
-        <div
-          v-for="(detail, index) in repairDetails"
-          :key="detail.RepairDetailID"
-          :title="detail.repairCategory.RepairCategory"
-          class="mt-3"
-          color="info"
-          variant="outlined"
-        >
-          <!-- <span class="mt-10 font-weight-bold">{{ index + 1 }}. {{ detail.repairCategory.RepairCategory }}</span> -->
-          <div class="mt-10 font-weight-bold d-flex align-center">
-            #{{ index + 1 }}.&nbsp;&nbsp;&nbsp;&nbsp;
-            {{ detail.preset.Preset }}
-            <v-btn flat icon color="lightprimary" size="x-small" class="ms-3" @click="openDialogAddItems(detail)">
-              <CirclePlusIcon class="text-primary" size="18" />
-              <v-tooltip activator="parent" location="bottom">เพิ่มอุปกรณ์</v-tooltip>
+  <div>
+    <v-card v-if="RepairItems" elevation="10">
+      <v-card-item>
+        <v-row>
+          <v-col cols="12" sm="6">
+            <p class="textSecondary text-14">#ID : {{ repairID }}</p>
+            <p class="textSecondary text-14">
+              วันที่ :
+              {{ formatDate(RepairItems?.RepairDate) }}
+            </p>
+            <p class="textSecondary text-14">
+              ยี่ห้อ/รุ่น :
+              {{ RepairItems.car.brand.Brand }}
+              ( {{ RepairItems.car.model.Model }} )
+            </p>
+            <p class="textSecondary text-14">
+              ทะเบียน :
+              {{ RepairItems.car.CarTitle }}
+              {{ RepairItems.car.CarNumber }}
+              {{ RepairItems.car.province.name_th }}
+            </p>
+            <p class="textSecondary text-14">
+              ลูกค้า :
+              {{ RepairItems.customer.customerTitle.CustomerTitle }}
+              {{ RepairItems.customer.CustomerName }}
+              {{ RepairItems.customer.CustomerSurname }}
+            </p>
+          </v-col>
+          <v-col cols="12" sm="6" class="text-end">
+            <p class="textSecondary text-14">
+              สร้างเมื่อ :
+              {{ formatDateTime(RepairItems.createdAt) }}
+            </p>
+            <p class="textSecondary text-14">
+              สร้างโดย :
+              {{ RepairItems.employee.FirstName }}
+              {{ RepairItems.employee.LastName }}
+            </p>
+            <br />
+            <v-btn @click="openDialogShowImages">
+              <v-icon>mdi-file-image</v-icon>
             </v-btn>
-            <v-spacer></v-spacer>
-            <v-btn flat icon color="lighterror" size="x-small" class="ms-3" @click="deletePreset(detail)">
-              <CircleMinusIcon class="text-error" size="18" />
-              <v-tooltip activator="parent" location="bottom">ลบอุปกรณ์</v-tooltip>
+            <v-btn @click="openDialogAddImages">
+              <v-icon>mdi-file-image-plus-outline</v-icon>
             </v-btn>
-          </div>
-          <v-table class="invoice-table mt-6" density="compact">
-            <template v-slot:default>
-              <thead>
-                <tr>
-                  <th class="text-14 text-no-wrap"></th>
-                  <th class="text-14 text-no-wrap">ชื่ออุปกรณ์</th>
-                  <th class="text-14 text-no-wrap text-center">จำนวน</th>
-                  <th class="text-14 text-no-wrap text-center">ราคา/หน่วย</th>
-                  <th class="text-14 text-no-wrap text-center">ค่าบริการ</th>
-                  <th class="text-14 text-no-wrap text-end">จำนวนเงิน (บาท)</th>
-                  <th class="text-14 text-no-wrap text-end"></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(part, index) in detail.repairParts" :key="index">
-                  <td class="text-center">{{ index + 1 }}.</td>
-                  <td width="300" class="text-no-wrap">
-                    <span class="py-4">{{ part.part.PartName_th }}</span>
-                  </td>
-                  <td width="150" class="text-no-wrap">
-                    <v-text-field
-                      v-model="part.NumOfUse"
-                      :label="`จำนวน (${part.part.unit.Unit})`"
-                      :rules="rules"
-                      @change="editDoing"
-                      required
-                      hide-details
-                      width="150"
-                      type="number"
-                    />
-                  </td>
-                  <td width="150" class="text-no-wrap text-end">
-                    {{ formatSeperateCurrency(part.PricePerUnit) }}
-                  </td>
-                  <td width="150" class="text-no-wrap text-end">
-                    {{ formatSeperateCurrency(part.ServiceFee) }}
-                  </td>
-                  <td width="150" class="text-14 text-no-wrap text-end">
-                    {{ formatSeperateCurrency(invoiceStore.totalCost(part)) }}
-                  </td>
-                  <td class="text-end text-no-wrap">
-                    <v-avatar color="lighterror" size="32" @click="deletePart(part)">
-                      <TrashIcon class="text-error" size="18" />
-                    </v-avatar>
-                    <v-tooltip activator="parent" location="bottom">Delete Invoice</v-tooltip>
-                  </td>
-                </tr>
-              </tbody>
-            </template>
-          </v-table>
+            <br />
+            <p class="textSecondary text-14 mt-2 d-flex justify-end align-center">
+              สถานะ : &nbsp;&nbsp;
+              <v-chip :color="getColor(RepairItems.workStatus.WorkStatusID)">
+                {{ RepairItems.workStatus.WorkStatus_th }}
+              </v-chip>
+            </p>
+          </v-col>
+        </v-row>
+      </v-card-item>
+    </v-card>
+
+    <v-row class="mt-2">
+      <v-col>
+        <div class="text-center">
+          <v-btn color="secondary" class="w-100" @click="openDialogAddPart" flat>
+            <v-icon size="20">mdi-plus-circle-outline</v-icon>
+            <span class="hidden-sm-and-down"> &nbsp;เพิ่มรายการ </span>
+          </v-btn>
+          <v-dialog v-model="dialogAddPart" class="dialog-mw" style="max-width: 1000px" persistent>
+            <v-card>
+              <v-card-text>
+                <v-row>
+                  <v-col>
+                    <div class="overflow-y-auto" style="max-height: 250px">
+                      <!-- Popout -->
+                      <v-expansion-panels variant="popout">
+                        <v-expansion-panel v-for="(category, index) in refItems" :key="category.PartCategoryID" elevation="10">
+                          <v-expansion-panel-title class="text-h6" color="info" @click="removeSelectedItem">
+                            {{ index + 1 }}. {{ category.PartCategoryName }}
+                          </v-expansion-panel-title>
+                          <v-expansion-panel-text>
+                            <v-btn
+                              v-for="preset in category.presets"
+                              :key="preset.PresetID"
+                              rounded="0"
+                              block
+                              variant="outlined"
+                              color=""
+                              class="mb-2"
+                              @click="choosePreset(preset, category)"
+                            >
+                              รหัส Preset #{{ preset.PresetID }} -
+                              {{ preset.Preset }}
+                            </v-btn>
+                          </v-expansion-panel-text>
+                          <v-divider></v-divider>
+                        </v-expansion-panel>
+                      </v-expansion-panels>
+                      <!-- Popout -->
+                    </div>
+                  </v-col>
+                  <v-col v-if="showPresetDetail" cols="12">
+                    <hr />
+                    <hr />
+                    <div class="text-center mt-4 mb-3 font-weight-bold">
+                      {{ showPresetDetail.Preset }}
+                    </div>
+                    <div v-if="checkNotEnoughItems">
+                      <v-alert density="compact" type="error" class="mb-4" variant="tonal">
+                        <span>อุปกรณ์ไม่เพียงพอ</span> <br />
+                        <v-table class="border rounded-md mt-2 mb-2" density="compact">
+                          <thead>
+                            <tr>
+                              <th class="text-start">รหัสอุปกรณ์</th>
+                              <th class="text-start">ชื่ออุปกรณ์</th>
+                              <th class="text-start">จำนวนที่ต้องใช้</th>
+                              <th class="text-start">จำนวนที่มี</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr v-for="(notItem, index) in notEnoughItems" :key="index">
+                              <td class="text-start">
+                                {{ notItem.part.PartNumber }}
+                              </td>
+                              <td class="text-start">
+                                {{ notItem.part.PartName_th }}
+                              </td>
+                              <td class="text-end">
+                                {{ notItem.NumOfUse }}
+                                {{ notItem.part.unit.Unit }}
+                              </td>
+                              <td class="text-end">
+                                {{ notItem.part.PartAmount }}
+                                {{ notItem.part.unit.Unit }}
+                              </td>
+                            </tr>
+                          </tbody>
+                        </v-table>
+                        <!-- </div> -->
+                      </v-alert>
+                    </div>
+                    <v-data-table
+                      items-per-page="10"
+                      :row-props="setRowClass"
+                      :headers="headers"
+                      :items="aviableItems"
+                      v-model="selectedItems"
+                      item-value="PresetDetailID"
+                      show-select
+                      return-object
+                      class="border rounded-md"
+                      density="compact"
+                    >
+                    </v-data-table>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+              <hr />
+              <v-card-actions v-if="selectedItems.length > 0">
+                <v-btn color="primary" block @click="submitAddRepairItem" flat variant="tonal">เพิ่มอุปกรณ์</v-btn>
+              </v-card-actions>
+              <v-card-actions>
+                <v-btn color="error" block @click="closeDialogAddPart" flat>ปิดหน้าต่าง</v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
         </div>
+      </v-col>
+    </v-row>
 
-        <!-- <v-row class="d-flex justify-end border-t mt-1">
+    <v-card class="mt-5">
+      <v-card-item>
+        <!-- <v-form ref="formRef" v-model="valid" lazy-validation> -->
+        <v-form>
+          <!--  -->
+          <div
+            v-for="(detail, index) in repairDetails"
+            :key="detail.RepairDetailID"
+            :title="detail.repairCategory.RepairCategory"
+            class="mt-3"
+            color="info"
+            variant="outlined"
+          >
+            <!-- <span class="mt-10 font-weight-bold">{{ index + 1 }}. {{ detail.repairCategory.RepairCategory }}</span> -->
+            <div class="mt-10 font-weight-bold d-flex align-center">
+              #{{ index + 1 }}.&nbsp;&nbsp;&nbsp;&nbsp;
+              {{ detail.preset.Preset }}
+              <v-btn flat icon color="lightprimary" size="x-small" class="ms-3" @click="openDialogAddItems(detail)">
+                <CirclePlusIcon class="text-primary" size="18" />
+                <v-tooltip activator="parent" location="bottom">เพิ่มอุปกรณ์</v-tooltip>
+              </v-btn>
+              <v-spacer></v-spacer>
+              <v-btn flat icon color="lighterror" size="x-small" class="ms-3" @click="deletePreset(detail)">
+                <CircleMinusIcon class="text-error" size="18" />
+                <v-tooltip activator="parent" location="bottom">ลบอุปกรณ์</v-tooltip>
+              </v-btn>
+            </div>
+            <v-table class="invoice-table mt-6" density="compact">
+              <template v-slot:default>
+                <thead>
+                  <tr>
+                    <th class="text-14 text-no-wrap"></th>
+                    <th class="text-14 text-no-wrap">ชื่ออุปกรณ์</th>
+                    <th class="text-14 text-no-wrap text-center">จำนวน</th>
+                    <th class="text-14 text-no-wrap text-center">ราคา/หน่วย</th>
+                    <th class="text-14 text-no-wrap text-center">ค่าบริการ</th>
+                    <th class="text-14 text-no-wrap text-end">จำนวนเงิน (บาท)</th>
+                    <th class="text-14 text-no-wrap text-end"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(part, index) in detail.repairParts" :key="index">
+                    <td class="text-center">{{ index + 1 }}.</td>
+                    <td width="300" class="text-no-wrap">
+                      <span class="py-4">{{ part.part.PartName_th }}</span>
+                    </td>
+                    <td width="150" class="text-no-wrap">
+                      <v-text-field
+                        v-model="part.NumOfUse"
+                        :label="`จำนวน (${part.part.unit.Unit})`"
+                        :rules="rules"
+                        @change="editDoing"
+                        required
+                        hide-details
+                        width="150"
+                        type="number"
+                      />
+                    </td>
+                    <td width="150" class="text-no-wrap text-end">
+                      {{ formatSeperateCurrency(part.PricePerUnit) }}
+                    </td>
+                    <td width="150" class="text-no-wrap text-end">
+                      {{ formatSeperateCurrency(part.ServiceFee) }}
+                    </td>
+                    <td width="150" class="text-14 text-no-wrap text-end">
+                      {{ formatSeperateCurrency(invoiceStore.totalCost(part)) }}
+                    </td>
+                    <td class="text-end text-no-wrap">
+                      <v-avatar color="lighterror" size="32" @click="deletePart(part)">
+                        <TrashIcon class="text-error" size="18" />
+                      </v-avatar>
+                      <v-tooltip activator="parent" location="bottom">Delete Invoice</v-tooltip>
+                    </td>
+                  </tr>
+                </tbody>
+              </template>
+            </v-table>
+          </div>
+
+          <!-- <v-row class="d-flex justify-end border-t mt-1">
           <v-col cols="12" md="3" class="mt-3 ps-lg-16">
             <div
               class="d-flex align-center justify-space-between text-14 font-weight-semibold mb-4"
@@ -850,113 +851,114 @@ export default {
             </div>
           </v-col>
         </v-row> -->
-        <!-- {{ RepairItems.workStatus }} -->
+          <!-- {{ RepairItems.workStatus }} -->
 
-        <div v-if="RepairItems" class="d-flex align-center justify-end ga-3">
-          <v-btn flat color="error" @click="goBack" class="mt-6"> ย้อนกลับ </v-btn>
-          <v-spacer></v-spacer>
+          <div v-if="RepairItems" class="d-flex align-center justify-end ga-3">
+            <v-btn flat color="error" @click="goBack" class="mt-6"> ย้อนกลับ </v-btn>
+            <v-spacer></v-spacer>
 
-          <v-btn
-            v-if="RepairItems.workStatus.WorkStatusID == 4"
-            variant="tonal"
-            color="error"
-            @click="cancleAllowCate"
-            class="mt-6"
-            :disabled="RepairItems.workStatus.WorkStatusID == 2"
-          >
-            ยกเลิกการจัดสรรอุปกรณ์
-          </v-btn>
-
-          <v-btn
-            v-if="RepairItems.workStatus.WorkStatusID == 2"
-            variant="flat"
-            color="warning"
-            @click="allowcateEquipment"
-            class="mt-6"
-            :disabled="repairDetails.length == 0 || isCanEdit"
-          >
-            จัดสรรอุปกรณ์
-          </v-btn>
-
-          <v-btn variant="flat" color="primary" @click="submitSave" class="mt-6" :disabled="repairDetails.length == 0">บันทึกข้อมูล</v-btn>
-        </div>
-      </v-form>
-    </v-card-item>
-  </v-card>
-  <!-- dialog Add Images -->
-  <v-dialog v-model="dialogAddImages" class="dialog-mw" style="max-width: 900px" persistent>
-    <v-card>
-      <v-card-title class="pa-4 bg-secondary">
-        <span class="text-h5">เพิ่มรูปภาพ</span>
-      </v-card-title>
-      <v-card-text>
-        <ImageUploader :repairId="repairID" />
-      </v-card-text>
-      <v-card-actions>
-        <v-btn color="error" block flat @click="closeDialogAddImages">ปิดหน้าต่าง</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-  <!-- dialog Add Images -->
-  <!-- dialog Show Images -->
-  <v-dialog v-model="dialogShowImages" class="dialog-mw" style="max-width: 900px" persistent>
-    <v-card>
-      <v-card-title class="pa-4 bg-secondary">
-        <span class="text-h5">รูปรถยนต์</span>
-      </v-card-title>
-      <v-card-text>
-        <CarImages :repairId="repairID" />
-      </v-card-text>
-      <v-card-actions>
-        <v-btn color="error" block flat @click="closeDialogShowImages">ปิดหน้าต่าง</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-  <!-- dialog Show Images -->
-  <!-- dialog Add Items -->
-  <v-dialog v-model="dialogAddItems" class="dialog-mw" style="max-width: 900px" persistent>
-    <v-card>
-      <v-card-title class="pa-4 bg-secondary">
-        <span class="text-h5">Items</span>
-      </v-card-title>
-      <v-card-text>
-        <v-row>
-          <v-col cols="12" md="8">
-            <v-autocomplete
-              v-model="addItem.PartID"
-              :items="parts"
-              item-value="PartID"
-              item-title="PartName_th"
-              prepend-inner-icon="mdi-magnify"
-              label="อุปกรณ์"
-              hide-details
-              color="primary"
-              variant="outlined"
-              autocomplete="false"
-              @update:modelValue="setAddItem"
+            <v-btn
+              v-if="RepairItems.workStatus.WorkStatusID == 4"
+              variant="tonal"
+              color="error"
+              @click="cancleAllowCate"
+              class="mt-6"
+              :disabled="RepairItems.workStatus.WorkStatusID == 2"
             >
-              <template v-slot:item="{ props, item }">
-                <v-list-item v-bind="props" :title="`รหัส : ${item.raw.PartNumber} || ${item.raw.PartName_th}`"> </v-list-item>
-              </template>
-            </v-autocomplete>
-          </v-col>
-          <v-col cols="12" md="2">
-            <v-text-field v-model="addItem.NumOfUse" type="number" label="จำนวนที่ใช้" hide-details />
-          </v-col>
-          <v-col cols="12" md="2">
-            <v-text-field v-model="addItem.PartAmount" type="number" label="จำนวนในคลัง" readonly hide-details />
-          </v-col>
-        </v-row>
-      </v-card-text>
-      <v-card-actions>
-        <v-btn color="primary" block flat @click="submitAddItem">เพิ่มอุปกรณ์</v-btn>
-      </v-card-actions>
-      <v-card-actions>
-        <v-btn color="error" block flat @click="closeDialogAddItems">ปิดหน้าต่าง</v-btn>
-      </v-card-actions>
+              ยกเลิกการจัดสรรอุปกรณ์
+            </v-btn>
+
+            <v-btn
+              v-if="RepairItems.workStatus.WorkStatusID == 2"
+              variant="flat"
+              color="warning"
+              @click="allowcateEquipment"
+              class="mt-6"
+              :disabled="repairDetails.length == 0 || isCanEdit"
+            >
+              จัดสรรอุปกรณ์
+            </v-btn>
+
+            <v-btn variant="flat" color="primary" @click="submitSave" class="mt-6" :disabled="repairDetails.length == 0">บันทึกข้อมูล</v-btn>
+          </div>
+        </v-form>
+      </v-card-item>
     </v-card>
-  </v-dialog>
-  <!-- dialog Add Items -->
+    <!-- dialog Add Images -->
+    <v-dialog v-model="dialogAddImages" class="dialog-mw" style="max-width: 900px" persistent>
+      <v-card>
+        <v-card-title class="pa-4 bg-secondary">
+          <span class="text-h5">เพิ่มรูปภาพ</span>
+        </v-card-title>
+        <v-card-text>
+          <ImageUploader :repairId="repairID" />
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="error" block flat @click="closeDialogAddImages">ปิดหน้าต่าง</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <!-- dialog Add Images -->
+    <!-- dialog Show Images -->
+    <v-dialog v-model="dialogShowImages" class="dialog-mw" style="max-width: 900px" persistent>
+      <v-card>
+        <v-card-title class="pa-4 bg-secondary">
+          <span class="text-h5">รูปรถยนต์</span>
+        </v-card-title>
+        <v-card-text>
+          <CarImages :repairId="repairID" />
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="error" block flat @click="closeDialogShowImages">ปิดหน้าต่าง</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <!-- dialog Show Images -->
+    <!-- dialog Add Items -->
+    <v-dialog v-model="dialogAddItems" class="dialog-mw" style="max-width: 900px" persistent>
+      <v-card>
+        <v-card-title class="pa-4 bg-secondary">
+          <span class="text-h5">Items</span>
+        </v-card-title>
+        <v-card-text>
+          <v-row>
+            <v-col cols="12" md="8">
+              <v-autocomplete
+                v-model="addItem.PartID"
+                :items="parts"
+                item-value="PartID"
+                item-title="PartName_th"
+                prepend-inner-icon="mdi-magnify"
+                label="อุปกรณ์"
+                hide-details
+                color="primary"
+                variant="outlined"
+                autocomplete="false"
+                @update:modelValue="setAddItem"
+              >
+                <template v-slot:item="{ props, item }">
+                  <v-list-item v-bind="props" :title="`รหัส : ${item.raw.PartNumber} || ${item.raw.PartName_th}`"> </v-list-item>
+                </template>
+              </v-autocomplete>
+            </v-col>
+            <v-col cols="12" md="2">
+              <v-text-field v-model="addItem.NumOfUse" type="number" label="จำนวนที่ใช้" hide-details />
+            </v-col>
+            <v-col cols="12" md="2">
+              <v-text-field v-model="addItem.PartAmount" type="number" label="จำนวนในคลัง" readonly hide-details />
+            </v-col>
+          </v-row>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="primary" block flat @click="submitAddItem">เพิ่มอุปกรณ์</v-btn>
+        </v-card-actions>
+        <v-card-actions>
+          <v-btn color="error" block flat @click="closeDialogAddItems">ปิดหน้าต่าง</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <!-- dialog Add Items -->
+  </div>
 </template>
 
 <style>

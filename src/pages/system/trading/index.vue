@@ -24,11 +24,10 @@ export default {
 };
 </script>
 <template>
-  <BaseBreadcrumb
-    :title="page.title"
-    :breadcrumbs="breadcrumbs"
-  ></BaseBreadcrumb>
-  <UiParentCard Tableard title="ซื้อขายอะไหล่รถยนต์">
-    <HelloWorld />
-  </UiParentCard>
+  <div>
+    <BaseBreadcrumb :title="page.title" :breadcrumbs="breadcrumbs"></BaseBreadcrumb>
+    <UiParentCard Tableard title="ซื้อขายอะไหล่รถยนต์">
+      <HelloWorld />
+    </UiParentCard>
+  </div>
 </template>

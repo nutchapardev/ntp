@@ -21,11 +21,10 @@ export default {
 </script>
 
 <template>
-  <BaseBreadcrumb
-    :title="page.title"
-    :breadcrumbs="breadcrumbs"
-  ></BaseBreadcrumb>
-  <UiParentCard Tableard title="ใบเสนอราคา">
-    <QuotationTable />
-  </UiParentCard>
+  <div>
+    <BaseBreadcrumb :title="page.title" :breadcrumbs="breadcrumbs"></BaseBreadcrumb>
+    <UiParentCard Tableard title="ใบเสนอราคา">
+      <QuotationTable />
+    </UiParentCard>
+  </div>
 </template>

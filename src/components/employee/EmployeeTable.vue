@@ -67,13 +67,9 @@ export default {
     },
     async submitAddEmployee() {
       const exceptionKeys = ["EmployeeEmail", "EmployeeTel"]; // ยกเว้นการตรวจ มีหรือไม่มีก็ได้
-      const checkNullData = Object.entries(this.employeeDataSet).every(
-        ([key, value]) => {
-          return (
-            exceptionKeys.includes(key) || (value !== null && value !== "")
-          );
-        }
-      );
+      const checkNullData = Object.entries(this.employeeDataSet).every(([key, value]) => {
+        return exceptionKeys.includes(key) || (value !== null && value !== "");
+      });
 
       if (!checkNullData) {
         Swal.fire({
@@ -131,13 +127,9 @@ export default {
     },
     async submitEditEmployee() {
       const exceptionKeys = ["EmployeeEmail", "EmployeeTel"]; // ยกเว้นการตรวจ มีหรือไม่มีก็ได้
-      const checkNullData = Object.entries(this.employeeDataSet).every(
-        ([key, value]) => {
-          return (
-            exceptionKeys.includes(key) || (value !== null && value !== "")
-          );
-        }
-      );
+      const checkNullData = Object.entries(this.employeeDataSet).every(([key, value]) => {
+        return exceptionKeys.includes(key) || (value !== null && value !== "");
+      });
 
       if (!checkNullData) {
         Swal.fire({
@@ -163,10 +155,7 @@ export default {
         if (result.isConfirmed) {
           try {
             const { EmployeeID } = this.employeeDataSet;
-            const response = await serverService.updateEmployee(
-              EmployeeID,
-              this.employeeDataSet
-            );
+            const response = await serverService.updateEmployee(EmployeeID, this.employeeDataSet);
             console.log(response.data);
 
             if (response.data.result) {
@@ -236,243 +225,143 @@ export default {
 </script>
 
 <template>
-  <v-row>
-    <v-col cols="12" md="9">
-      <v-text-field
-        v-model="search"
-        label="ค้นหา"
-        prepend-inner-icon="mdi-magnify"
-      />
-    </v-col>
-    <v-col cols="12" md="3">
-      <v-btn
-        height="48"
-        block
-        color="secondary"
-        variant="flat"
-        dark
-        @click="openAddEmployeeDialog"
-        ><v-icon size="20">mdi-plus-circle-outline</v-icon>
-        <span class="hidden-sm-and-down">&nbsp;เพิ่มพนักงาน</span>
-      </v-btn>
-    </v-col>
-  </v-row>
-  <v-data-table
-    :search="search"
-    :headers="headers"
-    :items="employees"
-    class="border rounded-md"
-  >
-    <template v-slot:item.FirstName="{ item }">
-      {{ item.FirstName }} {{ item.LastName }}
-    </template>
-    <template v-slot:item.employeeStatus="{ item }">
-      <v-chip
-        :color="item.EmployeeStatusID == 1 ? 'success' : 'error'"
-        style="width: 100px"
-        size="small"
-        label
-        class="d-flex justify-center align-center"
-      >
-        {{ item.employeeStatus.EmployeeStatusTitle }}
-      </v-chip>
-    </template>
-    <template v-slot:item.actions="{ item }">
-      <div class="mr-1">
-        <v-btn
-          size="small"
-          v-if="item.RoleID != 1 && item.EmployeeID != myEmployeeID"
-          @click="openEditEmployeeDialog(item)"
-        >
-          <EditIcon class="text-success" size="18" />
+  <div>
+    <v-row>
+      <v-col cols="12" md="9">
+        <v-text-field v-model="search" label="ค้นหา" prepend-inner-icon="mdi-magnify" />
+      </v-col>
+      <v-col cols="12" md="3">
+        <v-btn height="48" block color="secondary" variant="flat" dark @click="openAddEmployeeDialog"
+          ><v-icon size="20">mdi-plus-circle-outline</v-icon>
+          <span class="hidden-sm-and-down">&nbsp;เพิ่มพนักงาน</span>
         </v-btn>
-        <v-tooltip activator="parent" location="top">แก้ไข</v-tooltip>
-      </div>
-    </template>
-  </v-data-table>
-  <!-- Dialog Add Employee -->
-  <v-dialog
-    v-model="dialogAddEmployee"
-    class="dialog-mw"
-    style="max-width: 800px"
-    persistent
-  >
-    <v-card>
-      <v-card-title class="pa-4 bg-secondary">
-        <span class="text-h5">เพิ่มข้อมูลพนักงาน</span>
-      </v-card-title>
-      <v-card-text>
-        <v-row>
-          <v-col cols="12" md="6">
-            <v-text-field
-              label="Username (สำหรับใช้เข้าสู่ระบบ)"
-              v-model="employeeDataSet.Username"
-              hide-details
-            />
-          </v-col>
-          <v-col cols="12" md="3">
-            <v-text-field
-              label="ชื่อจริง"
-              v-model="employeeDataSet.FirstName"
-              hide-details
-            />
-          </v-col>
-          <v-col cols="12" md="3">
-            <v-text-field
-              label="นามสกุล"
-              v-model="employeeDataSet.LastName"
-              hide-details
-            />
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-text-field
-              label="เบอร์โทรศัพท์"
-              v-model="employeeDataSet.EmployeeTel"
-              hide-details
-            />
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-select
-              v-model="employeeDataSet.PositionID"
-              :items="positions"
-              item-value="PositionID"
-              item-title="PositionTitle"
-              label="ตำแหน่งงาน"
-              hide-details
-              chips
-            >
-            </v-select>
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-select
-              v-model="employeeDataSet.RoleID"
-              :items="roles"
-              item-value="RoleID"
-              item-title="RoleName"
-              label="ระดับผู้ใช้งาน"
-              hide-details
-              chips
-            >
-            </v-select>
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-text-field
-              label="อีเมลล์"
-              v-model="employeeDataSet.EmployeeEmail"
-              hide-details
-            />
-          </v-col>
-        </v-row>
-      </v-card-text>
-      <v-card-actions>
-        <v-btn color="info" block flat @click="submitAddEmployee"
-          >บันทึกข้อมูล</v-btn
-        >
-      </v-card-actions>
-      <v-card-actions>
-        <v-btn color="error" @click="closeAddEmployeeDialog" block flat
-          >ปิดหน้าต่าง</v-btn
-        >
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-  <!-- Dialog Add Employee -->
-  <!-- Dialog Edit Employee -->
-  <v-dialog
-    v-model="dialogEditEmployee"
-    class="dialog-mw"
-    style="max-width: 800px"
-    persistent
-  >
-    <v-card>
-      <v-card-title class="pa-4 bg-secondary">
-        <span class="text-h5">แก้ไขข้อมูลพนักงาน</span>
-      </v-card-title>
-      <v-card-text>
-        <v-row>
-          <v-col cols="12" md="6">
-            <v-text-field
-              label="Username (สำหรับใช้เข้าสู่ระบบ)"
-              v-model="employeeDataSet.Username"
-              hide-details
-            />
-          </v-col>
-          <v-col cols="12" md="3">
-            <v-text-field
-              label="ชื่อจริง"
-              v-model="employeeDataSet.FirstName"
-              hide-details
-            />
-          </v-col>
-          <v-col cols="12" md="3">
-            <v-text-field
-              label="นามสกุล"
-              v-model="employeeDataSet.LastName"
-              hide-details
-            />
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-text-field
-              label="เบอร์โทรศัพท์"
-              v-model="employeeDataSet.EmployeeTel"
-              hide-details
-            />
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-select
-              v-model="employeeDataSet.PositionID"
-              :items="positions"
-              item-value="PositionID"
-              item-title="PositionTitle"
-              label="ตำแหน่งงาน"
-              hide-details
-              chips
-            >
-            </v-select>
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-select
-              v-model="employeeDataSet.RoleID"
-              :items="roles"
-              item-value="RoleID"
-              item-title="RoleName"
-              label="ระดับผู้ใช้งาน"
-              hide-details
-              chips
-            >
-            </v-select>
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-text-field
-              label="อีเมลล์"
-              v-model="employeeDataSet.EmployeeEmail"
-              hide-details
-            /> </v-col
-          ><v-col cols="12" md="4">
-            <v-select
-              v-model="employeeDataSet.EmployeeStatusID"
-              :items="employeeStatus"
-              item-value="EmployeeStatusID"
-              item-title="EmployeeStatusTitle"
-              label="สถานะผู้ใช้งาน"
-              hide-details
-              chips
-            >
-            </v-select>
-          </v-col>
-        </v-row>
-      </v-card-text>
-      <v-card-actions>
-        <v-btn color="info" block flat @click="submitEditEmployee"
-          >บันทึกข้อมูล</v-btn
-        >
-      </v-card-actions>
-      <v-card-actions>
-        <v-btn color="error" @click="closeEditEmployeeDialog" block flat
-          >ปิดหน้าต่าง</v-btn
-        >
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-  <!-- Dialog Edit Employee -->
+      </v-col>
+    </v-row>
+    <v-data-table :search="search" :headers="headers" :items="employees" class="border rounded-md">
+      <template #[`item.FirstName`]="{ item }"> {{ item.FirstName }} {{ item.LastName }} </template>
+      <template #[`item.employeeStatus`]="{ item }">
+        <v-chip :color="item.EmployeeStatusID == 1 ? 'success' : 'error'" style="width: 100px" size="small" label class="d-flex justify-center align-center">
+          {{ item.employeeStatus.EmployeeStatusTitle }}
+        </v-chip>
+      </template>
+      <template #[`item.actions`]="{ item }">
+        <div class="mr-1">
+          <v-btn size="small" v-if="item.RoleID != 1 && item.EmployeeID != myEmployeeID" @click="openEditEmployeeDialog(item)">
+            <EditIcon class="text-success" size="18" />
+          </v-btn>
+          <v-tooltip activator="parent" location="top">แก้ไข</v-tooltip>
+        </div>
+      </template>
+    </v-data-table>
+    <!-- Dialog Add Employee -->
+    <v-dialog v-model="dialogAddEmployee" class="dialog-mw" style="max-width: 800px" persistent>
+      <v-card>
+        <v-card-title class="pa-4 bg-secondary">
+          <span class="text-h5">เพิ่มข้อมูลพนักงาน</span>
+        </v-card-title>
+        <v-card-text>
+          <v-row>
+            <v-col cols="12" md="6">
+              <v-text-field label="Username (สำหรับใช้เข้าสู่ระบบ)" v-model="employeeDataSet.Username" hide-details />
+            </v-col>
+            <v-col cols="12" md="3">
+              <v-text-field label="ชื่อจริง" v-model="employeeDataSet.FirstName" hide-details />
+            </v-col>
+            <v-col cols="12" md="3">
+              <v-text-field label="นามสกุล" v-model="employeeDataSet.LastName" hide-details />
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-text-field label="เบอร์โทรศัพท์" v-model="employeeDataSet.EmployeeTel" hide-details />
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-select
+                v-model="employeeDataSet.PositionID"
+                :items="positions"
+                item-value="PositionID"
+                item-title="PositionTitle"
+                label="ตำแหน่งงาน"
+                hide-details
+                chips
+              >
+              </v-select>
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-select v-model="employeeDataSet.RoleID" :items="roles" item-value="RoleID" item-title="RoleName" label="ระดับผู้ใช้งาน" hide-details chips>
+              </v-select>
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-text-field label="อีเมลล์" v-model="employeeDataSet.EmployeeEmail" hide-details />
+            </v-col>
+          </v-row>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="info" block flat @click="submitAddEmployee">บันทึกข้อมูล</v-btn>
+        </v-card-actions>
+        <v-card-actions>
+          <v-btn color="error" @click="closeAddEmployeeDialog" block flat>ปิดหน้าต่าง</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <!-- Dialog Add Employee -->
+    <!-- Dialog Edit Employee -->
+    <v-dialog v-model="dialogEditEmployee" class="dialog-mw" style="max-width: 800px" persistent>
+      <v-card>
+        <v-card-title class="pa-4 bg-secondary">
+          <span class="text-h5">แก้ไขข้อมูลพนักงาน</span>
+        </v-card-title>
+        <v-card-text>
+          <v-row>
+            <v-col cols="12" md="6">
+              <v-text-field label="Username (สำหรับใช้เข้าสู่ระบบ)" v-model="employeeDataSet.Username" hide-details />
+            </v-col>
+            <v-col cols="12" md="3">
+              <v-text-field label="ชื่อจริง" v-model="employeeDataSet.FirstName" hide-details />
+            </v-col>
+            <v-col cols="12" md="3">
+              <v-text-field label="นามสกุล" v-model="employeeDataSet.LastName" hide-details />
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-text-field label="เบอร์โทรศัพท์" v-model="employeeDataSet.EmployeeTel" hide-details />
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-select
+                v-model="employeeDataSet.PositionID"
+                :items="positions"
+                item-value="PositionID"
+                item-title="PositionTitle"
+                label="ตำแหน่งงาน"
+                hide-details
+                chips
+              >
+              </v-select>
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-select v-model="employeeDataSet.RoleID" :items="roles" item-value="RoleID" item-title="RoleName" label="ระดับผู้ใช้งาน" hide-details chips>
+              </v-select>
+            </v-col>
+            <v-col cols="12" md="4"> <v-text-field label="อีเมลล์" v-model="employeeDataSet.EmployeeEmail" hide-details /> </v-col
+            ><v-col cols="12" md="4">
+              <v-select
+                v-model="employeeDataSet.EmployeeStatusID"
+                :items="employeeStatus"
+                item-value="EmployeeStatusID"
+                item-title="EmployeeStatusTitle"
+                label="สถานะผู้ใช้งาน"
+                hide-details
+                chips
+              >
+              </v-select>
+            </v-col>
+          </v-row>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="info" block flat @click="submitEditEmployee">บันทึกข้อมูล</v-btn>
+        </v-card-actions>
+        <v-card-actions>
+          <v-btn color="error" @click="closeEditEmployeeDialog" block flat>ปิดหน้าต่าง</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <!-- Dialog Edit Employee -->
+  </div>
 </template>

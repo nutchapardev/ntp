@@ -18,17 +18,16 @@ export default {
           disabled: false,
           href: "#",
         },
-      ]
+      ],
     };
   },
 };
 </script>
 <template>
-  <BaseBreadcrumb
-    :title="page.title"
-    :breadcrumbs="breadcrumbs"
-  ></BaseBreadcrumb>
-  <UiParentCard Tableard title="Invoices">
-    <InvoiceTable />
-  </UiParentCard>
+  <div>
+    <BaseBreadcrumb :title="page.title" :breadcrumbs="breadcrumbs"></BaseBreadcrumb>
+    <UiParentCard Tableard title="Invoices">
+      <InvoiceTable />
+    </UiParentCard>
+  </div>
 </template>

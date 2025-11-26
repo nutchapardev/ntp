@@ -133,79 +133,69 @@ export default {
 </script>
 
 <template>
-  <v-row>
-    <v-col cols="12" md="9">
-      <v-text-field v-model="search" label="ค้นหา" prepend-inner-icon="mdi-magnify" />
-    </v-col>
-    <v-col cols="12" md="3">
-      <v-btn height="48" block color="secondary" variant="flat" dark @click="openDialogAddQuotation"
-        ><v-icon size="20">mdi-plus-circle-outline</v-icon>
-        <span class="hidden-sm-and-down">&nbsp;สร้างใบเสนอราคา</span>
-      </v-btn>
-    </v-col>
-  </v-row>
-  <v-data-table
-    class="border rounded-md"
-    :search="search"
-    :headers="headers"
-    :items="quotations"
-    :sort-by="[{ key: 'QuotationID', order: 'desc' }]"
-  >
-    <template v-slot:item.QuotationDate="{ item }">
-      {{ formatDate(item.QuotationDate) }}
-    </template>
-    <template v-slot:item.model.Model="{ item }">
-      {{ item.brand.Brand }} ( {{ item.model.Model }} ) <br />
+  <div>
+    <v-row>
+      <v-col cols="12" md="9">
+        <v-text-field v-model="search" label="ค้นหา" prepend-inner-icon="mdi-magnify" />
+      </v-col>
+      <v-col cols="12" md="3">
+        <v-btn height="48" block color="secondary" variant="flat" dark @click="openDialogAddQuotation"
+          ><v-icon size="20">mdi-plus-circle-outline</v-icon>
+          <span class="hidden-sm-and-down">&nbsp;สร้างใบเสนอราคา</span>
+        </v-btn>
+      </v-col>
+    </v-row>
+    <v-data-table class="border rounded-md" :search="search" :headers="headers" :items="quotations" :sort-by="[{ key: 'QuotationID', order: 'desc' }]">
+      <template #[`item.QuotationDate`]="{ item }">
+        {{ formatDate(item.QuotationDate) }}
+      </template>
+      <template #[`item.model.Model`]="{ item }">
+        {{ item.brand.Brand }} ( {{ item.model.Model }} ) <br />
 
-      <div v-if="item.repairs.length > 0" style="font-size: 12px; color: gray">
-        {{ `${item.repairs[0].car.CarTitle} ${item.repairs[0].car.CarNumber} ${item.repairs[0].car.province.name_th}` }}
-      </div>
-    </template>
-    <template v-slot:item.actions="{ item }">
-      <v-btn :to="`/system/quotation/details/${item.QuotationID}`" size="small" color="primary" class="mr-2" variant="flat"
-        ><EditIcon size="16">mdi-paperclip</EditIcon></v-btn
-      >
-      <v-btn
-        v-if="item.repairs.length > 0"
-        :to="`/system/repairs/details/${item.repairs[0].RepairID}`"
-        size="small"
-        color="warning"
-        variant="flat"
-      >
-        <v-icon>mdi-car-wrench</v-icon>
-      </v-btn>
-    </template>
-  </v-data-table>
-  <!-- Dialog AddQuotation -->
-  <v-dialog v-model="dialogAddQuotation" class="dialog-mw" style="max-width: 500px" persistent>
-    <v-card>
-      <v-card-text>
-        <!-- <v-text-field
+        <div v-if="item.repairs.length > 0" style="font-size: 12px; color: gray">
+          {{ `${item.repairs[0].car.CarTitle} ${item.repairs[0].car.CarNumber} ${item.repairs[0].car.province.name_th}` }}
+        </div>
+      </template>
+      <template #[`item.actions`]="{ item }">
+        <v-btn :to="`/system/quotation/details/${item.QuotationID}`" size="small" color="primary" class="mr-2" variant="flat"
+          ><EditIcon size="16">mdi-paperclip</EditIcon></v-btn
+        >
+        <v-btn v-if="item.repairs.length > 0" :to="`/system/repairs/details/${item.repairs[0].RepairID}`" size="small" color="warning" variant="flat">
+          <v-icon>mdi-car-wrench</v-icon>
+        </v-btn>
+      </template>
+    </v-data-table>
+    <!-- Dialog AddQuotation -->
+    <v-dialog v-model="dialogAddQuotation" class="dialog-mw" style="max-width: 500px" persistent>
+      <v-card>
+        <v-card-text>
+          <!-- <v-text-field
           label="ชื่อกลุ่มงาน"
           v-model.trim="addRepairCategory.RepairCategory"
         ></v-text-field> -->
-        <v-select
-          class="mt-2"
-          v-model="quotationDataSet.BrandID"
-          :items="brands"
-          item-value="BrandID"
-          item-title="Brand"
-          label="ยี่ห้อ"
-          @update:modelValue="getCarModel"
-        />
-        <v-select class="mt-2" v-model="quotationDataSet.ModelID" :items="models" item-value="ModelID" item-title="Model" label="รุ่น" />
-        <v-textarea label="หมายเหตุ" v-model="quotationDataSet.Comment"></v-textarea>
-      </v-card-text>
-      <!-- <hr /> -->
-      <v-card-actions>
-        <v-btn class="mb-3 ml-3" color="error" @click="closeDialogAddQuotation"  >ปิดหน้าต่าง</v-btn>
-        <v-spacer></v-spacer>
-        <v-btn class="mb-3 mr-3" color="primary" @click="submitAddQuotation"   variant="tonal">บันทึกข้อมูล</v-btn>
-      </v-card-actions>
-      <!-- <v-card-actions>
+          <v-select
+            class="mt-2"
+            v-model="quotationDataSet.BrandID"
+            :items="brands"
+            item-value="BrandID"
+            item-title="Brand"
+            label="ยี่ห้อ"
+            @update:modelValue="getCarModel"
+          />
+          <v-select class="mt-2" v-model="quotationDataSet.ModelID" :items="models" item-value="ModelID" item-title="Model" label="รุ่น" />
+          <v-textarea label="หมายเหตุ" v-model="quotationDataSet.Comment"></v-textarea>
+        </v-card-text>
+        <!-- <hr /> -->
+        <v-card-actions>
+          <v-btn class="mb-3 ml-3" color="error" @click="closeDialogAddQuotation">ปิดหน้าต่าง</v-btn>
+          <v-spacer></v-spacer>
+          <v-btn class="mb-3 mr-3" color="primary" @click="submitAddQuotation" variant="tonal">บันทึกข้อมูล</v-btn>
+        </v-card-actions>
+        <!-- <v-card-actions>
         <v-btn color="error" @click="closeDialogAddQuotation" block flat>ปิดหน้าต่าง</v-btn>
       </v-card-actions> -->
-    </v-card>
-  </v-dialog>
-  <!-- Dialog AddQuotation -->
+      </v-card>
+    </v-dialog>
+    <!-- Dialog AddQuotation -->
+  </div>
 </template>

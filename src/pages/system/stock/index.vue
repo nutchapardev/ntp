@@ -30,11 +30,10 @@ export default {
 };
 </script>
 <template>
-  <BaseBreadcrumb
-    :title="page.title"
-    :breadcrumbs="breadcrumbs"
-  ></BaseBreadcrumb>
-  <UiParentCard Tableard title="ข้อมูลอะไหล่รถยนต์">
-    <StockTable />
-  </UiParentCard>
+  <div>
+    <BaseBreadcrumb :title="page.title" :breadcrumbs="breadcrumbs"></BaseBreadcrumb>
+    <UiParentCard Tableard title="ข้อมูลอะไหล่รถยนต์">
+      <StockTable />
+    </UiParentCard>
+  </div>
 </template>

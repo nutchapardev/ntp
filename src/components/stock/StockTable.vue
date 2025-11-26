@@ -150,10 +150,7 @@ export default {
       }).then(async (result) => {
         if (result.isConfirmed) {
           try {
-            const response = await serverService.updatePart(
-              PartID,
-              this.partDataSet
-            );
+            const response = await serverService.updatePart(PartID, this.partDataSet);
             if (response.data.result) {
               Swal.fire({
                 icon: "success",
@@ -172,7 +169,7 @@ export default {
                 timer: 1500,
                 showConfirmButton: false,
               });
-              return
+              return;
             }
           } catch (error) {
             console.error(error);
@@ -230,7 +227,8 @@ export default {
 </script>
 
 <template>
-  <!-- <v-row>
+  <div>
+    <!-- <v-row>
     <v-col>
       <v-text-field
         prepend-inner-icon="mdi-magnify"
@@ -239,236 +237,129 @@ export default {
       ></v-text-field>
     </v-col>
   </v-row> -->
-  <v-row>
-    <v-col cols="12" md="9">
-      <v-text-field
-        v-model="search"
-        label="ค้นหา"
-        prepend-inner-icon="mdi-magnify"
-      />
-    </v-col>
-    <v-col cols="12" md="3">
-      <v-btn
-        height="48"
-        block
-        color="secondary"
-        variant="flat"
-        dark
-        @click="openDialogAddPart"
-        ><v-icon size="20">mdi-plus-circle-outline</v-icon>
-        <span class="hidden-sm-and-down">&nbsp;เพิ่มอุปกรณ์</span>
-      </v-btn>
-    </v-col>
-  </v-row>
-  <v-data-table
-    :search="search"
-    :headers="headers"
-    :items="parts"
-    items-per-page="10"
-    :row-props="setRowClass"
-    class="border rounded-md"
-  >
-    <template v-slot:item.PricePerUnit="{ item }">
-      <div class="text-end">
-        {{ formatSeperateCurrency(item.PricePerUnit) }}
-      </div>
-    </template>
-
-    <template v-slot:item.PartAmount="{ item }">
-      {{ item.PartAmount }} {{ item.unit.Unit }}
-    </template>
-
-    <template v-slot:item.actions="{ item }">
-      <div class="d-flex ga-3 align-center justify-center">
-        <div>
-          <v-avatar
-            color="lightsuccess"
-            size="32"
-            @click="openDialogEditPart(item)"
-          >
-            <EditIcon class="text-success" size="18" />
-          </v-avatar>
-          <v-tooltip activator="parent" location="bottom">Edit</v-tooltip>
+    <v-row>
+      <v-col cols="12" md="9">
+        <v-text-field v-model="search" label="ค้นหา" prepend-inner-icon="mdi-magnify" />
+      </v-col>
+      <v-col cols="12" md="3">
+        <v-btn height="48" block color="secondary" variant="flat" dark @click="openDialogAddPart"
+          ><v-icon size="20">mdi-plus-circle-outline</v-icon>
+          <span class="hidden-sm-and-down">&nbsp;เพิ่มอุปกรณ์</span>
+        </v-btn>
+      </v-col>
+    </v-row>
+    <v-data-table :search="search" :headers="headers" :items="parts" items-per-page="10" :row-props="setRowClass" class="border rounded-md">
+      <template #[`item.PricePerUnit`]="{ item }">
+        <div class="text-end">
+          {{ formatSeperateCurrency(item.PricePerUnit) }}
         </div>
-        <div>
-          <v-avatar
-            color="lighterror"
-            size="32"
-            @click="DeletePart(item.PartID)"
-          >
-            <TrashIcon class="text-error" size="18" />
-          </v-avatar>
-          <v-tooltip activator="parent" location="bottom">Delete</v-tooltip>
+      </template>
+
+      <template #[`item.PartAmount`]="{ item }"> {{ item.PartAmount }} {{ item.unit.Unit }} </template>
+
+      <template #[`item.actions`]="{ item }">
+        <div class="d-flex ga-3 align-center justify-center">
+          <div>
+            <v-avatar color="lightsuccess" size="32" @click="openDialogEditPart(item)">
+              <EditIcon class="text-success" size="18" />
+            </v-avatar>
+            <v-tooltip activator="parent" location="bottom">Edit</v-tooltip>
+          </div>
+          <div>
+            <v-avatar color="lighterror" size="32" @click="DeletePart(item.PartID)">
+              <TrashIcon class="text-error" size="18" />
+            </v-avatar>
+            <v-tooltip activator="parent" location="bottom">Delete</v-tooltip>
+          </div>
         </div>
-      </div>
-    </template>
-  </v-data-table>
-  <!-- Dialog Add Preset -->
-  <v-dialog
-    v-model="dialogAddPart"
-    class="dialog-mw"
-    style="max-width: 500px"
-    persistent
-  >
-    <v-card>
-      <v-card-title class="pa-4 bg-secondary">
-        <span class="text-h5">เพิ่มข้อมูลอุปกรณ์</span>
-      </v-card-title>
-      <v-card-text>
-        <v-row>
-          <v-col cols="12">
-            <v-text-field
-              label="รหัสอุปกรณ์"
-              v-model="partDataSet.PartNumber"
-              hide-details
-            />
-          </v-col>
-          <v-col cols="12">
-            <v-text-field
-              label="ชื่ออุปกรณ์ (TH)"
-              v-model="partDataSet.PartName_th"
-              hide-details
-            />
-          </v-col>
-          <v-col cols="12">
-            <v-text-field
-              label="ชื่ออุปกรณ์ (EN)"
-              v-model="partDataSet.PartName_en"
-              hide-details
-            />
-          </v-col>
-        </v-row>
+      </template>
+    </v-data-table>
+    <!-- Dialog Add Preset -->
+    <v-dialog v-model="dialogAddPart" class="dialog-mw" style="max-width: 500px" persistent>
+      <v-card>
+        <v-card-title class="pa-4 bg-secondary">
+          <span class="text-h5">เพิ่มข้อมูลอุปกรณ์</span>
+        </v-card-title>
+        <v-card-text>
+          <v-row>
+            <v-col cols="12">
+              <v-text-field label="รหัสอุปกรณ์" v-model="partDataSet.PartNumber" hide-details />
+            </v-col>
+            <v-col cols="12">
+              <v-text-field label="ชื่ออุปกรณ์ (TH)" v-model="partDataSet.PartName_th" hide-details />
+            </v-col>
+            <v-col cols="12">
+              <v-text-field label="ชื่ออุปกรณ์ (EN)" v-model="partDataSet.PartName_en" hide-details />
+            </v-col>
+          </v-row>
 
-        <v-row>
-          <v-col cols="12" md="6">
-            <v-text-field
-              label="จำนวนในคลัง"
-              v-model="partDataSet.PartAmount"
-              number
-              hide-details
-            />
-          </v-col>
-          <v-col cols="12" md="6">
-            <v-select
-              v-model="partDataSet.UnitID"
-              :items="units"
-              item-value="UnitID"
-              item-title="Unit"
-              label="หน่วย"
-              hide-details
-            />
-          </v-col>
+          <v-row>
+            <v-col cols="12" md="6">
+              <v-text-field label="จำนวนในคลัง" v-model="partDataSet.PartAmount" number hide-details />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-select v-model="partDataSet.UnitID" :items="units" item-value="UnitID" item-title="Unit" label="หน่วย" hide-details />
+            </v-col>
 
-          <v-col cols="12" md="12">
-            <v-text-field
-              label="ราคาต่อหน่วย"
-              v-model="partDataSet.PricePerUnit"
-              number
-              hide-details
-            />
-          </v-col>
-        </v-row>
-      </v-card-text>
-      <v-card-actions>
-        <v-btn color="info" block flat @click="submitAddPart"
-          >บันทึกข้อมูล</v-btn
-        >
-      </v-card-actions>
-      <v-card-actions>
-        <v-btn color="error" @click="closeDialogAddPart" block flat
-          >ปิดหน้าต่าง</v-btn
-        >
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-  <!-- Dialog Add Preset -->
-  <!-- Dialog Edit Preset -->
-  <v-dialog
-    v-model="dialogEditPart"
-    class="dialog-mw"
-    style="max-width: 500px"
-    persistent
-  >
-    <v-card>
-      <v-card-title class="pa-4 bg-secondary">
-        <span class="text-h5">แก้ไขข้อมูลอุปกรณ์</span>
-      </v-card-title>
-      <v-card-text>
-        <v-row>
-          <v-col cols="12">
-            <v-text-field
-              label="รหัสในระบบ"
-              v-model="partDataSet.PartID"
-              disabled
-              hide-details
-            />
-          </v-col>
-          <v-col cols="12">
-            <v-text-field
-              label="รหัสอุปกรณ์"
-              v-model="partDataSet.PartNumber"
-              hide-details
-            />
-          </v-col>
-          <v-col cols="12">
-            <v-text-field
-              label="ชื่ออุปกรณ์ (TH)"
-              v-model="partDataSet.PartName_th"
-              hide-details
-            />
-          </v-col>
-          <v-col cols="12">
-            <v-text-field
-              label="ชื่ออุปกรณ์ (EN)"
-              v-model="partDataSet.PartName_en"
-              hide-details
-            />
-          </v-col>
-        </v-row>
+            <v-col cols="12" md="12">
+              <v-text-field label="ราคาต่อหน่วย" v-model="partDataSet.PricePerUnit" number hide-details />
+            </v-col>
+          </v-row>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="info" block flat @click="submitAddPart">บันทึกข้อมูล</v-btn>
+        </v-card-actions>
+        <v-card-actions>
+          <v-btn color="error" @click="closeDialogAddPart" block flat>ปิดหน้าต่าง</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <!-- Dialog Add Preset -->
+    <!-- Dialog Edit Preset -->
+    <v-dialog v-model="dialogEditPart" class="dialog-mw" style="max-width: 500px" persistent>
+      <v-card>
+        <v-card-title class="pa-4 bg-secondary">
+          <span class="text-h5">แก้ไขข้อมูลอุปกรณ์</span>
+        </v-card-title>
+        <v-card-text>
+          <v-row>
+            <v-col cols="12">
+              <v-text-field label="รหัสในระบบ" v-model="partDataSet.PartID" disabled hide-details />
+            </v-col>
+            <v-col cols="12">
+              <v-text-field label="รหัสอุปกรณ์" v-model="partDataSet.PartNumber" hide-details />
+            </v-col>
+            <v-col cols="12">
+              <v-text-field label="ชื่ออุปกรณ์ (TH)" v-model="partDataSet.PartName_th" hide-details />
+            </v-col>
+            <v-col cols="12">
+              <v-text-field label="ชื่ออุปกรณ์ (EN)" v-model="partDataSet.PartName_en" hide-details />
+            </v-col>
+          </v-row>
 
-        <v-row>
-          <v-col cols="12" md="6">
-            <v-text-field
-              label="จำนวนในคลัง"
-              v-model="partDataSet.PartAmount"
-              number
-              hide-details
-            />
-          </v-col>
-          <v-col cols="12" md="6">
-            <v-select
-              v-model="partDataSet.UnitID"
-              :items="units"
-              item-value="UnitID"
-              item-title="Unit"
-              label="หน่วย"
-              hide-details
-            />
-          </v-col>
+          <v-row>
+            <v-col cols="12" md="6">
+              <v-text-field label="จำนวนในคลัง" v-model="partDataSet.PartAmount" number hide-details />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-select v-model="partDataSet.UnitID" :items="units" item-value="UnitID" item-title="Unit" label="หน่วย" hide-details />
+            </v-col>
 
-          <v-col cols="12" md="12">
-            <v-text-field
-              label="ราคาต่อหน่วย"
-              v-model="partDataSet.PricePerUnit"
-              number
-              hide-details
-            />
-          </v-col>
-        </v-row>
-      </v-card-text>
-      <v-card-actions>
-        <v-btn color="info" block flat @click="submitEditPart"
-          >บันทึกข้อมูล</v-btn
-        >
-      </v-card-actions>
-      <v-card-actions>
-        <v-btn color="error" @click="closeDialogEditPart" block flat
-          >ปิดหน้าต่าง</v-btn
-        >
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-  <!-- Dialog Edit Preset -->
+            <v-col cols="12" md="12">
+              <v-text-field label="ราคาต่อหน่วย" v-model="partDataSet.PricePerUnit" number hide-details />
+            </v-col>
+          </v-row>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="info" block flat @click="submitEditPart">บันทึกข้อมูล</v-btn>
+        </v-card-actions>
+        <v-card-actions>
+          <v-btn color="error" @click="closeDialogEditPart" block flat>ปิดหน้าต่าง</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <!-- Dialog Edit Preset -->
+  </div>
 </template>
 
 <style>

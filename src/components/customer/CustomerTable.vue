@@ -95,30 +95,19 @@ export default {
       this.customerDataSet.address.Zipcode = null;
     },
     async getSubDistrict(DistrictID) {
-      const response = await serverService.getSubDistrictsByDistrictID(
-        DistrictID
-      );
+      const response = await serverService.getSubDistrictsByDistrictID(DistrictID);
       this.subDistricts = response.data;
       this.customerDataSet.address.SubDistrictID = null;
       this.customerDataSet.address.Zipcode = null;
     },
     async setZipcode(SubDistrictID) {
-      const data = this.subDistricts.find(
-        (item) => item.SubDistrictID == SubDistrictID
-      );
+      const data = this.subDistricts.find((item) => item.SubDistrictID == SubDistrictID);
       this.customerDataSet.address.Zipcode = data.Zipcode;
     },
     async submitAddCustomer() {
       const { CustomerTitleID, CustomerName, address } = this.customerDataSet;
       const { Line1, SubDistrictID, DistrictID, ProvinceID } = address;
-      if (
-        CustomerTitleID == null ||
-        CustomerName == "" ||
-        Line1 == "" ||
-        SubDistrictID == null ||
-        DistrictID == null ||
-        ProvinceID == null
-      ) {
+      if (CustomerTitleID == null || CustomerName == "" || Line1 == "" || SubDistrictID == null || DistrictID == null || ProvinceID == null) {
         Swal.fire({
           icon: "warning",
           title: "Alert!",
@@ -142,9 +131,7 @@ export default {
         if (result.isConfirmed) {
           try {
             this.customerDataSet.address.isDefault = true; // ให้ที่อยู่ที่สร้างใหม่เป็น default address
-            const response = await serverService.addCustomersAndAddresses(
-              this.customerDataSet
-            );
+            const response = await serverService.addCustomersAndAddresses(this.customerDataSet);
             if (response.data.result) {
               Swal.fire({
                 icon: "success",
@@ -202,10 +189,7 @@ export default {
       }).then(async (result) => {
         if (result.isConfirmed) {
           try {
-            const response = await serverService.editCustomerByID(
-              CustomerID,
-              this.customerDataSet
-            );
+            const response = await serverService.editCustomerByID(CustomerID, this.customerDataSet);
             if (response.data.result) {
               Swal.fire({
                 icon: "success",
@@ -240,14 +224,7 @@ export default {
     async submitAddAddress() {
       const { CustomerID, address } = this.customerDataSet;
       const { Line1, ProvinceID, DistrictID, SubDistrictID } = address;
-      if (
-        !CustomerID ||
-        Line1 == "" ||
-        Line1 == null ||
-        ProvinceID == null ||
-        DistrictID == null ||
-        SubDistrictID == null
-      ) {
+      if (!CustomerID || Line1 == "" || Line1 == null || ProvinceID == null || DistrictID == null || SubDistrictID == null) {
         Swal.fire({
           icon: "warning",
           title: "Alert!",
@@ -322,13 +299,9 @@ export default {
       }).then(async (result) => {
         if (result.isConfirmed) {
           try {
-            const response = await serverService.deleteAddressByAddressID(
-              addressId
-            );
+            const response = await serverService.deleteAddressByAddressID(addressId);
             if (response.data.result) {
-              const indexToDelete = this.customerDataSet.addresses.findIndex(
-                (address) => address.AddressID === addressId
-              );
+              const indexToDelete = this.customerDataSet.addresses.findIndex((address) => address.AddressID === addressId);
               if (indexToDelete > -1) {
                 this.customerDataSet.addresses.splice(indexToDelete, 1);
               }
@@ -363,7 +336,6 @@ export default {
       });
     },
     async changeDefaultAddress(addressId) {
-
       Swal.fire({
         title: "Are you sure?",
         text: "ตั้งที่อยู่นี้เป็นค่าเริ่มต้น ใช่หรือไม่?",
@@ -376,9 +348,7 @@ export default {
       }).then(async (result) => {
         if (result.isConfirmed) {
           try {
-            const response = await serverService.changeDefaultAddress(
-              addressId
-            );
+            const response = await serverService.changeDefaultAddress(addressId);
             if (response.data.result) {
               Swal.fire({
                 icon: "success",
@@ -440,10 +410,7 @@ export default {
       });
     },
     openDialogAddAddress() {
-      this.customerDataSet.address = Object.assign(
-        {},
-        this.defaultItems.address
-      );
+      this.customerDataSet.address = Object.assign({}, this.defaultItems.address);
       nextTick(() => {
         this.dialogAddAddress = true;
       });
@@ -451,10 +418,7 @@ export default {
     closeDialogAddAddress() {
       this.dialogAddAddress = false;
       nextTick(() => {
-        this.customerDataSet.address = Object.assign(
-          {},
-          this.defaultItems.address
-        );
+        this.customerDataSet.address = Object.assign({}, this.defaultItems.address);
       });
     },
     async initialize() {
@@ -469,407 +433,272 @@ export default {
 };
 </script>
 <template>
-  <v-row>
-    <v-col cols="12" md="9">
-      <v-text-field
-        v-model="search"
-        label="ค้นหา"
-        prepend-inner-icon="mdi-magnify"
-      />
-    </v-col>
-    <v-col cols="12" md="3">
-      <v-btn
-        height="48"
-        block
-        color="secondary"
-        variant="flat"
-        dark
-        @click="openDialogAddCustomer"
-        ><v-icon size="20">mdi-plus-circle-outline</v-icon>
-        <span class="hidden-sm-and-down">&nbsp;เพิ่มข้อมูลลูกค้า</span>
-      </v-btn>
-    </v-col>
-  </v-row>
-  <v-data-table
-    class="border rounded-md"
-    :search="search"
-    :headers="headers"
-    :items="customers"
-    :sort-by="[{ key: 'CustomerID', order: 'desc' }]"
-  >
-    <template v-slot:item.CustomerName="{ item }">
-      {{
-        item.customerTitle.CustomerTitleID != 99
-          ? item.customerTitle.CustomerTitle
-          : ""
-      }}
-      {{ item.CustomerName }}
-      {{ item.CustomerSurname }}
-    </template>
-    <template v-slot:item.cars="{ item }">
-      <!-- {{ item.cars.length }} คัน -->
-      <v-chip
-        v-for="(car, index) in item.cars"
-        :key="index"
-        rounded="pill"
-        class="font-weight-bold"
-        :color="getRandomColor()"
-        size="small"
-        label
-      >
-        {{ car.CarTitle }}
-        {{ car.CarNumber }}
-        <v-tooltip activator="parent" location="top">
-          {{ car.CarTitle }}{{ car.CarNumber }}<br />
-          {{ car.province.name_th }}<br />
-          {{ car.brand.Brand }} ({{ car.model.Model }})<br />
-          หมายเลขตัวถัง : {{ car.VIN }}<br />
-          หมายเลขเครื่องยนต์ : {{ car.EC }}<br />
-        </v-tooltip>
-      </v-chip>
-    </template>
-    <template v-slot:item.actions="{ item }">
-      <div class="d-flex">
-        <div>
-          <v-btn size="small" @click="openDialogEditCustomer(item)">
-            <EditIcon class="text-success" size="18" />
-          </v-btn>
-          <v-tooltip activator="parent" location="top">แก้ไข</v-tooltip>
+  <div>
+    <v-row>
+      <v-col cols="12" md="9">
+        <v-text-field v-model="search" label="ค้นหา" prepend-inner-icon="mdi-magnify" />
+      </v-col>
+      <v-col cols="12" md="3">
+        <v-btn height="48" block color="secondary" variant="flat" dark @click="openDialogAddCustomer"
+          ><v-icon size="20">mdi-plus-circle-outline</v-icon>
+          <span class="hidden-sm-and-down">&nbsp;เพิ่มข้อมูลลูกค้า</span>
+        </v-btn>
+      </v-col>
+    </v-row>
+    <v-data-table class="border rounded-md" :search="search" :headers="headers" :items="customers" :sort-by="[{ key: 'CustomerID', order: 'desc' }]">
+      <template #[`item.CustomerName`]="{ item }">
+        {{ item.customerTitle.CustomerTitleID != 99 ? item.customerTitle.CustomerTitle : "" }}
+        {{ item.CustomerName }}
+        {{ item.CustomerSurname }}
+      </template>
+      <template #[`item.cars`]="{ item }">
+        <!-- {{ item.cars.length }} คัน -->
+        <v-chip v-for="(car, index) in item.cars" :key="index" rounded="pill" class="font-weight-bold" :color="getRandomColor()" size="small" label>
+          {{ car.CarTitle }}
+          {{ car.CarNumber }}
+          <v-tooltip activator="parent" location="top">
+            {{ car.CarTitle }}{{ car.CarNumber }}<br />
+            {{ car.province.name_th }}<br />
+            {{ car.brand.Brand }} ({{ car.model.Model }})<br />
+            หมายเลขตัวถัง : {{ car.VIN }}<br />
+            หมายเลขเครื่องยนต์ : {{ car.EC }}<br />
+          </v-tooltip>
+        </v-chip>
+      </template>
+      <template #[`item.actions`]="{ item }">
+        <div class="d-flex">
+          <div>
+            <v-btn size="small" @click="openDialogEditCustomer(item)">
+              <EditIcon class="text-success" size="18" />
+            </v-btn>
+            <v-tooltip activator="parent" location="top">แก้ไข</v-tooltip>
+          </div>
         </div>
-      </div>
-    </template>
-    <!-- <template v-slot:no-data>
+      </template>
+      <!-- <template v-slot:no-data>
       <v-btn color="primary" @click="initialize"> Reset </v-btn>
     </template> -->
-  </v-data-table>
-  <!-- Dialog Add Customer -->
-  <v-dialog
-    v-model="dialogAddCustomer"
-    class="dialog-mw"
-    style="max-width: 800px"
-    persistent
-  >
-    <v-card>
-      <v-card-title class="pa-4 bg-secondary">
-        <span class="text-h5">เพิ่มข้อมูลลูกค้า</span>
-      </v-card-title>
-      <v-card-text>
-        <v-row>
-          <v-col cols="12" md="4">
-            <v-select
-              :items="customerTitles"
-              v-model="customerDataSet.CustomerTitleID"
-              item-value="CustomerTitleID"
-              item-title="CustomerTitle"
-              label="คำนำหน้า"
-              hide-details
-            ></v-select>
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-text-field
-              label="ชื่อจริง"
-              v-model="customerDataSet.CustomerName"
-              hide-details
-            ></v-text-field>
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-text-field
-              label="นามสกุล"
-              v-model="customerDataSet.CustomerSurname"
-              hide-details
-            ></v-text-field>
-          </v-col>
+    </v-data-table>
+    <!-- Dialog Add Customer -->
+    <v-dialog v-model="dialogAddCustomer" class="dialog-mw" style="max-width: 800px" persistent>
+      <v-card>
+        <v-card-title class="pa-4 bg-secondary">
+          <span class="text-h5">เพิ่มข้อมูลลูกค้า</span>
+        </v-card-title>
+        <v-card-text>
+          <v-row>
+            <v-col cols="12" md="4">
+              <v-select
+                :items="customerTitles"
+                v-model="customerDataSet.CustomerTitleID"
+                item-value="CustomerTitleID"
+                item-title="CustomerTitle"
+                label="คำนำหน้า"
+                hide-details
+              ></v-select>
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-text-field label="ชื่อจริง" v-model="customerDataSet.CustomerName" hide-details></v-text-field>
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-text-field label="นามสกุล" v-model="customerDataSet.CustomerSurname" hide-details></v-text-field>
+            </v-col>
 
-          <v-col cols="12" md="6">
-            <v-text-field
-              label="รหัสประจำตัวประชาชน"
-              v-model="customerDataSet.IDNumber"
-              hide-details
-            ></v-text-field>
-          </v-col>
-          <v-col cols="12" md="6">
-            <v-text-field
-              label="เบอร์โทรศัพท์"
-              v-model="customerDataSet.CustomerTel"
-              hide-details
-            ></v-text-field>
-          </v-col>
-        </v-row>
-        <v-row>
-          <v-col cols="12" md="6">
-            <v-text-field
-              label="ที่อยู่บรรทัดที่ 1"
-              v-model="customerDataSet.address.Line1"
-              hide-details
-            ></v-text-field>
-          </v-col>
-          <v-col cols="12" md="6">
-            <v-text-field
-              label="ที่อยู่บรรทัดที่ 2"
-              v-model="customerDataSet.address.Line2"
-              hide-details
-            ></v-text-field>
-          </v-col>
-          <v-col cols="12" md="3">
-            <v-select
-              :items="provinces"
-              v-model="customerDataSet.address.ProvinceID"
-              item-value="ProvinceID"
-              item-title="name_th"
-              label="จังหวัด"
-              @update:modelValue="getDistrict"
-              hide-details
-            ></v-select>
-          </v-col>
-          <v-col cols="12" md="3">
-            <v-select
-              :items="districts"
-              v-model="customerDataSet.address.DistrictID"
-              item-value="DistrictID"
-              item-title="name_th"
-              label="เขต / ตำบล"
-              @update:modelValue="getSubDistrict"
-              hide-details
-            ></v-select>
-          </v-col>
-          <v-col cols="12" md="3">
-            <v-select
-              :items="subDistricts"
-              v-model="customerDataSet.address.SubDistrictID"
-              item-value="SubDistrictID"
-              item-title="name_th"
-              label="แขวง / อำเภอ"
-              @update:modelValue="setZipcode"
-              hide-details
-            ></v-select>
-          </v-col>
-          <v-col cols="12" md="3">
-            <v-text-field
-              v-model="customerDataSet.address.Zipcode"
-              label="รหัสไปรษณีย์"
-              readonly
-              hide-details
-            ></v-text-field>
-          </v-col>
-        </v-row>
-      </v-card-text>
-      <v-card-actions>
-        <v-btn color="info" block flat @click="submitAddCustomer"
-          >บันทึกข้อมูล</v-btn
-        >
-      </v-card-actions>
+            <v-col cols="12" md="6">
+              <v-text-field label="รหัสประจำตัวประชาชน" v-model="customerDataSet.IDNumber" hide-details></v-text-field>
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field label="เบอร์โทรศัพท์" v-model="customerDataSet.CustomerTel" hide-details></v-text-field>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col cols="12" md="6">
+              <v-text-field label="ที่อยู่บรรทัดที่ 1" v-model="customerDataSet.address.Line1" hide-details></v-text-field>
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field label="ที่อยู่บรรทัดที่ 2" v-model="customerDataSet.address.Line2" hide-details></v-text-field>
+            </v-col>
+            <v-col cols="12" md="3">
+              <v-select
+                :items="provinces"
+                v-model="customerDataSet.address.ProvinceID"
+                item-value="ProvinceID"
+                item-title="name_th"
+                label="จังหวัด"
+                @update:modelValue="getDistrict"
+                hide-details
+              ></v-select>
+            </v-col>
+            <v-col cols="12" md="3">
+              <v-select
+                :items="districts"
+                v-model="customerDataSet.address.DistrictID"
+                item-value="DistrictID"
+                item-title="name_th"
+                label="เขต / ตำบล"
+                @update:modelValue="getSubDistrict"
+                hide-details
+              ></v-select>
+            </v-col>
+            <v-col cols="12" md="3">
+              <v-select
+                :items="subDistricts"
+                v-model="customerDataSet.address.SubDistrictID"
+                item-value="SubDistrictID"
+                item-title="name_th"
+                label="แขวง / อำเภอ"
+                @update:modelValue="setZipcode"
+                hide-details
+              ></v-select>
+            </v-col>
+            <v-col cols="12" md="3">
+              <v-text-field v-model="customerDataSet.address.Zipcode" label="รหัสไปรษณีย์" readonly hide-details></v-text-field>
+            </v-col>
+          </v-row>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="info" block flat @click="submitAddCustomer">บันทึกข้อมูล</v-btn>
+        </v-card-actions>
 
-      <v-card-actions>
-        <v-col class="align-center"
-          ><v-btn color="error" @click="closeDialogAddCustomer" flat block
-            >ปิดหน้าต่าง</v-btn
-          ></v-col
-        >
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-  <!-- Dialog Add Customer -->
-  <!-- Dialog Edit Customer -->
-  <v-dialog
-    v-model="dialogEditCustomer"
-    class="dialog-mw"
-    style="max-width: 800px"
-    persistent
-  >
-    <v-card>
-      <v-card-title class="pa-4 bg-secondary">
-        <span class="text-h5">แก้ไขข้อมูลลูกค้า</span>
-      </v-card-title>
-      <v-card-text>
-        <v-row>
-          <v-col cols="12" md="4">
-            <v-select
-              :items="customerTitles"
-              v-model="customerDataSet.CustomerTitleID"
-              item-value="CustomerTitleID"
-              item-title="CustomerTitle"
-              label="ประเภทคู่ค้า"
-              hide-details
-            ></v-select>
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-text-field
-              label="ชื่อจริง"
-              v-model="customerDataSet.CustomerName"
-              hide-details
-            ></v-text-field>
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-text-field
-              label="ชื่อคู่ค้า"
-              v-model="customerDataSet.CustomerSurname"
-              hide-details
-            ></v-text-field>
-          </v-col>
+        <v-card-actions>
+          <v-col class="align-center"><v-btn color="error" @click="closeDialogAddCustomer" flat block>ปิดหน้าต่าง</v-btn></v-col>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <!-- Dialog Add Customer -->
+    <!-- Dialog Edit Customer -->
+    <v-dialog v-model="dialogEditCustomer" class="dialog-mw" style="max-width: 800px" persistent>
+      <v-card>
+        <v-card-title class="pa-4 bg-secondary">
+          <span class="text-h5">แก้ไขข้อมูลลูกค้า</span>
+        </v-card-title>
+        <v-card-text>
+          <v-row>
+            <v-col cols="12" md="4">
+              <v-select
+                :items="customerTitles"
+                v-model="customerDataSet.CustomerTitleID"
+                item-value="CustomerTitleID"
+                item-title="CustomerTitle"
+                label="ประเภทคู่ค้า"
+                hide-details
+              ></v-select>
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-text-field label="ชื่อจริง" v-model="customerDataSet.CustomerName" hide-details></v-text-field>
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-text-field label="ชื่อคู่ค้า" v-model="customerDataSet.CustomerSurname" hide-details></v-text-field>
+            </v-col>
 
-          <v-col cols="12" md="6">
-            <v-text-field
-              label="รหัสประจำตัวประชาชน"
-              v-model="customerDataSet.IDNumber"
-              hide-details
-            ></v-text-field>
-          </v-col>
-          <v-col cols="12" md="6">
-            <v-text-field
-              label="เบอร์โทรศัพท์"
-              v-model="customerDataSet.CustomerTel"
-              hide-details
-            ></v-text-field>
-          </v-col>
-        </v-row>
-        <v-row>
-          <v-col>
-            <v-btn
-              color="primary"
-              variant="outlined"
-              @click="openDialogAddAddress"
-            >
-              <v-icon size="20">mdi-plus-circle-outline</v-icon>
-              <span class="hidden-sm-and-down">&nbsp;เพิ่มที่อยู่</span>
-            </v-btn>
-          </v-col>
-        </v-row>
-        <v-row>
-          <v-col
-            cols="12"
-            md="6"
-            v-for="(address, index) in customerDataSet.addresses"
-          >
-            <v-card class="mx-auto" color="lightinfo">
-              <v-card-text style="height: 80px">
-                <div>
-                  {{ address.Line1 }}<br />
-                  {{ address.Line2 }}
-                </div>
+            <v-col cols="12" md="6">
+              <v-text-field label="รหัสประจำตัวประชาชน" v-model="customerDataSet.IDNumber" hide-details></v-text-field>
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field label="เบอร์โทรศัพท์" v-model="customerDataSet.CustomerTel" hide-details></v-text-field>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col>
+              <v-btn color="primary" variant="outlined" @click="openDialogAddAddress">
+                <v-icon size="20">mdi-plus-circle-outline</v-icon>
+                <span class="hidden-sm-and-down">&nbsp;เพิ่มที่อยู่</span>
+              </v-btn>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col cols="12" md="6" v-for="(address, index) in customerDataSet.addresses" :key="index">
+              <v-card class="mx-auto" color="lightinfo">
+                <v-card-text style="height: 80px">
+                  <div>
+                    {{ address.Line1 }}<br />
+                    {{ address.Line2 }}
+                  </div>
 
-                <div>
-                  {{ address.subDistrict.name_th }}
-                  {{ address.district.name_th }}
-                  {{ address.province.name_th }} ,
-                  {{ address.subDistrict.Zipcode }}
-                </div>
-              </v-card-text>
+                  <div>
+                    {{ address.subDistrict.name_th }}
+                    {{ address.district.name_th }}
+                    {{ address.province.name_th }} ,
+                    {{ address.subDistrict.Zipcode }}
+                  </div>
+                </v-card-text>
 
-              <v-card-actions>
-                <v-btn
-                  color="error"
-                  text="ลบ"
-                  @click="deleteAddress(address.AddressID)"
-                ></v-btn>
-                <v-spacer></v-spacer>
-                <v-btn
-                  v-if="address.IsDefault"
-                  color="primary"
-                  text="ค่าเริ่มต้น"
-                  variant="flat"
-                ></v-btn>
-                <v-btn
-                  v-else
-                  color="primary"
-                  text="ตั้งเป็นค่าเริ่มต้น"
-                  @click="changeDefaultAddress(address.AddressID)"
-                ></v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-col>
-        </v-row>
-      </v-card-text>
-      <v-card-actions>
-        <v-btn color="info" block flat @click="submitEditCustomer"
-          >บันทึกข้อมูล</v-btn
-        >
-      </v-card-actions>
-      <v-card-actions>
-        <v-btn color="error" @click="closeDialogEditCustomer" block flat
-          >ปิดหน้าต่าง</v-btn
-        >
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-  <!-- Dialog Edit Customer -->
-  <!-- Dialog Add Address -->
-  <v-dialog
-    v-model="dialogAddAddress"
-    class="dialog-mw"
-    style="max-width: 800px"
-    persistent
-  >
-    <v-card>
-      <v-card-text>
-        <v-row>
-          <v-col cols="12" md="6">
-            <v-text-field
-              label="ที่อยู่บรรทัดที่ 1"
-              v-model="customerDataSet.address.Line1"
-              hide-details
-            ></v-text-field>
-          </v-col>
-          <v-col cols="12" md="6">
-            <v-text-field
-              label="ที่อยู่บรรทัดที่ 2"
-              v-model="customerDataSet.address.Line2"
-              hide-details
-            ></v-text-field>
-          </v-col>
-          <v-col cols="12" md="3">
-            <v-select
-              :items="provinces"
-              v-model="customerDataSet.address.ProvinceID"
-              item-value="ProvinceID"
-              item-title="name_th"
-              label="จังหวัด"
-              @update:modelValue="getDistrict"
-              hide-details
-            ></v-select>
-          </v-col>
-          <v-col cols="12" md="3">
-            <v-select
-              :items="districts"
-              v-model="customerDataSet.address.DistrictID"
-              item-value="DistrictID"
-              item-title="name_th"
-              label="เขต / ตำบล"
-              @update:modelValue="getSubDistrict"
-              hide-details
-            ></v-select>
-          </v-col>
-          <v-col cols="12" md="3">
-            <v-select
-              :items="subDistricts"
-              v-model="customerDataSet.address.SubDistrictID"
-              item-value="SubDistrictID"
-              item-title="name_th"
-              label="แขวง / อำเภอ"
-              @update:modelValue="setZipcode"
-              hide-details
-            ></v-select>
-          </v-col>
-          <v-col cols="12" md="3">
-            <v-text-field
-              v-model="customerDataSet.address.Zipcode"
-              label="รหัสไปรษณีย์"
-              readonly
-              hide-details
-            ></v-text-field>
-          </v-col>
-        </v-row>
-      </v-card-text>
-      <v-card-actions>
-        <v-btn color="info" block flat @click="submitAddAddress"
-          >บันทึกข้อมูล</v-btn
-        >
-      </v-card-actions>
-      <v-card-actions>
-        <v-btn color="error" @click="closeDialogAddAddress" block flat
-          >ปิดหน้าต่าง</v-btn
-        >
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-  <!-- Dialog Add Address -->
+                <v-card-actions>
+                  <v-btn color="error" text="ลบ" @click="deleteAddress(address.AddressID)"></v-btn>
+                  <v-spacer></v-spacer>
+                  <v-btn v-if="address.IsDefault" color="primary" text="ค่าเริ่มต้น" variant="flat"></v-btn>
+                  <v-btn v-else color="primary" text="ตั้งเป็นค่าเริ่มต้น" @click="changeDefaultAddress(address.AddressID)"></v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-col>
+          </v-row>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="info" block flat @click="submitEditCustomer">บันทึกข้อมูล</v-btn>
+        </v-card-actions>
+        <v-card-actions>
+          <v-btn color="error" @click="closeDialogEditCustomer" block flat>ปิดหน้าต่าง</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <!-- Dialog Edit Customer -->
+    <!-- Dialog Add Address -->
+    <v-dialog v-model="dialogAddAddress" class="dialog-mw" style="max-width: 800px" persistent>
+      <v-card>
+        <v-card-text>
+          <v-row>
+            <v-col cols="12" md="6">
+              <v-text-field label="ที่อยู่บรรทัดที่ 1" v-model="customerDataSet.address.Line1" hide-details></v-text-field>
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field label="ที่อยู่บรรทัดที่ 2" v-model="customerDataSet.address.Line2" hide-details></v-text-field>
+            </v-col>
+            <v-col cols="12" md="3">
+              <v-select
+                :items="provinces"
+                v-model="customerDataSet.address.ProvinceID"
+                item-value="ProvinceID"
+                item-title="name_th"
+                label="จังหวัด"
+                @update:modelValue="getDistrict"
+                hide-details
+              ></v-select>
+            </v-col>
+            <v-col cols="12" md="3">
+              <v-select
+                :items="districts"
+                v-model="customerDataSet.address.DistrictID"
+                item-value="DistrictID"
+                item-title="name_th"
+                label="เขต / ตำบล"
+                @update:modelValue="getSubDistrict"
+                hide-details
+              ></v-select>
+            </v-col>
+            <v-col cols="12" md="3">
+              <v-select
+                :items="subDistricts"
+                v-model="customerDataSet.address.SubDistrictID"
+                item-value="SubDistrictID"
+                item-title="name_th"
+                label="แขวง / อำเภอ"
+                @update:modelValue="setZipcode"
+                hide-details
+              ></v-select>
+            </v-col>
+            <v-col cols="12" md="3">
+              <v-text-field v-model="customerDataSet.address.Zipcode" label="รหัสไปรษณีย์" readonly hide-details></v-text-field>
+            </v-col>
+          </v-row>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="info" block flat @click="submitAddAddress">บันทึกข้อมูล</v-btn>
+        </v-card-actions>
+        <v-card-actions>
+          <v-btn color="error" @click="closeDialogAddAddress" block flat>ปิดหน้าต่าง</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <!-- Dialog Add Address -->
+  </div>
 </template>

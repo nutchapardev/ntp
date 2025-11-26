@@ -88,71 +88,72 @@ export default {
 </script>
 
 <template>
-  <div v-if="allowcates.length == 0" class="text-center">
-    <span>ไม่พบรายการอุปกรณ์ที่ต้องจัดสรร</span>
-  </div>
-  <v-row v-else>
-    <v-col cols="6" md="4" v-for="(item, index) in allowcates" :key="index">
-      <v-card color="primary" variant="tonal" class="mx-auto" elevation="10">
-        <v-card-item>
-          <div>
-            <div class="text-overline mb-1">
-              {{ item.car.CarTitle }}{{ item.car.CarNumber }}
-              {{ item.car.province.name_th }}
-            </div>
-            <div class="text-h6 mb-1">{{ item.car.brand.Brand }} {{ item.car.model.Model }}</div>
-            <div class="text-caption">
-              {{ item.customer.customerTitle.CustomerTitle }}
-              {{ item.customer.CustomerName }}
-              {{ item.customer.CustomerSurname }}
-            </div>
-          </div>
-        </v-card-item>
-
-        <v-card-actions>
-          <!-- <v-btn> Button </v-btn> -->
-          <span class="ml-3" style="font-size: 12px">{{ formatDateTime(item.updatedAt) }}</span>
-          <v-spacer />
-          <v-btn class="mr-2" @click="showDialogAllowcateDetail(item)"> รายละเอียด </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-col>
-  </v-row>
-  <!-- Dialog Show Allocate Section -->
-  <v-dialog v-model="dialogShowAllowcateDetail" class="dialog-mw" style="max-width: 900px" persistent>
-    <v-card>
-      <v-card-title class="pa-4 bg-secondary">
-        <span class="text-h5">อุปกรณ์ที่ต้องจัดสรร</span>
-      </v-card-title>
-      <v-card-text>
-        <div v-for="(al, i) in allowcateDetail" :key="i" class="mb-2">
-          <v-card color="lightsuccess">
-            <v-card-text>
-              <div class="mb-3">
-                <span> {{ i + 1 }}. {{ al.preset.Preset }} </span>
+  <div>
+    <div v-if="allowcates.length == 0" class="text-center">
+      <span>ไม่พบรายการอุปกรณ์ที่ต้องจัดสรร</span>
+    </div>
+    <v-row v-else>
+      <v-col cols="6" md="4" v-for="(item, index) in allowcates" :key="index">
+        <v-card color="primary" variant="tonal" class="mx-auto" elevation="10">
+          <v-card-item>
+            <div>
+              <div class="text-overline mb-1">
+                {{ item.car.CarTitle }}{{ item.car.CarNumber }}
+                {{ item.car.province.name_th }}
               </div>
-              <v-table class="border rounded-md" density="compact">
-                <template v-slot:default>
-                  <thead>
-                    <tr>
-                      <th class="text-center">ลำดับ</th>
-                      <th class="text-center">รหัสอุปกรณ์</th>
-                      <th class="text-center">ชื่ออุปกรณ์</th>
-                      <th class="text-end">จำนวนที่ใช้</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="(p, index) in al.repairParts" :key="index">
-                      <td class="text-center">{{ index + 1 }}.</td>
-                      <td>{{ p.part.PartNumber }}</td>
-                      <td>{{ p.part.PartName_th }}</td>
-                      <td class="text-end">{{ p.NumOfUse }} {{ p.part.unit.Unit }}</td>
-                      <!-- <td class="text-end">{{ item.part.PartAmount }}</td> -->
-                    </tr>
-                  </tbody>
-                </template>
-              </v-table>
-              <!-- <v-row v-for="p in al.repairParts" :key="p.RepairPartID">
+              <div class="text-h6 mb-1">{{ item.car.brand.Brand }} {{ item.car.model.Model }}</div>
+              <div class="text-caption">
+                {{ item.customer.customerTitle.CustomerTitle }}
+                {{ item.customer.CustomerName }}
+                {{ item.customer.CustomerSurname }}
+              </div>
+            </div>
+          </v-card-item>
+
+          <v-card-actions>
+            <!-- <v-btn> Button </v-btn> -->
+            <span class="ml-3" style="font-size: 12px">{{ formatDateTime(item.updatedAt) }}</span>
+            <v-spacer />
+            <v-btn class="mr-2" @click="showDialogAllowcateDetail(item)"> รายละเอียด </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-col>
+    </v-row>
+    <!-- Dialog Show Allocate Section -->
+    <v-dialog v-model="dialogShowAllowcateDetail" class="dialog-mw" style="max-width: 900px" persistent>
+      <v-card>
+        <v-card-title class="pa-4 bg-secondary">
+          <span class="text-h5">อุปกรณ์ที่ต้องจัดสรร</span>
+        </v-card-title>
+        <v-card-text>
+          <div v-for="(al, i) in allowcateDetail" :key="i" class="mb-2">
+            <v-card color="lightsuccess">
+              <v-card-text>
+                <div class="mb-3">
+                  <span> {{ i + 1 }}. {{ al.preset.Preset }} </span>
+                </div>
+                <v-table class="border rounded-md" density="compact">
+                  <template v-slot:default>
+                    <thead>
+                      <tr>
+                        <th class="text-center">ลำดับ</th>
+                        <th class="text-center">รหัสอุปกรณ์</th>
+                        <th class="text-center">ชื่ออุปกรณ์</th>
+                        <th class="text-end">จำนวนที่ใช้</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(p, index) in al.repairParts" :key="index">
+                        <td class="text-center">{{ index + 1 }}.</td>
+                        <td>{{ p.part.PartNumber }}</td>
+                        <td>{{ p.part.PartName_th }}</td>
+                        <td class="text-end">{{ p.NumOfUse }} {{ p.part.unit.Unit }}</td>
+                        <!-- <td class="text-end">{{ item.part.PartAmount }}</td> -->
+                      </tr>
+                    </tbody>
+                  </template>
+                </v-table>
+                <!-- <v-row v-for="p in al.repairParts" :key="p.RepairPartID">
                 <v-col>{{ p.part.PartNumber }}</v-col>
                 <v-col>{{ p.part.PartName_th }}</v-col>
                 <v-col class="text-end">x</v-col>
@@ -160,22 +161,23 @@ export default {
                   >{{ p.NumOfUse }} {{ p.part.unit.Unit }}</v-col
                 >
               </v-row> -->
-            </v-card-text>
-          </v-card>
-        </div>
-      </v-card-text>
-      <!-- <hr /> -->
-      <v-card-actions>
-        <v-btn color="error" @click="closeDialogAllowcateDetail" flat>ปิดหน้าต่าง</v-btn>
-        <v-spacer></v-spacer>
-        <v-btn color="primary" @click="saveSubmitAllowcate" flat variant="tonal">จัดสรรอุปกรณ์แล้ว</v-btn>
-      </v-card-actions>
-      <!-- <v-card-actions>
+              </v-card-text>
+            </v-card>
+          </div>
+        </v-card-text>
+        <!-- <hr /> -->
+        <v-card-actions>
+          <v-btn color="error" @click="closeDialogAllowcateDetail" flat>ปิดหน้าต่าง</v-btn>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" @click="saveSubmitAllowcate" flat variant="tonal">จัดสรรอุปกรณ์แล้ว</v-btn>
+        </v-card-actions>
+        <!-- <v-card-actions>
         <v-btn color="error" @click="closeDialogAllowcateDetail" block flat
           >ปิดหน้าต่าง</v-btn
         >
       </v-card-actions> -->
-    </v-card>
-  </v-dialog>
-  <!-- Dialog Show Allocate Section -->
+      </v-card>
+    </v-dialog>
+    <!-- Dialog Show Allocate Section -->
+  </div>
 </template>
